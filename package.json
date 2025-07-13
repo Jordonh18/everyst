@@ -22,7 +22,7 @@
     "dagre": "^0.8.5",
     "express": "^5.1.0",
     "framer-motion": "^12.10.0",
-    "lucide-react": "^0.507.0",
+    "lucide-react": "^0.522.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.30.0",
