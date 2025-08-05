@@ -84,17 +84,20 @@ class RegisterView(APIView):
             ApplicationLog.log_activity(
                 user=user,  # The newly created user is the actor
                 action='user_create',
+                category='user',
+                severity='info',
                 ip_address=ip_address,
                 user_agent=user_agent,
-                object_type='User',
+                object_type='user',
                 object_id=str(user.id),
                 object_name=user.username,
                 details={
-                    'message': f'First user {user.username} registered as system owner',
+                    'message': f'New user registered: {user.username} ({user.first_name} {user.last_name}) - {"System owner" if is_first_user else "Standard user"}',
                     'is_first_user': is_first_user,
-                    'role': user.role.name if user.role else 'user'
-                },
-                severity='info'
+                    'role': user.role.name if user.role else 'user',
+                    'email': user.email,
+                    'registration_type': 'first_user_setup' if is_first_user else 'standard_registration'
+                }
             )
                 
             refresh = RefreshToken.for_user(user)

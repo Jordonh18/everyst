@@ -53,7 +53,12 @@ class LogoutView(APIView):
                     ip_address=self._get_client_ip(request),
                     user_agent=request.META.get('HTTP_USER_AGENT', ''),
                     object_type='session',
-                    details={'error': 'Refresh token is required'}
+                    object_name=request.user.username,
+                    details={
+                        'message': f'Logout failed: No refresh token provided for {request.user.username}',
+                        'error': 'Refresh token is required',
+                        'username': request.user.username
+                    }
                 )
                 
                 return Response(
@@ -74,7 +79,12 @@ class LogoutView(APIView):
                 ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 object_type='session',
-                details={'method': 'single_device'}
+                object_name=request.user.username,
+                details={
+                    'message': f'User logged out successfully: {request.user.username}',
+                    'method': 'single_device',
+                    'username': request.user.username
+                }
             )
             
             # Log the logout event
@@ -95,7 +105,13 @@ class LogoutView(APIView):
                 ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 object_type='session',
-                details={'error': str(e)}
+                object_name=request.user.username,
+                details={
+                    'message': f'Logout failed: Token error for {request.user.username}',
+                    'error': str(e),
+                    'username': request.user.username,
+                    'reason': 'Invalid or already blacklisted token'
+                }
             )
             
             logger.error(f"Logout failed for user {request.user.username}: {str(e)}")
@@ -144,10 +160,13 @@ class LogoutAllView(APIView):
                 ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 object_type='session',
+                object_name=request.user.username,
                 details={
+                    'message': f'User logged out from all devices: {request.user.username}',
                     'method': 'all_devices',
                     'tokens_blacklisted': blacklisted_count,
-                    'total_tokens': tokens.count()
+                    'total_tokens': tokens.count(),
+                    'username': request.user.username
                 }
             )
             
@@ -169,7 +188,13 @@ class LogoutAllView(APIView):
                 ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 object_type='session',
-                details={'error': str(e)}
+                object_name=request.user.username,
+                details={
+                    'message': f'Logout from all devices failed: {request.user.username}',
+                    'error': str(e),
+                    'username': request.user.username,
+                    'reason': 'System error during token blacklisting'
+                }
             )
             
             logger.error(f"Logout from all devices failed for user {request.user.username}: {str(e)}")

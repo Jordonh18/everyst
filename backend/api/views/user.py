@@ -106,13 +106,19 @@ class UserViewSet(viewsets.ModelViewSet):
         ApplicationLog.log_activity(
             user=self.request.user,
             action='user_create',
+            category='user',
+            severity='info',
             ip_address=ip_address,
             user_agent=user_agent,
-            object_type='User',
+            object_type='user',
             object_id=str(user.id),
             object_name=user.username,
-            details={'message': f'User {user.username} created by {self.request.user.username}.'},
-            severity='info'
+            details={
+                'message': f'New user created: {user.username} ({user.first_name} {user.last_name})',
+                'created_by': self.request.user.username,
+                'user_role': user.role.name if user.role else 'No role assigned',
+                'user_email': user.email
+            }
         )
 
     def perform_update(self, serializer):
@@ -125,13 +131,18 @@ class UserViewSet(viewsets.ModelViewSet):
         ApplicationLog.log_activity(
             user=self.request.user,
             action='user_update',
+            category='user',
+            severity='info',
             ip_address=ip_address,
             user_agent=user_agent,
-            object_type='User',
+            object_type='user',
             object_id=str(user.id),
             object_name=user.username,
-            details={'message': f'User {user.username} updated by {self.request.user.username}.'},
-            severity='info'
+            details={
+                'message': f'User profile updated: {user.username} ({user.first_name} {user.last_name})',
+                'updated_by': self.request.user.username,
+                'current_role': user.role.name if user.role else 'No role assigned'
+            }
         )
 
     def perform_destroy(self, instance):
@@ -142,13 +153,19 @@ class UserViewSet(viewsets.ModelViewSet):
         ApplicationLog.log_activity(
             user=self.request.user,
             action='user_delete',
+            category='user',
+            severity='warning',
             ip_address=ip_address,
             user_agent=user_agent,
-            object_type='User',
+            object_type='user',
             object_id=str(instance.id),
             object_name=instance.username,
-            details={'message': f'User {instance.username} deleted by {self.request.user.username}.'},
-            severity='warning'
+            details={
+                'message': f'User account deleted: {instance.username} ({instance.first_name} {instance.last_name})',
+                'deleted_by': self.request.user.username,
+                'deleted_user_role': instance.role.name if instance.role else 'No role assigned',
+                'deleted_user_email': instance.email
+            }
         )
         instance.delete()
 
@@ -228,13 +245,20 @@ class UserViewSet(viewsets.ModelViewSet):
             ApplicationLog.log_activity(
                 user=request.user,
                 action='user_role_change',
+                category='user',
+                severity='info',
                 ip_address=self._get_client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                object_type='User',
+                object_type='user',
                 object_id=str(user.id),
                 object_name=user.username,
-                details={'message': f'Role changed for user {user.username} to {role.name}.'},
-                severity='info'
+                details={
+                    'message': f'Role changed: {user.username} assigned role {role.name}',
+                    'changed_by': request.user.username,
+                    'previous_role': user.role.name if user.role else 'No role',
+                    'new_role': role.name,
+                    'target_user': user.username
+                }
             )
             
             # Return updated user data

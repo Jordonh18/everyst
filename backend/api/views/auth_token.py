@@ -34,6 +34,24 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
         # Check if the account is locked
         is_locked, unlock_time = LoginAttempt.is_account_locked(username, ip_address)
         if is_locked:
+            # Log the locked account attempt
+            ApplicationLog.log_activity(
+                user=None,
+                action='auth_failed',
+                category='security',
+                severity='warning',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                object_type='user_account',
+                object_name=username,
+                details={
+                    'message': f'Login blocked: Account {username} is temporarily locked due to multiple failed attempts',
+                    'reason': 'Account temporarily locked',
+                    'unlock_time': unlock_time.isoformat(),
+                    'attempted_username': username
+                }
+            )
+            
             # Calculate time remaining in minutes
             time_remaining = int((unlock_time - timezone.now()).total_seconds() / 60) + 1
             return Response(
@@ -139,14 +157,18 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
             ApplicationLog.log_activity(
                 user=None,  # Failed login - no user object
                 action='auth_failed',
+                category='authentication',
+                severity='error',
                 ip_address=ip_address,
                 user_agent=user_agent,
+                object_type='user_session',
+                object_name=username,
                 details={
-                    'message': f'Failed login attempt for username: {username}',
+                    'message': f'Login error: System error during authentication for {username}',
                     'error': str(e),
-                    'attempted_username': username
-                },
-                severity='error'
+                    'attempted_username': username,
+                    'reason': 'System validation error'
+                }
             )
             
             # Pass through the original error
