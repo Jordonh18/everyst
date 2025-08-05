@@ -719,21 +719,62 @@ export const SummitDashboard: React.FC = () => {
           
           <Card title="System Uptime" isLoading={isLoading}>
             {metrics.uptime ? (
-              <div className="flex items-center">
-                <Activity className="mr-3 text-[rgb(var(--color-primary))]" size={24} />
-                <div>
-                  <div className="text-lg font-medium">{metrics.uptime.percentage}% Uptime</div>
-                  <div className="text-sm text-[rgb(var(--color-text-secondary))]">
-                    {metrics.uptime.duration ? `Server running for ${metrics.uptime.duration}` : 'Uptime data unavailable'}
+              <>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <Activity className="mr-3 text-[rgb(var(--color-primary))]" size={24} />
+                    <div>
+                      <div className="text-lg font-medium">{metrics.uptime.percentage}% SLA</div>
+                      <div className="text-sm text-[rgb(var(--color-text-secondary))]">
+                        {metrics.uptime.duration ? `Current session: ${metrics.uptime.duration}` : 'Uptime data unavailable'}
+                      </div>
+                    </div>
+                  </div>
+                  <StatusPill 
+                    status={metrics.uptime.percentage >= 99.9 ? 'success' : metrics.uptime.percentage >= 99.0 ? 'warning' : 'error'} 
+                    text={`${metrics.uptime.percentage}%`}
+                    size="sm" 
+                  />
+                </div>
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-[rgb(var(--color-text-secondary))] mb-1">
+                    <span>Annual uptime target: 99.9%</span>
+                    <span>Actual: {metrics.uptime.percentage}%</span>
+                  </div>
+                  <div className="h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                    <motion.div 
+                      className={`h-full ${
+                        metrics.uptime.percentage >= 99.9 
+                          ? 'bg-green-500' 
+                          : metrics.uptime.percentage >= 99.0 
+                            ? 'bg-yellow-500' 
+                            : 'bg-red-500'
+                      }`}
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${Math.min(100, metrics.uptime.percentage)}%` }} 
+                      transition={{ duration: 0.5 }}
+                    ></motion.div>
                   </div>
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center">
-                <Skeleton className="h-6 w-6 mr-3 rounded" />
-                <div className="space-y-2 w-full">
-                  <Skeleton className="h-6 w-1/3" />
-                  <Skeleton className="h-4 w-2/3" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Skeleton className="h-6 w-6 mr-3 rounded" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-20" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-12 rounded-full" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
                 </div>
               </div>
             )}

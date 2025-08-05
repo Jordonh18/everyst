@@ -5,7 +5,9 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+import logging
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 @receiver(pre_save, sender=User)
