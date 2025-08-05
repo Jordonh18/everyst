@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import TokenRefreshView as OriginalTokenRefr
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from api.models.auth_security import LoginAttempt
+from api.models.activity import ApplicationLog
 from api.utils.auth import should_change_password
 
 User = get_user_model()
@@ -57,11 +58,30 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 was_successful=True
             )
             
+            # Log successful login to ApplicationLog
+            user = User.objects.filter(username=username).first()
+            if user:
+                ApplicationLog.log_activity(
+                    user=user,
+                    action='login_success',
+                    category='authentication',
+                    severity='info',
+                    ip_address=ip_address,
+                    user_agent=user_agent,
+                    object_type='user_session',
+                    object_name=username,
+                    details={
+                        'message': f'User {username} logged in successfully',
+                        'login_method': 'JWT',
+                        'user_id': str(user.id),
+                        'timestamp': timezone.now().isoformat()
+                    }
+                )
+            
             # Get the validated data
             response_data = serializer.validated_data
             
             # Update the user's last login IP if possible
-            user = User.objects.filter(username=username).first()
             if user and hasattr(user, 'last_login_ip'):
                 user.last_login_ip = ip_address
                 user.save(update_fields=['last_login_ip'])
@@ -86,6 +106,24 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 was_successful=False
             )
             
+            # Log failed login to ApplicationLog
+            ApplicationLog.log_activity(
+                user=None,  # Failed login - no user object
+                action='auth_failed',
+                category='authentication',
+                severity='warning',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                object_type='user_session',
+                object_name=username,
+                details={
+                    'message': f'Authentication failed: Invalid credentials for {username}',
+                    'error': str(e),
+                    'attempted_username': username,
+                    'reason': 'Invalid username or password'
+                }
+            )
+            
             # Return error response
             return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
@@ -95,6 +133,20 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 ip_address=ip_address,
                 user_agent=user_agent,
                 was_successful=False
+            )
+            
+            # Log failed login to ApplicationLog
+            ApplicationLog.log_activity(
+                user=None,  # Failed login - no user object
+                action='auth_failed',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                details={
+                    'message': f'Failed login attempt for username: {username}',
+                    'error': str(e),
+                    'attempted_username': username
+                },
+                severity='error'
             )
             
             # Pass through the original error

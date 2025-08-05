@@ -3,11 +3,9 @@ import { Panel } from '../../components/ui/Panel';
 import { Button } from '../../components/ui';
 import { 
   Search, 
-  Filter,
   RefreshCw,
   Clock,
   AlertCircle,
-  Download,
   FileDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -19,7 +17,7 @@ const getApiUrl = () => {
   return '/api';
 };
 
-// Activity log entry type
+// Activity log entry type - matches backend ApplicationLog model
 interface ActivityLog {
   id: string;
   timestamp: string;
@@ -29,18 +27,22 @@ interface ActivityLog {
     first_name?: string;
     last_name?: string;
   } | null;
+  category: string;
   action: string;
-  resource_type: string;
-  resource_id?: string;
-  description: string;
   ip_address: string;
-  level: 'INFO' | 'WARNING' | 'ERROR' | 'DEBUG';
-  metadata?: Record<string, any>;
+  user_agent?: string;
+  details: Record<string, unknown>;
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  object_type?: string;
+  object_id?: string;
+  object_name?: string;
+  retention_days: number;
 }
 
-// Level badge with appropriate color based on log level
-const LevelBadge: React.FC<{ level: string }> = ({ level }) => {
-  const levelStyles: Record<string, { bg: string, text: string }> = {
+// Level badge with appropriate color based on log severity
+const SeverityBadge: React.FC<{ severity: string }> = ({ severity }) => {
+  const upperSeverity = severity.toUpperCase();
+  const severityStyles: Record<string, { bg: string, text: string }> = {
     'INFO': { 
       bg: 'bg-[rgb(var(--color-status-info-bg))]', 
       text: 'text-[rgb(var(--color-status-info-text))]' 
@@ -53,17 +55,17 @@ const LevelBadge: React.FC<{ level: string }> = ({ level }) => {
       bg: 'bg-[rgb(var(--color-status-error-bg))]', 
       text: 'text-[rgb(var(--color-status-error-text))]' 
     },
-    'DEBUG': { 
-      bg: 'bg-[rgb(var(--color-status-inactive-bg))]', 
-      text: 'text-[rgb(var(--color-status-inactive-text))]' 
+    'CRITICAL': { 
+      bg: 'bg-[rgb(var(--color-status-error-bg))]', 
+      text: 'text-[rgb(var(--color-status-error-text))]' 
     }
   };
 
-  const { bg, text } = levelStyles[level] || levelStyles['INFO'];
+  const { bg, text } = severityStyles[upperSeverity] || severityStyles['INFO'];
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bg} ${text}`}>
-      {level}
+      {upperSeverity}
     </span>
   );
 };
@@ -102,7 +104,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [page, setPage] = useState<number>(1);
@@ -110,12 +112,12 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   const [uniqueActions, setUniqueActions] = useState<string[]>([]);
 
   // Calculate date range options
-  const dateRanges = {
+  const dateRanges = useMemo(() => ({
     'all': { label: 'All Time' },
     '24h': { label: 'Last 24 hours', value: 24 * 60 * 60 * 1000 },
     '7d': { label: 'Last 7 days', value: 7 * 24 * 60 * 60 * 1000 },
     '30d': { label: 'Last 30 days', value: 30 * 24 * 60 * 60 * 1000 },
-  };
+  }), []);
 
   // Fetch activity logs
   useEffect(() => {
@@ -135,8 +137,8 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
           params.append('search', searchTerm);
         }
         
-        if (levelFilter !== 'all') {
-          params.append('level', levelFilter);
+        if (severityFilter !== 'all') {
+          params.append('severity', severityFilter);
         }
         
         if (actionFilter !== 'all') {
@@ -145,8 +147,11 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
         
         if (dateFilter !== 'all') {
           const now = new Date();
-          const pastDate = new Date(now.getTime() - (dateRanges[dateFilter as keyof typeof dateRanges]?.value || 0));
-          params.append('timestamp_after', pastDate.toISOString());
+          const range = dateRanges[dateFilter as keyof typeof dateRanges];
+          if (range && 'value' in range) {
+            const pastDate = new Date(now.getTime() - range.value);
+            params.append('timestamp_after', pastDate.toISOString());
+          }
         }
         
         const response = await fetch(`${getApiUrl()}/activity-logs/?${params.toString()}`, {
@@ -214,7 +219,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
     };
     
     fetchData();
-  }, [getAccessToken, sendUserNotification, currentUser, page, searchTerm, levelFilter, actionFilter, dateFilter]);
+  }, [getAccessToken, sendUserNotification, currentUser, page, searchTerm, severityFilter, actionFilter, dateFilter, dateRanges]);
   
   // Filtered logs based on search term (client-side filtering as backup)
   const filteredLogs = useMemo(() => {
@@ -224,7 +229,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   // Handle resetting filters
   const resetFilters = () => {
     setSearchTerm('');
-    setLevelFilter('all');
+    setSeverityFilter('all');
     setActionFilter('all');
     setDateFilter('all');
     setPage(1);
@@ -253,23 +258,26 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
       }
       
       // Define CSV headers
-      const headers = ['ID', 'Timestamp', 'User', 'Action', 'Resource Type', 'Resource ID', 'Description', 'IP Address', 'Level'];
+      const headers = ['ID', 'Timestamp', 'User', 'Action', 'Category', 'Object Type', 'Object ID', 'Object Name', 'IP Address', 'Severity'];
       
       // Convert logs to CSV rows
       const csvRows = [headers.join(',')];
       
       logs.forEach(log => {
         const username = log.user ? log.user.username : 'System';
+        const description = (log.details?.message as string) || 'No description';
         const row = [
           log.id,
           log.timestamp,
           username,
           log.action,
-          log.resource_type,
-          log.resource_id || '',
-          `"${log.description.replace(/"/g, '""')}"`, // Escape quotes in description
+          log.category,
+          log.object_type || '',
+          log.object_id || '',
+          log.object_name || '',
+          `"${description.replace(/"/g, '""')}"`, // Escape quotes in description
           log.ip_address,
-          log.level
+          log.severity
         ];
         csvRows.push(row.join(','));
       });
@@ -344,11 +352,11 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
             </div>
             
             <div className="flex flex-wrap md:flex-nowrap items-center gap-2">
-              {/* Level Filter */}
+              {/* Severity Filter */}
               <div className="relative">
                 <select
-                  value={levelFilter}
-                  onChange={(e) => setLevelFilter(e.target.value)}
+                  value={severityFilter}
+                  onChange={(e) => setSeverityFilter(e.target.value)}
                   className="appearance-none pl-4 pr-10 py-2 rounded-md border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))]"
                   style={{ 
                     backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
@@ -357,11 +365,11 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                     backgroundSize: '0.7em'
                   }}
                 >
-                  <option value="all" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">All Levels</option>
-                  <option value="INFO" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Info</option>
-                  <option value="WARNING" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Warning</option>
-                  <option value="ERROR" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Error</option>
-                  <option value="DEBUG" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Debug</option>
+                  <option value="all" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">All Severities</option>
+                  <option value="info" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Info</option>
+                  <option value="warning" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Warning</option>
+                  <option value="error" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Error</option>
+                  <option value="critical" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Critical</option>
                 </select>
               </div>
               
@@ -459,10 +467,10 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Timestamp</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">User</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Resource</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Category/Object</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Description</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">IP Address</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Level</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Severity</th>
                   </tr>
                 </thead>
                 
@@ -517,7 +525,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                       <td colSpan={7} className="px-4 py-6 text-center text-[rgb(var(--color-text-secondary))]">
                         <Clock className="h-6 w-6 mx-auto mb-2" />
                         <p>No activity logs found matching your criteria</p>
-                        {(searchTerm || levelFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') && (
+                        {(searchTerm || severityFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') && (
                           <Button
                             onClick={resetFilters}
                             variant="ghost"
@@ -559,21 +567,22 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                           {formatActionType(log.action)}
                         </td>
                         <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          <span className="whitespace-nowrap">{log.resource_type}</span>
-                          {log.resource_id && (
+                          <span className="whitespace-nowrap">{log.category}</span>
+                          {log.object_type && (
                             <span className="ml-1 text-xs text-[rgb(var(--color-text-secondary))]">
-                              #{log.resource_id}
+                              {log.object_type}
+                              {log.object_id && ` #${log.object_id}`}
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          {log.description}
+                          {(log.details?.message as string) || log.object_name || 'No description'}
                         </td>
                         <td className="px-4 py-3 text-sm text-[rgb(var(--color-text-secondary))]">
                           {log.ip_address}
                         </td>
                         <td className="px-4 py-3">
-                          <LevelBadge level={log.level} />
+                          <SeverityBadge severity={log.severity} />
                         </td>
                       </tr>
                     ))
@@ -619,30 +628,30 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
             </Panel>
             
             <Panel className="p-4">
-              <h3 className="text-lg font-medium text-[rgb(var(--color-text))]">Level Distribution</h3>
+              <h3 className="text-lg font-medium text-[rgb(var(--color-text))]">Severity Distribution</h3>
               <div className="mt-2 space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[rgb(var(--color-text))]">Info</span>
                   <span className="font-medium text-[rgb(var(--color-text))]">
-                    {logs.filter(log => log.level === 'INFO').length}
+                    {logs.filter(log => log.severity === 'info').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[rgb(var(--color-text))]">Warning</span>
                   <span className="font-medium text-[rgb(var(--color-text))]">
-                    {logs.filter(log => log.level === 'WARNING').length}
+                    {logs.filter(log => log.severity === 'warning').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[rgb(var(--color-text))]">Error</span>
                   <span className="font-medium text-[rgb(var(--color-text))]">
-                    {logs.filter(log => log.level === 'ERROR').length}
+                    {logs.filter(log => log.severity === 'error').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[rgb(var(--color-text))]">Debug</span>
+                  <span className="text-sm text-[rgb(var(--color-text))]">Critical</span>
                   <span className="font-medium text-[rgb(var(--color-text))]">
-                    {logs.filter(log => log.level === 'DEBUG').length}
+                    {logs.filter(log => log.severity === 'critical').length}
                   </span>
                 </div>
               </div>

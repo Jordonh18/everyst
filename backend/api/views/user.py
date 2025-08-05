@@ -98,34 +98,57 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         user = serializer.save()
+        
+        # Get client IP and user agent
+        ip_address = self._get_client_ip(self.request)
+        user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
         ApplicationLog.log_activity(
             user=self.request.user,
             action='user_create',
+            ip_address=ip_address,
+            user_agent=user_agent,
             object_type='User',
             object_id=str(user.id),
             object_name=user.username,
-            details={'message': f'User {user.username} created by {self.request.user.username}.'}
+            details={'message': f'User {user.username} created by {self.request.user.username}.'},
+            severity='info'
         )
 
     def perform_update(self, serializer):
         user = serializer.save()
+        
+        # Get client IP and user agent
+        ip_address = self._get_client_ip(self.request)
+        user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
         ApplicationLog.log_activity(
             user=self.request.user,
             action='user_update',
+            ip_address=ip_address,
+            user_agent=user_agent,
             object_type='User',
             object_id=str(user.id),
             object_name=user.username,
-            details={'message': f'User {user.username} updated by {self.request.user.username}.'}
+            details={'message': f'User {user.username} updated by {self.request.user.username}.'},
+            severity='info'
         )
 
     def perform_destroy(self, instance):
+        # Get client IP and user agent
+        ip_address = self._get_client_ip(self.request)
+        user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
         ApplicationLog.log_activity(
             user=self.request.user,
             action='user_delete',
+            ip_address=ip_address,
+            user_agent=user_agent,
             object_type='User',
             object_id=str(instance.id),
             object_name=instance.username,
-            details={'message': f'User {instance.username} deleted by {self.request.user.username}.'}
+            details={'message': f'User {instance.username} deleted by {self.request.user.username}.'},
+            severity='warning'
         )
         instance.delete()
 
@@ -205,10 +228,13 @@ class UserViewSet(viewsets.ModelViewSet):
             ApplicationLog.log_activity(
                 user=request.user,
                 action='user_role_change',
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 object_type='User',
                 object_id=str(user.id),
                 object_name=user.username,
-                details={'message': f'Role changed for user {user.username} to {role.name}.'}
+                details={'message': f'Role changed for user {user.username} to {role.name}.'},
+                severity='info'
             )
             
             # Return updated user data
@@ -248,10 +274,13 @@ class UserViewSet(viewsets.ModelViewSet):
         ApplicationLog.log_activity(
             user=request.user, # Can be self or other user if admin
             action='auth_password_change',
+            ip_address=self._get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
             object_type='User',
             object_id=str(user.id),
             object_name=user.username,
-            details={'message': f'Password changed for user {user.username}.'}
+            details={'message': f'Password changed for user {user.username}.'},
+            severity='info'
         )
         
         return Response({"detail": "Password changed successfully"}, status=status.HTTP_200_OK)
@@ -315,6 +344,19 @@ class UserViewSet(viewsets.ModelViewSet):
                 "detail": "Profile image updated successfully",
                 "url": request.build_absolute_uri(user.profile_image.url)
             }, status=status.HTTP_200_OK)
+    
+    def _get_client_ip(self, request):
+        """
+        Extract the client IP address from the request
+        Handles proxy servers by checking X-Forwarded-For
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            # Get the client IP (first in the list)
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
 
 @api_view(['GET'])
 def check_users_exist(request):
