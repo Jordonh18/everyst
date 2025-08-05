@@ -6,7 +6,8 @@ import {
   RefreshCw,
   Clock,
   AlertCircle,
-  FileDown
+  FileDown,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationsManager } from '../../hooks/state/useNotificationsManager';
@@ -70,23 +71,48 @@ const SeverityBadge: React.FC<{ severity: string }> = ({ severity }) => {
   );
 };
 
-// Format date for display
+// Format date for display in SIEM-standard format
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: true
-  }).format(date);
+  // SIEM standard: ISO 8601 format with timezone
+  return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
 };
 
 // Convert action type to readable format
 const formatActionType = (action: string): string => {
-  return action
+  const actionMap: Record<string, string> = {
+    'auth_login': 'Login',
+    'auth_logout': 'Logout', 
+    'auth_failed': 'Failed Login',
+    'user_create': 'User Created',
+    'user_update': 'User Updated',
+    'user_delete': 'User Deleted',
+    'user_role_change': 'Role Changed',
+    'logout': 'Logout',
+    'logout_all': 'Logout All Devices'
+  };
+  
+  return actionMap[action] || action
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+// Convert category to readable format
+const formatCategory = (category: string): string => {
+  const categoryMap: Record<string, string> = {
+    'auth': 'Authentication',
+    'user': 'User Management',
+    'security': 'Security',
+    'system': 'System',
+    'network': 'Network',
+    'api': 'API Access',
+    'admin': 'Admin Action',
+    'data': 'Data Change'
+  };
+  
+  return categoryMap[category] || category
     .replace(/_/g, ' ')
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -132,6 +158,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
         // Build query parameters
         const params = new URLSearchParams();
         params.append('page', page.toString());
+        params.append('page_size', '25'); // Limit to 25 items per page for better performance
         
         if (searchTerm) {
           params.append('search', searchTerm);
@@ -310,6 +337,52 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
       );
     }
   };
+
+  // Purge old logs
+  const purgeLogs = async () => {
+    if (!window.confirm('Are you sure you want to purge old logs? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error('No access token available');
+      }
+
+      const response = await fetch(`${getApiUrl()}/activity-logs/purge/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to purge logs');
+      }
+
+      const result = await response.json();
+      
+      sendUserNotification(
+        currentUser?.id as string,
+        'Success',
+        `Successfully purged ${result.deleted_count || 0} old log entries.`,
+        'success'
+      );
+
+      // Refresh the logs after purging
+      setPage(1); // Reset to first page to trigger useEffect
+    } catch (err) {
+      console.error('Error purging logs:', err);
+      sendUserNotification(
+        currentUser?.id as string,
+        'Error',
+        'Failed to purge old logs.',
+        'error'
+      );
+    }
+  };
   
   return (
     <div className="space-y-6">
@@ -455,6 +528,16 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
               >
                 Export CSV
               </Button>
+
+              {/* Purge Button */}
+              <Button
+                onClick={purgeLogs}
+                variant="outline"
+                leftIcon={<Trash2 className="h-4 w-4" />}
+                className="text-[rgb(var(--color-danger))] border-[rgb(var(--color-danger))] hover:bg-[rgb(var(--color-danger))] hover:text-white"
+              >
+                Purge Old Logs
+              </Button>
             </div>
           </div>
           
@@ -578,7 +661,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                           {formatActionType(log.action)}
                         </td>
                         <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          <span className="whitespace-nowrap">{log.category}</span>
+                          <span className="whitespace-nowrap">{formatCategory(log.category)}</span>
                           {log.object_type && (
                             <span className="ml-1 text-xs text-[rgb(var(--color-text-secondary))]">
                               {log.object_type}

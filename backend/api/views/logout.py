@@ -29,13 +29,31 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     
     def _get_client_ip(self, request):
-        """Get the client's IP address, handling proxies properly"""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
+        """
+        Extract the client IP address from the request
+        Handles proxy servers by checking multiple headers
+        """
+        # Check various proxy headers in order of preference
+        headers_to_check = [
+            'HTTP_CF_CONNECTING_IP',      # Cloudflare
+            'HTTP_X_FORWARDED_FOR',       # Standard proxy header
+            'HTTP_X_REAL_IP',             # Nginx proxy
+            'HTTP_X_CLIENT_IP',           # Alternative header
+            'REMOTE_ADDR'                 # Direct connection
+        ]
+        
+        for header in headers_to_check:
+            ip = request.META.get(header)
+            if ip:
+                # For comma-separated IPs, take the first (original client)
+                if ',' in ip:
+                    ip = ip.split(',')[0].strip()
+                # Skip private/local IPs if we have multiple options
+                if not ip.startswith(('127.', '10.', '192.168.', '172.')) or header == 'REMOTE_ADDR':
+                    return ip
+        
+        # Fallback to REMOTE_ADDR if nothing else found
+        return request.META.get('REMOTE_ADDR', 'unknown')
     
     def post(self, request):
         """Process a logout request by blacklisting the user's token"""
@@ -129,12 +147,31 @@ class LogoutAllView(APIView):
     permission_classes = [IsAuthenticated]
     
     def _get_client_ip(self, request):
-        """Get the client's IP address, handling proxies properly"""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
+        """
+        Extract the client IP address from the request
+        Handles proxy servers by checking multiple headers
+        """
+        # Check various proxy headers in order of preference
+        headers_to_check = [
+            'HTTP_CF_CONNECTING_IP',      # Cloudflare
+            'HTTP_X_FORWARDED_FOR',       # Standard proxy header
+            'HTTP_X_REAL_IP',             # Nginx proxy
+            'HTTP_X_CLIENT_IP',           # Alternative header
+            'REMOTE_ADDR'                 # Direct connection
+        ]
+        
+        for header in headers_to_check:
+            ip = request.META.get(header)
+            if ip:
+                # For comma-separated IPs, take the first (original client)
+                if ',' in ip:
+                    ip = ip.split(',')[0].strip()
+                # Skip private/local IPs if we have multiple options
+                if not ip.startswith(('127.', '10.', '192.168.', '172.')) or header == 'REMOTE_ADDR':
+                    return ip
+        
+        # Fallback to REMOTE_ADDR if nothing else found
+        return request.META.get('REMOTE_ADDR', 'unknown')
         return ip
     
     def post(self, request):
