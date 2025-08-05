@@ -130,14 +130,16 @@ class ApplicationLogViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def purge(self, request):
         """Purge old logs based on retention policy"""
-        from api.permissions import CanManageUsers
-        
-        # Check if user has admin permissions for purging logs
-        if not (request.user.is_staff or request.user.is_superuser or 
-                (hasattr(request.user, 'role') and request.user.role and 
-                 request.user.role.name in ['admin', 'owner'])):
+        # Additional role-based permission check (beyond IsAdminUser from get_permissions)
+        if hasattr(request.user, 'role') and request.user.role:
+            if request.user.role.name not in ['admin', 'owner']:
+                return Response(
+                    {"detail": "Only admin or owner roles can purge logs"},
+                    status=403
+                )
+        elif not (request.user.is_staff or request.user.is_superuser):
             return Response(
-                {"detail": "You don't have permission to purge logs"},
+                {"detail": "Admin permissions required to purge logs"},
                 status=403
             )
         
