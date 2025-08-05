@@ -534,9 +534,9 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                 onClick={purgeLogs}
                 variant="outline"
                 leftIcon={<Trash2 className="h-4 w-4" />}
-                className="text-[rgb(var(--color-danger))] border-[rgb(var(--color-danger))] hover:bg-[rgb(var(--color-danger))] hover:text-white"
+                className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white transition-colors"
               >
-                Purge Old Logs
+                Purge Logs
               </Button>
             </div>
           </div>

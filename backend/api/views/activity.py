@@ -9,7 +9,7 @@ from api.models.activity import ApplicationLog
 from api.serializers.activity import ApplicationLogSerializer
 from api.permissions import CanViewLogs
 
-class ApplicationLogViewSet(viewsets.ReadOnlyModelViewSet):
+class ApplicationLogViewSet(viewsets.ModelViewSet):
     """
     API endpoint for accessing application logs.
     """
@@ -18,6 +18,48 @@ class ApplicationLogViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated, CanViewLogs]
     filter_backends = [filters.SearchFilter]
     search_fields = ['user__username', 'action', 'category', 'ip_address', 'details']
+    
+    def get_permissions(self):
+        """
+        Override permissions for different actions
+        """
+        if self.action == 'purge':
+            # Purge requires admin permissions
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            # Prevent normal CRUD operations on logs
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        else:
+            # Read operations use the default CanViewLogs permission
+            return [permissions.IsAuthenticated(), CanViewLogs()]
+    
+    def create(self, request, *args, **kwargs):
+        """Prevent creation of logs via API"""
+        return Response(
+            {"detail": "Creating logs via API is not allowed"},
+            status=405
+        )
+    
+    def update(self, request, *args, **kwargs):
+        """Prevent updating logs via API"""
+        return Response(
+            {"detail": "Updating logs via API is not allowed"},
+            status=405
+        )
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Prevent partial updating logs via API"""
+        return Response(
+            {"detail": "Updating logs via API is not allowed"},
+            status=405
+        )
+    
+    def destroy(self, request, *args, **kwargs):
+        """Prevent deleting individual logs via API"""
+        return Response(
+            {"detail": "Deleting individual logs via API is not allowed. Use purge action instead."},
+            status=405
+        )
     
     def get_queryset(self):
         queryset = super().get_queryset()
