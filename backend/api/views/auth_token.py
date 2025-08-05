@@ -45,8 +45,8 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 object_type='user_account',
                 object_name=username,
                 details={
-                    'message': f'Login blocked: Account {username} is temporarily locked due to multiple failed attempts',
-                    'reason': 'Account temporarily locked',
+                    'message': f'Login attempt blocked for user {username} - account temporarily locked',
+                    'reason': 'Account temporarily locked due to multiple failed attempts',
                     'unlock_time': unlock_time.isoformat(),
                     'attempted_username': username
                 }
@@ -81,8 +81,8 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
             if user:
                 ApplicationLog.log_activity(
                     user=user,
-                    action='login_success',
-                    category='authentication',
+                    action='auth_login',
+                    category='auth',
                     severity='info',
                     ip_address=ip_address,
                     user_agent=user_agent,
@@ -128,14 +128,14 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
             ApplicationLog.log_activity(
                 user=None,  # Failed login - no user object
                 action='auth_failed',
-                category='authentication',
+                category='auth',
                 severity='warning',
                 ip_address=ip_address,
                 user_agent=user_agent,
                 object_type='user_session',
                 object_name=username,
                 details={
-                    'message': f'Authentication failed: Invalid credentials for {username}',
+                    'message': f'Failed login attempt for user {username} - invalid credentials',
                     'error': str(e),
                     'attempted_username': username,
                     'reason': 'Invalid username or password'
@@ -157,14 +157,14 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
             ApplicationLog.log_activity(
                 user=None,  # Failed login - no user object
                 action='auth_failed',
-                category='authentication',
+                category='auth',
                 severity='error',
                 ip_address=ip_address,
                 user_agent=user_agent,
                 object_type='user_session',
                 object_name=username,
                 details={
-                    'message': f'Login error: System error during authentication for {username}',
+                    'message': f'System error during login attempt for user {username}',
                     'error': str(e),
                     'attempted_username': username,
                     'reason': 'System validation error'

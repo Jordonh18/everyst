@@ -264,7 +264,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
       const csvRows = [headers.join(',')];
       
       logs.forEach(log => {
-        const username = log.user ? log.user.username : 'System';
+        const username = log.user ? log.user.username : (log.object_name || 'System');
         const description = (log.details?.message as string) || 'No description';
         const row = [
           log.id,
@@ -559,7 +559,18 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                                 </div>
                               </>
                             ) : (
-                              <span className="text-sm font-medium text-[rgb(var(--color-text-secondary))]">System</span>
+                              <div className="flex items-center">
+                                <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-text-secondary))] text-white flex items-center justify-center uppercase font-medium text-xs">
+                                  {log.object_name ? log.object_name[0] : 'S'}
+                                </div>
+                                <div className="ml-3">
+                                  <span className="text-sm font-medium text-[rgb(var(--color-text-secondary))]">
+                                    {log.object_name && (log.action === 'auth_failed' || log.action === 'auth_login') 
+                                      ? `${log.object_name} (Failed)` 
+                                      : 'System'}
+                                  </span>
+                                </div>
+                              </div>
                             )}
                           </div>
                         </td>

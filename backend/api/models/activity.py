@@ -28,7 +28,7 @@ class ApplicationLog(models.Model):
         # Authentication actions
         ('auth_login', 'Login'),
         ('auth_logout', 'Logout'),
-        ('auth_failed', 'Failed Authentication'),
+        ('auth_failed', 'Failed Login'),
         ('auth_password_change', 'Password Change'),
         ('auth_password_reset', 'Password Reset'),
         
