@@ -22,6 +22,7 @@ export * from './select';
 export * from './checkbox';
 export * from './switch';
 export * from './radio-group';
+export * from './separator';
 
 // Custom components that remain
 export * from './IconButton';

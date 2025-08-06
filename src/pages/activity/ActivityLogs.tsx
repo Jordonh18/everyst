@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
-import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui';
+import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -439,12 +439,12 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
             {/* Search */}
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[rgb(var(--color-text-secondary))]" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search logs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full rounded-md border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))]"
+                className="pl-10"
               />
             </div>
             
