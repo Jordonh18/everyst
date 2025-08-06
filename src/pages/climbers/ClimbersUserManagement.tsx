@@ -1017,28 +1017,28 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
                   // Loading state
                   Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={`loading-${index}`} className="animate-pulse">
-                      <TableCell><div className="h-4 w-8 bg-[rgb(var(--color-border))] rounded"></div></TableCell>
+                      <TableCell><div className="h-4 w-8 bg-muted rounded"></div></TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-border))]"></div>
+                          <div className="h-8 w-8 rounded-full bg-muted"></div>
                           <div className="ml-3 space-y-1">
-                            <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                            <div className="h-3 w-16 bg-[rgb(var(--color-border))] rounded"></div>
+                            <div className="h-4 w-24 bg-muted rounded"></div>
+                            <div className="h-3 w-16 bg-muted rounded"></div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell><div className="h-4 w-32 bg-[rgb(var(--color-border))] rounded"></div></TableCell>
-                      <TableCell><div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div></TableCell>
-                      <TableCell><div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div></TableCell>
-                      <TableCell><div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div></TableCell>
-                      <TableCell className="text-right"><div className="h-8 w-16 bg-[rgb(var(--color-border))] rounded ml-auto"></div></TableCell>
+                      <TableCell><div className="h-4 w-32 bg-muted rounded"></div></TableCell>
+                      <TableCell><div className="h-5 w-16 bg-muted rounded-full"></div></TableCell>
+                      <TableCell><div className="h-5 w-16 bg-muted rounded-full"></div></TableCell>
+                      <TableCell><div className="h-4 w-24 bg-muted rounded"></div></TableCell>
+                      <TableCell className="text-right"><div className="h-8 w-16 bg-muted rounded ml-auto"></div></TableCell>
                     </TableRow>
                   ))
                 ) : error ? (
                   // Error state
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
-                      <AlertCircle className="h-6 w-6 mx-auto mb-2 text-[rgb(var(--color-error))]" />
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
+                      <AlertCircle className="h-6 w-6 mx-auto mb-2 text-destructive" />
                       <p>{error}</p>
                       <Button
                         onClick={() => window.location.reload()}
