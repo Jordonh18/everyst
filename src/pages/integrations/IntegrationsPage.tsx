@@ -87,7 +87,7 @@ const ComingSoonBanner: React.FC = () => {
   );
 };
 
-export const BasecampIntegrations: React.FC = () => {
+export const IntegrationsPage: React.FC = () => {
   // State for service connections
   const [connections, setConnections] = useState<ServiceConnection[]>([]);
   
@@ -136,7 +136,7 @@ export const BasecampIntegrations: React.FC = () => {
       {/* Page header with breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Basecamp</h1>
+          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Integrations</h1>
           <p className="text-[rgb(var(--color-text-secondary))]">Manage your identity and collaboration tool integrations</p>
         </div>
       </div>

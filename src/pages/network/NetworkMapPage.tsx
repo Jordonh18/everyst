@@ -34,7 +34,7 @@ import EmptyScanState from './components/EmptyScanState';
 import 'reactflow/dist/style.css';
 
 // Inner component that uses React Flow hooks
-const GlacierNetworkMapInner: React.FC = () => {
+const NetworkMapPageInner: React.FC = () => {
   // Memoize node and edge types to prevent recreation on render
   const nodeTypes = useMemo(() => ({
     deviceNode: DeviceNode
@@ -785,7 +785,7 @@ const GlacierNetworkMapInner: React.FC = () => {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Glacier</h1>
+          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Network</h1>
           <p className="text-[rgb(var(--color-text-secondary))]">Real-time network visualization</p>
         </div>
         <div className="flex items-center space-x-2">
@@ -1013,12 +1013,12 @@ const GlacierNetworkMapInner: React.FC = () => {
 };
 
 // Export the component wrapped with ReactFlowProvider
-export const GlacierNetworkMap: React.FC = () => {
+export const NetworkMapPage: React.FC = () => {
   return (
     <ReactFlowProvider>
-      <GlacierNetworkMapInner />
+      <NetworkMapPageInner />
     </ReactFlowProvider>
   );
 };
 
-export default GlacierNetworkMap;
+export default NetworkMapPage;

@@ -104,7 +104,7 @@ interface SystemMetrics {
   };
 }
 
-export const SummitDashboard: React.FC = () => {
+export const DashboardPage: React.FC = () => {
   // State to hold our system metrics data
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu: null,
@@ -610,7 +610,7 @@ export const SummitDashboard: React.FC = () => {
       
       {/* Middle row with two panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Panel description="IceWall status report">
+        <Panel description="Security status report">
           <Card className="mb-4">
             <CardContent>
             {metrics.security ? (

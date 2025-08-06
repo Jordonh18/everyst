@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
 import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Checkbox } from '../../components/ui';
-import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
+import TransferOwnershipModal from '../../components/users/TransferOwnershipModal';
 import { 
   UserPlus, 
   UserCog,
@@ -660,10 +660,10 @@ const EditUserForm: React.FC<{
   );
 };
 
-// Props for ClimbersUserManagement component
-type ClimbersPageProps = Record<string, never>;
+// Props for UsersManagementPage component
+type UsersPageProps = Record<string, never>;
 
-const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
+const UsersManagementPage: React.FC<UsersPageProps> = () => {
   const { user: currentUser, getAccessToken } = useAuth();
   const { sendUserNotification } = useNotificationsManager();
   
@@ -1350,4 +1350,4 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
   );
 };
 
-export default ClimbersUserManagement;
+export default UsersManagementPage;

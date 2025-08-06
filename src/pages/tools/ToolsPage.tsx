@@ -220,8 +220,8 @@ const ToolExecutor = ({
   );
 };
 
-// Main GearRoom Component
-export const GearRoomTools: React.FC = () => {
+// Main Tools Component
+export const ToolsPage: React.FC = () => {
   // Tool states
   const [nmapState, setNmapState] = useState<ToolState>({
     isExecuting: false,
@@ -318,7 +318,7 @@ export const GearRoomTools: React.FC = () => {
     const recordType = parts.length > 1 ? parts[1] : 'A';
     
     // Use API service to execute dig
-    import('../../utils/gearRoomApi').then(({ runDigApi }) => {
+    import('../../utils/toolsApi').then(({ runDigApi }) => {
       runDigApi(target, recordType)
         .then((result) => {
           setDigState({
@@ -350,7 +350,7 @@ export const GearRoomTools: React.FC = () => {
     const target = command.split(' ')[0];
     
     // Use API service to execute nslookup
-    import('../../utils/gearRoomApi').then(({ runNslookupApi }) => {
+    import('../../utils/toolsApi').then(({ runNslookupApi }) => {
       runNslookupApi(target)
         .then((result) => {
           setNslookupState({
@@ -382,7 +382,7 @@ export const GearRoomTools: React.FC = () => {
     const target = command.split(' ')[0];
     
     // Use API service to execute traceroute
-    import('../../utils/gearRoomApi').then(({ runTracerouteApi }) => {
+    import('../../utils/toolsApi').then(({ runTracerouteApi }) => {
       runTracerouteApi(target)
         .then((result) => {
           setTracerouteState({
@@ -414,7 +414,7 @@ export const GearRoomTools: React.FC = () => {
     const target = command.split(' ')[0];
     
     // Use API service to execute whois lookup
-    import('../../utils/gearRoomApi').then(({ runWhoisApi }) => {
+    import('../../utils/toolsApi').then(({ runWhoisApi }) => {
       runWhoisApi(target)
         .then((result) => {
           setWhoisState({
@@ -446,7 +446,7 @@ export const GearRoomTools: React.FC = () => {
     const options = command.replace(/^netstat\s+/, '').trim();
     
     // Use API service to execute netstat
-    import('../../utils/gearRoomApi').then(({ runNetstatApi }) => {
+    import('../../utils/toolsApi').then(({ runNetstatApi }) => {
       runNetstatApi(options)
         .then((result) => {
           setNetstatState({
@@ -510,7 +510,7 @@ export const GearRoomTools: React.FC = () => {
     const domain = command.split(' ')[0].replace(/^https?:\/\//, '');
     
     // Use API service to execute SSL check
-    import('../../utils/gearRoomApi').then(({ runSslCheckApi }) => {
+    import('../../utils/toolsApi').then(({ runSslCheckApi }) => {
       runSslCheckApi(domain)
         .then((result) => {
           setSslState({
@@ -542,7 +542,7 @@ export const GearRoomTools: React.FC = () => {
     });
     
     // Use API service to execute IP Route
-    import('../../utils/gearRoomApi').then(({ runIpRouteApi }) => {
+    import('../../utils/toolsApi').then(({ runIpRouteApi }) => {
       runIpRouteApi()
         .then((result) => {
           setIpRouteState({
@@ -597,7 +597,7 @@ export const GearRoomTools: React.FC = () => {
     filter = parts.join(' ');
     
     // Use API service to execute tcpdump
-    import('../../utils/gearRoomApi').then(({ runTcpdumpApi }) => {
+    import('../../utils/toolsApi').then(({ runTcpdumpApi }) => {
       runTcpdumpApi(interfaceName, filter, count)
         .then((result) => {
           setTcpdumpState({
@@ -623,7 +623,7 @@ export const GearRoomTools: React.FC = () => {
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">GearRoom</h1>
+          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Tools</h1>
           <p className="text-[rgb(var(--color-text-secondary))]">Security tools and system utilities</p>
         </div>
       </div>

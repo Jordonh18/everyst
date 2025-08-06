@@ -14,9 +14,7 @@ import {
   Search,
   User,
   ChevronUp,
-  LogOut,
-  Moon,
-  Sun
+  LogOut
 } from 'lucide-react';
 import {
   Sidebar,
@@ -46,8 +44,6 @@ import {
 import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 import { useAuth } from '@/context/AuthContext';
 import { useNotifications } from '@/context/NotificationContext';
-import { useTheme } from "@/components/theme-provider"
-import { Button } from "@/components/ui/button"
 
 
 interface NavItem {
@@ -58,7 +54,6 @@ interface NavItem {
 }
 
 export const AppSidebar: React.FC = () => {
-  const { setTheme } = useTheme();
   const location = useLocation();
   const { user, logout } = useAuth();
   const { unreadCount, notifications, markAsRead } = useNotifications();
@@ -66,56 +61,56 @@ export const AppSidebar: React.FC = () => {
   
   const navItems: NavItem[] = [
     { 
-      path: '/summit', 
-      name: 'Summit', 
+      path: '/dashboard', 
+      name: 'Dashboard', 
       icon: <LayoutDashboard />,
-      description: 'Dashboard overview'
+      description: 'Main overview'
     },
     { 
-      path: '/network-map', 
-      name: 'Glacier', 
+      path: '/network', 
+      name: 'Network', 
       icon: <Network />,
       description: 'Network visualization'
     },
     { 
       path: '/metrics', 
-      name: 'Altitude', 
+      name: 'Metrics', 
       icon: <LineChart />,
       description: 'System metrics'
     },
     { 
       path: '/security', 
-      name: 'IceWall', 
+      name: 'Security', 
       icon: <Shield />,
       description: 'Security controls'
     },
     { 
       path: '/logs', 
-      name: 'TrekLog', 
+      name: 'Logs', 
       icon: <ScrollText />,
       description: 'Log viewer'
     },
     { 
       path: '/alerts', 
-      name: 'Avalanche', 
+      name: 'Alerts', 
       icon: <Bell />,
       description: 'Alert center'
     },
     { 
       path: '/integrations', 
-      name: 'Basecamp', 
+      name: 'Integrations', 
       icon: <Layers />,
       description: 'Connect services'
     },
     { 
       path: '/tools', 
-      name: 'GearRoom', 
+      name: 'Tools', 
       icon: <Wrench />,
       description: 'Utility tools'
     },
     { 
-      path: '/climbers', 
-      name: 'Climbers', 
+      path: '/users', 
+      name: 'Users', 
       icon: <Users />,
       description: 'User management'
     }
@@ -157,9 +152,9 @@ export const AppSidebar: React.FC = () => {
             <SidebarGroupContent>
               <SidebarMenu>
                 {navItems.map((item) => {
-                  // Special case for Summit dashboard to handle both / and /summit
-                  const isActive = item.path === '/summit' 
-                    ? (location.pathname === '/summit' || location.pathname === '/') 
+                  // Special case for Dashboard to handle both / and /dashboard
+                  const isActive = item.path === '/dashboard' 
+                    ? (location.pathname === '/dashboard' || location.pathname === '/') 
                     : location.pathname === item.path;
                   
                   return (

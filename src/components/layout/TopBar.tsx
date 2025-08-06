@@ -10,24 +10,24 @@ export const TopBar: React.FC = () => {
     const path = location.pathname;
     switch (path) {
       case '/':
-      case '/summit':
-        return 'Summit';
-      case '/network-map':
-        return 'Glacier';
+      case '/dashboard':
+        return 'Dashboard';
+      case '/network':
+        return 'Network';
       case '/metrics':
-        return 'Altitude';
+        return 'Metrics';
       case '/security':
-        return 'IceWall';
+        return 'Security';
       case '/logs':
-        return 'TrekLog';
+        return 'Logs';
       case '/alerts':
-        return 'Avalanche';
+        return 'Alerts';
       case '/integrations':
-        return 'Basecamp';
+        return 'Integrations';
       case '/tools':
-        return 'GearRoom';
-      case '/climbers':
-        return 'Climbers';
+        return 'Tools';
+      case '/users':
+        return 'Users';
       case '/settings':
         return 'Settings';
       case '/account':
