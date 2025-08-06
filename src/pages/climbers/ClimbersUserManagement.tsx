@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
-import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui';
+import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Checkbox } from '../../components/ui';
 import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
 import { 
   UserPlus, 
@@ -341,7 +341,7 @@ const AddUserForm: React.FC<{
         </Select>
         {errors.role && <p className="mt-1 text-sm text-destructive">{errors.role}</p>}
         {hasExistingOwner && (
-          <p className="mt-1 text-sm text-[rgb(var(--color-warning-text))]">
+          <p className="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
             There is already a system owner. You cannot create another owner.
           </p>
         )}
@@ -527,7 +527,7 @@ const EditUserForm: React.FC<{
   return (
     <form id="editUserForm" onSubmit={handleSubmit} className="space-y-4">
       {isCurrentOwner && (
-        <div className="bg-[rgb(var(--color-info-bg))] border border-[rgb(var(--color-info-border))] text-[rgb(var(--color-info-text))] p-3 rounded-md mb-4">
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 p-3 rounded-md mb-4">
           <p className="text-sm">
             <strong>System Owner:</strong> This user has full administrative access to the system.
             To change their role, you must first transfer ownership to another user.
@@ -536,61 +536,59 @@ const EditUserForm: React.FC<{
       )}
       
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Username
         </label>
-        <input
+        <Input
           type="text"
           value={user.username}
           disabled
-          className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgba(var(--color-input),0.5)] text-[rgb(var(--color-text-secondary))]"
+          className="bg-muted/50 text-muted-foreground"
         />
-        <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">Username cannot be changed</p>
+        <p className="mt-1 text-xs text-muted-foreground">Username cannot be changed</p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Email
         </label>
-        <input
+        <Input
           type="email"
           value={user.email}
           disabled
-          className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgba(var(--color-input),0.5)] text-[rgb(var(--color-text-secondary))]"
+          className="bg-muted/50 text-muted-foreground"
         />
-        <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">Email address cannot be changed</p>
+        <p className="mt-1 text-xs text-muted-foreground">Email address cannot be changed</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+          <label className="block text-sm font-medium mb-1">
             First Name
           </label>
-          <input
+          <Input
             type="text"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+          <label className="block text-sm font-medium mb-1">
             Last Name
           </label>
-          <input
+          <Input
             type="text"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Role
         </label>
         <Select
@@ -623,30 +621,28 @@ const EditUserForm: React.FC<{
           </SelectContent>
         </Select>
         {isCurrentOwner && (
-          <p className="mt-1 text-sm text-[rgb(var(--color-warning-text))]">
+          <p className="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
             To change this user's role, you must first transfer system ownership to another user.
           </p>
         )}
       </div>
 
-      <div className="flex items-center">
-        <input
+      <div className="flex items-center space-x-2">
+        <Checkbox
           id="is-active"
-          type="checkbox"
           name="isActive"
           checked={formData.isActive}
-          onChange={handleChange}
-          className="h-4 w-4 text-[rgb(var(--color-primary))] focus:ring-[rgb(var(--color-primary))] border-[rgb(var(--color-border))] rounded"
+          onCheckedChange={(checked) => handleChange({ target: { name: 'isActive', type: 'checkbox', checked } } as React.ChangeEvent<HTMLInputElement>)}
         />
-        <label htmlFor="is-active" className="ml-2 block text-sm text-[rgb(var(--color-text))]">
+        <label htmlFor="is-active" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
           Active Account
         </label>
       </div>
       
       {isCurrentOwner && (
-        <div className="mt-4 p-3 bg-[rgb(var(--color-info-bg))] border border-[rgb(var(--color-info-border))] rounded-md">
-          <h4 className="text-sm font-medium text-[rgb(var(--color-info-text))]">System Owner Actions</h4>
-          <p className="text-xs text-[rgb(var(--color-info-text))] mt-1 mb-2">
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
+          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-400">System Owner Actions</h4>
+          <p className="text-xs text-blue-700 dark:text-blue-300 mt-1 mb-2">
             The system requires exactly one owner at all times. To change this user's role, 
             you must first transfer ownership to another administrator.
           </p>
@@ -654,7 +650,7 @@ const EditUserForm: React.FC<{
             type="button"
             onClick={transferOwnership}
             variant="outline"
-            className="w-full text-[rgb(var(--color-primary))]"
+            className="w-full"
           >
             Transfer Ownership to Another User
           </Button>
@@ -921,13 +917,6 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
   
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Climbers</h1>
-        <p className="text-[rgb(var(--color-text-secondary))] mt-1">
-          Manage users and their roles in your system
-        </p>
-      </header>
-      
       <PermissionGate 
         permission="canManageUsers"
         fallback={

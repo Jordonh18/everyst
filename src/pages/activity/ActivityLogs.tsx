@@ -397,13 +397,6 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Activity Logs</h1>
-        <p className="text-muted-foreground mt-1">
-          View and search system activity logs and user actions
-        </p>
-      </header>
-      
       <PermissionGate 
         permission="canViewLogs"
         fallback={
