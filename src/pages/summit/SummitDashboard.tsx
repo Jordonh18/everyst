@@ -308,8 +308,8 @@ export const SummitDashboard: React.FC = () => {
       {/* Page header with breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-[rgb(var(--color-text))]">Summit</h1>
-          <p className="text-[rgb(var(--color-text-secondary))]">Your system at a glance</p>
+          <h1 className="text-2xl font-bold text-foreground">Summit</h1>
+          <p className="text-muted-foreground">Your system at a glance</p>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -354,10 +354,10 @@ export const SummitDashboard: React.FC = () => {
                 <>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center">
-                      <Cpu className="mr-2 text-[rgb(var(--color-primary))]" size={24} />
+                      <Cpu className="mr-2 text-primary" size={24} />
                       <div>
                         <div className="text-2xl font-semibold">{metrics.cpu.usage}%</div>
-                        <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                        <div className="text-xs text-muted-foreground">
                           {metrics.cpu.cores} cores @ {metrics.cpu.speed}GHz
                         </div>
                       </div>
@@ -367,9 +367,9 @@ export const SummitDashboard: React.FC = () => {
                       metrics.cpu.status === 'warning' ? 'secondary' : 'destructive'
                     } />
                   </div>
-                  <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                  <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
                     <motion.div 
-                      className="h-full bg-[rgb(var(--color-primary))]" 
+                      className="h-full bg-primary" 
                       initial={{ width: 0 }} 
                       animate={{ width: `${metrics.cpu.usage}%` }} 
                       transition={{ duration: 0.5 }}
@@ -397,10 +397,10 @@ export const SummitDashboard: React.FC = () => {
               <>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <Server className="mr-2 text-[rgb(var(--color-primary))]" size={24} />
+                    <Server className="mr-2 text-primary" size={24} />
                     <div>
                       <div className="text-2xl font-semibold">{metrics.memory.used.toFixed(1)} GB</div>
-                      <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                      <div className="text-xs text-muted-foreground">
                         of {metrics.memory.total} GB used ({metrics.memory.percentage}%)
                       </div>
                     </div>
@@ -410,9 +410,9 @@ export const SummitDashboard: React.FC = () => {
                     metrics.memory.status === 'warning' ? 'secondary' : 'destructive'
                   } />
                 </div>
-                <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div 
-                    className="h-full bg-[rgb(var(--color-primary))]" 
+                    className="h-full bg-primary" 
                     initial={{ width: 0 }} 
                     animate={{ width: `${metrics.memory.percentage}%` }} 
                     transition={{ duration: 0.5 }}
@@ -432,14 +432,18 @@ export const SummitDashboard: React.FC = () => {
           </Card>
           
           <Card>
+            <CardHeader>
+              <CardTitle>Storage</CardTitle>
+            </CardHeader>
+            <CardContent>
             {metrics.disk ? (
               <>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <HardDrive className="mr-2 text-[rgb(var(--color-primary))]" size={24} />
+                    <HardDrive className="mr-2 text-primary" size={24} />
                     <div>
                       <div className="text-2xl font-semibold">{metrics.disk.used} GB</div>
-                      <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                      <div className="text-xs text-muted-foreground">
                         of {metrics.disk.total} GB used ({metrics.disk.percentage}%)
                       </div>
                     </div>
@@ -451,9 +455,9 @@ export const SummitDashboard: React.FC = () => {
                     {metrics.disk.percentage}%
                   </Badge>
                 </div>
-                <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div 
-                    className="h-full bg-[rgb(var(--color-primary))]" 
+                    className="h-full bg-primary" 
                     initial={{ width: 0 }} 
                     animate={{ width: `${metrics.disk.percentage}%` }} 
                     transition={{ duration: 0.5 }}
@@ -469,17 +473,22 @@ export const SummitDashboard: React.FC = () => {
                 <Skeleton className="h-2 w-full rounded-full" />
               </div>
             )}
+            </CardContent>
           </Card>
           
           <Card>
+            <CardHeader>
+              <CardTitle>Network</CardTitle>
+            </CardHeader>
+            <CardContent>
             {metrics.network ? (
               <>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <Wifi className="mr-2 text-[rgb(var(--color-primary))]" size={24} />
+                    <Wifi className="mr-2 text-primary" size={24} />
                     <div>
                       <div className="text-2xl font-semibold">{metrics.network.speed} MB/s</div>
-                      <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                      <div className="text-xs text-muted-foreground">
                         {metrics.network.upload} MB/s ↑ / {metrics.network.download} MB/s ↓
                       </div>
                     </div>
@@ -489,9 +498,9 @@ export const SummitDashboard: React.FC = () => {
                     metrics.network.status === 'warning' ? 'secondary' : 'destructive'
                   } />
                 </div>
-                <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div 
-                    className="h-full bg-[rgb(var(--color-primary))]" 
+                    className="h-full bg-primary" 
                     initial={{ width: 0 }} 
                     animate={{ width: `${metrics.network.utilization}%` }} 
                     transition={{ duration: 0.5 }}
@@ -507,6 +516,7 @@ export const SummitDashboard: React.FC = () => {
                 <Skeleton className="h-2 w-full rounded-full" />
               </div>
             )}
+            </CardContent>
           </Card>
         </div>
       </Panel>
@@ -516,56 +526,59 @@ export const SummitDashboard: React.FC = () => {
         {metrics.server_info ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
+              <CardContent>
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <Server className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
+                  <Server className="mt-0.5 mr-3 text-primary" size={20} />
                   <div>
                     <div className="font-medium">Hostname</div>
-                    <div className="text-[rgb(var(--color-text-secondary))]">{metrics.server_info.hostname}</div>
+                    <div className="text-muted-foreground">{metrics.server_info.hostname}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <Terminal className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
+                  <Terminal className="mt-0.5 mr-3 text-primary" size={20} />
                   <div>
                     <div className="font-medium">Operating System</div>
-                    <div className="text-[rgb(var(--color-text-secondary))]">{metrics.server_info.os}</div>
+                    <div className="text-muted-foreground">{metrics.server_info.os}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <Info className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
+                  <Info className="mt-0.5 mr-3 text-primary" size={20} />
                   <div>
                     <div className="font-medium">Architecture</div>
-                    <div className="text-[rgb(var(--color-text-secondary))]">{metrics.server_info.architecture}</div>
+                    <div className="text-muted-foreground">{metrics.server_info.architecture}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <Terminal className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
+                  <Terminal className="mt-0.5 mr-3 text-primary" size={20} />
                   <div>
                     <div className="font-medium">Kernel Version</div>
-                    <div className="text-[rgb(var(--color-text-secondary))]">{metrics.server_info.kernel}</div>
+                    <div className="text-muted-foreground">{metrics.server_info.kernel}</div>
                   </div>
                 </div>
               </div>
+              </CardContent>
             </Card>
             
             <Card>
+              <CardContent>
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <Network className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
+                  <Network className="mt-0.5 mr-3 text-primary" size={20} />
                   <div>
                     <div className="font-medium">Private IP Address</div>
-                    <div className="text-[rgb(var(--color-text-secondary))]">{metrics.server_info.private_ip}</div>
+                    <div className="text-muted-foreground">{metrics.server_info.private_ip}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
-                  <Globe className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
+                  <Globe className="mt-0.5 mr-3 text-primary" size={20} />
                   <div>
                     <div className="font-medium">Public IP Address</div>
-                    <div className="text-[rgb(var(--color-text-secondary))]">{metrics.server_info.public_ip}</div>
+                    <div className="text-muted-foreground">{metrics.server_info.public_ip}</div>
                   </div>
                 </div>
                 
@@ -578,11 +591,13 @@ export const SummitDashboard: React.FC = () => {
                   </Button>
                 </div>
               </div>
+              </CardContent>
             </Card>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
+              <CardContent>
               <div className="space-y-4">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="flex items-start">
@@ -594,9 +609,11 @@ export const SummitDashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
+              </CardContent>
             </Card>
             
             <Card>
+              <CardContent>
               <div className="space-y-4">
                 {[...Array(2)].map((_, i) => (
                   <div key={i} className="flex items-start">
@@ -611,6 +628,7 @@ export const SummitDashboard: React.FC = () => {
                   <Skeleton className="h-10 w-48 rounded-md" />
                 </div>
               </div>
+              </CardContent>
             </Card>
           </div>
         )}
@@ -620,16 +638,17 @@ export const SummitDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Panel description="IceWall status report">
           <Card className="mb-4">
+            <CardContent>
             {metrics.security ? (
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <Shield className="mr-3 text-[rgb(var(--color-primary))]" size={32} />
+                  <Shield className="mr-3 text-primary" size={32} />
                   <div>
                     <div className="text-lg font-medium">
                       {metrics.security.status === 'success' ? 'Secure' : 
                        metrics.security.status === 'warning' ? 'Warning' : 'Alert'}
                     </div>
-                    <div className="text-sm text-[rgb(var(--color-text-secondary))]">
+                    <div className="text-sm text-muted-foreground">
                       Last scan: {metrics.security.lastScan || 'Unknown'}
                     </div>
                   </div>
@@ -656,13 +675,15 @@ export const SummitDashboard: React.FC = () => {
                 <Skeleton className="h-6 w-20 rounded-full" />
               </div>
             )}
+            </CardContent>
           </Card>
           
           <Card>
+            <CardContent>
             {metrics.threats && metrics.threats.length > 0 ? (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[rgb(var(--color-text-secondary))]">
+                  <tr className="text-left text-muted-foreground">
                     <th className="pb-2">Type</th>
                     <th className="pb-2">Time</th>
                     <th className="pb-2">Status</th>
@@ -670,7 +691,7 @@ export const SummitDashboard: React.FC = () => {
                 </thead>
                 <tbody>
                   {metrics.threats.map((threat, index) => (
-                    <tr key={index} className="border-t border-[rgb(var(--color-border))]">
+                    <tr key={index} className="border-t border-border">
                       <td className="py-2">{threat.type}</td>
                       <td className="py-2">{threat.time}</td>
                       <td className="py-2">
@@ -684,7 +705,7 @@ export const SummitDashboard: React.FC = () => {
                 </tbody>
               </table>
             ) : metrics.threats && metrics.threats.length === 0 ? (
-              <div className="py-4 text-center text-[rgb(var(--color-text-secondary))]">
+              <div className="py-4 text-center text-muted-foreground">
                 No recent threats detected
               </div>
             ) : (
@@ -694,16 +715,18 @@ export const SummitDashboard: React.FC = () => {
                 <Skeleton className="h-10 w-full" />
               </div>
             )}
+            </CardContent>
           </Card>
         </Panel>
         
         <Panel description="Active alerts and notifications">
           <Card className="mb-4">
+            <CardContent>
             {metrics.alerts ? (
               <>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <AlertTriangle className="text-[rgb(var(--color-primary))] mr-2" size={20} />
+                    <AlertTriangle className="text-primary mr-2" size={20} />
                     <span>{metrics.alerts.length} active alerts require attention</span>
                   </div>
                   <Button
@@ -724,19 +747,19 @@ export const SummitDashboard: React.FC = () => {
                         key={index}
                         className={`border-l-4 ${
                           alert.severity === 'error' 
-                            ? 'border-error-light dark:border-error' 
-                            : 'border-warning-light dark:border-warning'
+                            ? 'border-destructive' 
+                            : 'border-yellow-500'
                         } pl-3 py-2`}
                       >
                         <div className="font-medium">{alert.title}</div>
-                        <div className="text-sm text-[rgb(var(--color-text-secondary))]">
+                        <div className="text-sm text-muted-foreground">
                           Server ID: {alert.serverId}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-3 py-4 text-center text-[rgb(var(--color-text-secondary))]">
+                  <div className="mt-3 py-4 text-center text-muted-foreground">
                     No active alerts
                   </div>
                 )}
@@ -750,17 +773,19 @@ export const SummitDashboard: React.FC = () => {
                 <Skeleton className="h-20 w-full" />
               </div>
             )}
+            </CardContent>
           </Card>
           
           <Card>
+            <CardContent>
             {metrics.uptime ? (
               <>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <Activity className="mr-3 text-[rgb(var(--color-primary))]" size={24} />
+                    <Activity className="mr-3 text-primary" size={24} />
                     <div>
                       <div className="text-lg font-medium">{metrics.uptime.percentage}% SLA</div>
-                      <div className="text-sm text-[rgb(var(--color-text-secondary))]">
+                      <div className="text-sm text-muted-foreground">
                         {metrics.uptime.duration ? `Current session: ${metrics.uptime.duration}` : 'Uptime data unavailable'}
                       </div>
                     </div>
@@ -775,11 +800,11 @@ export const SummitDashboard: React.FC = () => {
                   </Badge>
                 </div>
                 <div className="mt-4">
-                  <div className="flex justify-between text-xs text-[rgb(var(--color-text-secondary))] mb-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
                     <span>Annual uptime target: 99.9%</span>
                     <span>Actual: {metrics.uptime.percentage}%</span>
                   </div>
-                  <div className="h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <motion.div 
                       className={`h-full ${
                         metrics.uptime.percentage >= 99.9 
@@ -816,6 +841,7 @@ export const SummitDashboard: React.FC = () => {
                 </div>
               </div>
             )}
+            </CardContent>
           </Card>
         </Panel>
       </div>
@@ -824,29 +850,33 @@ export const SummitDashboard: React.FC = () => {
       <Panel defaultExpanded={false}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
+            <CardContent>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-[rgb(var(--color-primary))] rounded-full mr-2"></span>
-                <a href="#" className="text-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-primary-light))] hover:underline">everyst User Guide</a>
+                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                <a href="#" className="text-primary hover:underline">everyst User Guide</a>
               </li>
               <li className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-[rgb(var(--color-primary))] rounded-full mr-2"></span>
-                <a href="#" className="text-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-primary-light))] hover:underline">API Documentation</a>
+                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                <a href="#" className="text-primary hover:underline">API Documentation</a>
               </li>
               <li className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-[rgb(var(--color-primary))] rounded-full mr-2"></span>
-                <a href="#" className="text-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-primary-light))] hover:underline">Troubleshooting</a>
+                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                <a href="#" className="text-primary hover:underline">Troubleshooting</a>
               </li>
             </ul>
+            </CardContent>
           </Card>
           
           <Card>
-            <div className="py-4 text-center text-[rgb(var(--color-text-secondary))]">
+            <CardContent>
+            <div className="py-4 text-center text-muted-foreground">
               <p className="mb-4">Need help with everyst?</p>
               <Button variant="default">
                 Submit an issue
               </Button>
             </div>
+            </CardContent>
           </Card>
         </div>
       </Panel>
