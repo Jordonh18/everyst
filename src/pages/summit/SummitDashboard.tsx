@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardEmptyState, Button } from '../../components/ui';
+import { Card, Badge, Button } from '../../components/ui';
 import { Panel } from '../../components/ui/Panel';
-import { StatusPill } from '../../components/ui/StatusPill';
 import { Skeleton } from '../../components/skeletons/Skeleton';
 import { RefreshCw, Cpu, Server, HardDrive, Activity, Wifi, Shield, Plus, AlertTriangle, Globe, Network, Terminal, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -323,7 +322,7 @@ export const SummitDashboard: React.FC = () => {
             Refresh
           </Button>
           <Button 
-            variant="primary" 
+            variant="default" 
             leftIcon={<Plus size={16} />}
             size="sm"
           >
@@ -337,10 +336,11 @@ export const SummitDashboard: React.FC = () => {
         title="System Status" 
         description="Real-time health and performance indicators"
         actions={
-          <StatusPill 
-            status={error ? 'error' : isConnected ? 'success' : 'warning'} 
-            text={error ? 'Connection Error' : isConnected ? 'Live Metrics' : 'Connecting...'}
-          />
+          <Badge 
+            variant={error ? 'destructive' : isConnected ? 'default' : 'secondary'}
+          >
+            {error ? 'Connection Error' : isConnected ? 'Live Metrics' : 'Connecting...'}
+          </Badge>
         }
       >
         {/* All cards now have the same frost level */}
@@ -358,7 +358,7 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <StatusPill status={metrics.cpu.status} size="sm" />
+                  <Badge status={metrics.cpu.status} size="sm" />
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -393,7 +393,7 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <StatusPill status={metrics.memory.status} size="sm" />
+                  <Badge status={metrics.memory.status} size="sm" />
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -428,7 +428,7 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <StatusPill status={metrics.disk.status} text={`${metrics.disk.percentage}%`} size="sm" />
+                  <Badge status={metrics.disk.status} text={`${metrics.disk.percentage}%`} size="sm" />
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -463,7 +463,7 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <StatusPill status={metrics.network.status} size="sm" />
+                  <Badge status={metrics.network.status} size="sm" />
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -547,7 +547,7 @@ export const SummitDashboard: React.FC = () => {
                 
                 <div className="flex items-center justify-center mt-6">
                   <Button 
-                    variant="primary"
+                    variant="default"
                     leftIcon={<RefreshCw size={16} />}
                   >
                     Refresh Network Information
@@ -610,7 +610,7 @@ export const SummitDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <StatusPill 
+                <Badge 
                   status={metrics.security.status} 
                   text={metrics.security.status === 'success' ? 'Protected' : 
                         metrics.security.status === 'warning' ? 'Caution' : 'At Risk'} 
@@ -645,7 +645,7 @@ export const SummitDashboard: React.FC = () => {
                     <tr key={index} className="border-t border-[rgb(var(--color-border))]">
                       <td className="py-2">{threat.type}</td>
                       <td className="py-2">{threat.time}</td>
-                      <td className="py-2"><StatusPill status={threat.status} size="sm" /></td>
+                      <td className="py-2"><Badge status={threat.status} size="sm" /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -673,7 +673,7 @@ export const SummitDashboard: React.FC = () => {
                   </div>
                   <Button
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     leftIcon={<RefreshCw size={16} />}
                     onClick={refreshAlerts}
                     isLoading={isAlertsLoading}
@@ -730,7 +730,7 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <StatusPill 
+                  <Badge 
                     status={metrics.uptime.percentage >= 99.9 ? 'success' : metrics.uptime.percentage >= 99.0 ? 'warning' : 'error'} 
                     text={`${metrics.uptime.percentage}%`}
                     size="sm" 
@@ -806,7 +806,7 @@ export const SummitDashboard: React.FC = () => {
             <CardEmptyState 
               message="Need help with everyst?"
               action={
-                <Button variant="primary">
+                <Button variant="default">
                   Submit an issue
                 </Button>
               }

@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, User, CheckCircle, XCircle } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
 import { AuthNotification } from '../../components/auth/AuthNotification';
-import { Button } from '../../components/ui/Button';
+import { Button } from '../../components/ui';
 
 export const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -269,7 +269,7 @@ export const RegisterPage: React.FC = () => {
           <div className="pt-4">
             <Button
               type="submit"
-              variant="primary"
+              variant="default"
               fullWidth
               isLoading={submitting}
               disabled={submitting}

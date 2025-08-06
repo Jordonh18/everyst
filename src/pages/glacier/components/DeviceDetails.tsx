@@ -17,7 +17,7 @@ import {
   RefreshCw,
   Power,
 } from 'lucide-react';
-import { Card, IconButton, StatusPill } from '../../../components/ui';
+import { Card, IconButton, Badge, Button } from '../../../components/ui';
 import type { NetworkDevice } from '../../../types/network';
 
 interface DeviceDetailsProps {
@@ -119,7 +119,9 @@ export const DeviceDetails: React.FC<DeviceDetailsProps> = ({
             <div className="flex items-center text-xs text-[rgb(var(--color-text-secondary))]">
               <span className="capitalize">{device.type}</span>
               <span className="mx-2">•</span>
-              <StatusPill status={status as any} text={text} size="sm" />
+              <Badge variant={status === 'success' ? 'default' : status === 'error' ? 'destructive' : 'secondary'}>
+                {text}
+              </Badge>
             </div>
           </div>
         </div>
@@ -222,7 +224,7 @@ export const DeviceDetails: React.FC<DeviceDetailsProps> = ({
             <RefreshCw size={16} />
           </Button>
           <Button
-            variant={device.status === 'online' ? 'primary' : 'outline'}
+            variant={device.status === 'online' ? 'default' : 'outline'}
             size="sm"
             onClick={() => onToggleStatus && onToggleStatus(device)}
             aria-label={device.status === 'online' ? 'Device is online' : 'Device is offline'}

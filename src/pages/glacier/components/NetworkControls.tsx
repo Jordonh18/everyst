@@ -174,7 +174,7 @@ export const NetworkControls: React.FC<NetworkControlsProps> = ({ className = ''
                   
                   <div className="mt-3 pt-3 border-t border-[rgb(var(--color-border))]">
                     <Button
-                      variant="primary"
+                      variant="default"
                       fullWidth
                       size="sm"
                       onClick={() => {

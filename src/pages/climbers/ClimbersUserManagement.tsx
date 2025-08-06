@@ -988,7 +988,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
               {/* Add User Button */}
               <Button
                 onClick={() => setShowAddUserModal(true)}
-                variant="primary"
+                variant="default"
                 leftIcon={<UserPlus className="h-4 w-4" />}
               >
                 Add User
@@ -1213,7 +1213,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
               form="addUserForm"
               type="submit"
               disabled={addUserLoading}
-              variant="primary"
+              variant="default"
               isLoading={addUserLoading}
             >
               {addUserLoading ? 'Creating...' : 'Create User'}
@@ -1250,7 +1250,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
               form="editUserForm"
               type="submit"
               disabled={editUserLoading}
-              variant="primary"
+              variant="default"
               isLoading={editUserLoading}
             >
               {editUserLoading ? 'Updating...' : 'Update User'}

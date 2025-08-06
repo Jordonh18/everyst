@@ -150,7 +150,7 @@ Thanks to all who have contributed to making Everyst better!
 
 ## ☕ Support
 
-If you find this project useful, consider [buying me a beer](https://www.buymeacoffee.com/jordonh) to support continued development.
+If you find this project useful, consider [buying me a coffee](https://www.buymeacoffee.com/jordonh) to support continued development.
 
 
 ## License

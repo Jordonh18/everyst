@@ -98,7 +98,7 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
             Cancel
           </Button>
           <Button
-            variant="primary"
+            variant="default"
             onClick={handleSubmit}
           >
             Add Device

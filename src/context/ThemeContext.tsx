@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useState } from "react";
 
 // Type definitions for theme mode and color themes
 type ColorMode = "system" | "light" | "dark" | "high-contrast" | "reduced-motion" | "soft";
-type ColorTheme = "default" | "blue" | "purple" | "forest" | "amber" | "teal" | "rose" | "crimson" | "emerald" | "indigo" | "slate" | "sunset" | "ocean";
+type ColorTheme = "default" | "everyst" | "blue" | "purple" | "forest" | "amber" | "teal" | "rose" | "crimson" | "emerald" | "indigo" | "slate" | "sunset" | "ocean";
 type ColorScheme = "light" | "dark"; // Actual applied light/dark mode
 
 type ThemeContextType = {
@@ -40,7 +40,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [colorTheme, setColorTheme] = useState<ColorTheme>(() => {
     // Check if theme is saved in localStorage
     const savedTheme = localStorage.getItem("colorTheme") as ColorTheme;
-    if (["default", "blue", "purple", "forest", "amber", "teal", "rose", "crimson", "emerald", "indigo", "slate", "sunset", "ocean"].includes(savedTheme)) {
+    if (["default", "everyst", "blue", "purple", "forest", "amber", "teal", "rose", "crimson", "emerald", "indigo", "slate", "sunset", "ocean"].includes(savedTheme)) {
       return savedTheme;
     }
     return "default";
@@ -62,7 +62,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     
     // First, remove all theme classes
     root.classList.remove("dark", "light", "high-contrast", "reduced-motion", "soft");
-    root.classList.remove("theme-blue", "theme-purple", "theme-forest", "theme-amber", "theme-teal", "theme-rose", 
+    root.classList.remove("theme-everyst", "theme-blue", "theme-purple", "theme-forest", "theme-amber", "theme-teal", "theme-rose", 
       "theme-crimson", "theme-emerald", "theme-indigo", "theme-slate", "theme-sunset", "theme-ocean");
     
     // Apply color scheme class (light/dark)

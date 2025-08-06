@@ -534,7 +534,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
               {/* Export Button */}
               <Button
                 onClick={exportToCsv}
-                variant="primary"
+                variant="default"
                 leftIcon={<FileDown className="h-4 w-4" />}
               >
                 Export CSV

@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../hooks/useTheme';
 import { useLocation } from 'react-router-dom';
 import { Panel } from '../../components/ui/Panel';
-import { Button } from '../../components/ui/Button';
+import { Button } from '../../components/ui';
 import { 
   User, 
   Shield, 
@@ -301,7 +301,7 @@ const AccountSettingsPage: React.FC = () => {
                   <Button
                     onClick={() => setError(null)}
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     aria-label="Dismiss"
                     className="p-1"
                   >
@@ -316,7 +316,7 @@ const AccountSettingsPage: React.FC = () => {
                   <Button
                     onClick={() => setSuccess(null)}
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     aria-label="Dismiss"
                     className="p-1"
                   >
@@ -392,7 +392,7 @@ const AccountSettingsPage: React.FC = () => {
                       
                       <label className="cursor-pointer">
                         <Button
-                          variant="primary"
+                          variant="default"
                           leftIcon={<Upload size={16} />}
                         >
                           Upload a picture
@@ -415,7 +415,7 @@ const AccountSettingsPage: React.FC = () => {
                 <div className="mt-6 flex justify-end">
                   <Button
                     type="submit"
-                    variant="primary"
+                    variant="default"
                     disabled={isLoading}
                     isLoading={isLoading}
                     leftIcon={!isLoading ? <Save size={16} /> : undefined}
@@ -439,7 +439,7 @@ const AccountSettingsPage: React.FC = () => {
                   <Button
                     onClick={() => setError(null)}
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     aria-label="Dismiss"
                     className="p-1"
                   >
@@ -454,7 +454,7 @@ const AccountSettingsPage: React.FC = () => {
                   <Button
                     onClick={() => setSuccess(null)}
                     variant="ghost"
-                    size="xs"
+                    size="sm"
                     aria-label="Dismiss"
                     className="p-1"
                   >
@@ -506,7 +506,7 @@ const AccountSettingsPage: React.FC = () => {
                 <div className="mt-6 flex justify-end">
                   <Button
                     type="submit"
-                    variant="primary"
+                    variant="default"
                     disabled={isLoading}
                     isLoading={isLoading}
                     leftIcon={!isLoading ? <Key size={16} /> : undefined}

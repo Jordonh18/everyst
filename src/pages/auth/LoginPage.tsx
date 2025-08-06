@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { User, Lock} from 'lucide-react';
 import { AuthNotification } from '../../components/auth/AuthNotification';
-import { Button } from '../../components/ui/Button';
+import { Button } from '../../components/ui';
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -120,7 +120,7 @@ export const LoginPage: React.FC = () => {
           <div>
             <Button
               type="submit"
-              variant="primary"
+              variant="default"
               fullWidth
               isLoading={submitting}
               disabled={submitting}

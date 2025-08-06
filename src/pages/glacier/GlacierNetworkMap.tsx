@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   ZoomIn
 } from 'lucide-react';
-import { Card, IconButton, StatusPill, Button } from '../../components/ui';
+import { Card, IconButton, Badge, Button } from '../../components/ui';
 import { useWebSocket } from '../../context/WebSocketContext';
 import { socketService } from '../../utils/socket';
 import type { NetworkDevice, NetworkConnection, NetworkTopology } from '../../types/network';
@@ -847,7 +847,7 @@ const GlacierNetworkMapInner: React.FC = () => {
           )}
           <IconButton 
             icon={<Plus />} 
-            variant="primary" 
+            variant="default" 
             tooltipText="Add device" 
             onClick={() => setShowAddDeviceModal(true)}
           />
@@ -858,10 +858,11 @@ const GlacierNetworkMapInner: React.FC = () => {
       <Card className="p-3">
         <div className="flex flex-wrap items-center justify-between">
           <div className="flex items-center space-x-4">
-            <StatusPill 
-              status={error ? 'error' : isConnected ? 'success' : 'warning'} 
-              text={error ? 'Error' : isConnected ? 'Connected' : 'Disconnected'}
-            />
+            <Badge 
+              variant={error ? 'destructive' : isConnected ? 'default' : 'secondary'}
+            >
+              {error ? 'Error' : isConnected ? 'Connected' : 'Disconnected'}
+            </Badge>
             
             {lastScan && (
               <div className="text-sm text-[rgb(var(--color-text-secondary))]">
@@ -876,11 +877,10 @@ const GlacierNetworkMapInner: React.FC = () => {
             <Button
               onClick={handleScan}
               disabled={isScanInProgress}
-              variant="primary"
+              variant="default"
               size="sm"
-              leftIcon={isScanInProgress ? <RefreshCw className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-              isLoading={isScanInProgress}
             >
+              {isScanInProgress ? <RefreshCw className="animate-spin" size={16} /> : <RefreshCw size={16} />}
               {isScanInProgress ? `Scanning... ${Math.round(scanProgress)}%` : (hasExistingScan ? 'Rescan Network' : 'Scan Network')}
             </Button>
           </div>
@@ -903,7 +903,7 @@ const GlacierNetworkMapInner: React.FC = () => {
                 <AlertTriangle className="text-[rgb(var(--color-error))]" size={48} />
                 <div className="mt-4 text-[rgb(var(--color-text))]">{error}</div>
                 <Button 
-                  variant="primary"
+                  variant="default"
                   className="mt-4"
                   onClick={() => window.location.reload()}
                 >

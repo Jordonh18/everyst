@@ -73,7 +73,7 @@ export const EmptyScanState: React.FC<EmptyScanStateProps> = ({ onScan }) => {
           
           <Button
             onClick={onScan}
-            variant="primary"
+            variant="default"
             size="lg"
             leftIcon={<Scan size={20} />}
             rightIcon={<ArrowRight size={18} />}

@@ -3,7 +3,7 @@ import { Handle, Position } from 'reactflow';
 import type { NodeProps } from 'reactflow';
 import { motion } from 'framer-motion';
 import { Server, Monitor, Router, Shield, Box, HelpCircle } from 'lucide-react';
-import { StatusPill } from '../../../components/ui';
+import { Badge } from '../../../components/ui';
 import type { NetworkDevice } from '../../../types/network';
 
 // Device icon mapping based on type
@@ -112,16 +112,16 @@ export const DeviceNode: React.FC<NodeProps<NetworkDevice>> = memo(({ data, isCo
 
             {/* Status indicator */}
             <div className="mt-1 flex justify-center">
-              <StatusPill 
-                status={
-                  data.status === 'online' ? 'success' :
-                  data.status === 'warning' ? 'warning' : 
-                  data.status === 'offline' || data.status === 'error' ? 'error' : 
-                  'neutral'
-                } 
-                text={data.status} 
-                size="sm" 
-              />
+              <Badge 
+                variant={
+                  data.status === 'online' ? 'default' :
+                  data.status === 'warning' ? 'secondary' : 
+                  data.status === 'offline' || data.status === 'error' ? 'destructive' : 
+                  'outline'
+                }
+              >
+                {data.status}
+              </Badge>
             </div>
           </div>
         </div>

@@ -732,7 +732,7 @@ export const BasecampIntegrations: React.FC = () => {
                 Cancel
               </Button>
               <Button 
-                variant="primary"
+                variant="default"
                 onClick={() => {
                   // In a real app, this would save the configuration
                   // and make an API call to connect the service
