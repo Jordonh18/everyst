@@ -10,6 +10,7 @@ from ..serializers import (
     NetworkConnectionSerializer, NetworkScanSerializer, NetworkTopologySerializer
 )
 from ..services.network_scanner import start_scan, cleanup_stale_jobs, ScanOptions
+from api.models import ApplicationLog
 
 class NetworkDeviceViewSet(viewsets.ModelViewSet):
     """API endpoint for network devices"""
@@ -23,25 +24,64 @@ class NetworkDeviceViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         # Mark device as manually added
-        serializer.save(
+        device = serializer.save(
             is_manually_added=True,
             status='online',  # Default to online for manually added devices
             last_seen=timezone.now()
         )
+        ApplicationLog.log_activity(
+            user=self.request.user,
+            action='network_device_added',
+            object_type='NetworkDevice',
+            object_id=str(device.id),
+            object_name=device.label,
+            details={'message': f'Network device {device.label} manually added by {self.request.user.username}.'}
+        )
+
+    def perform_update(self, serializer):
+        device = serializer.save()
+        ApplicationLog.log_activity(
+            user=self.request.user,
+            action='network_device_updated',
+            object_type='NetworkDevice',
+            object_id=str(device.id),
+            object_name=device.label,
+            details={'message': f'Network device {device.label} updated by {self.request.user.username}.'}
+        )
+
+    def perform_destroy(self, instance):
+        ApplicationLog.log_activity(
+            user=self.request.user,
+            action='network_device_removed',
+            object_type='NetworkDevice',
+            object_id=str(instance.id),
+            object_name=instance.label,
+            details={'message': f'Network device {instance.label} removed by {self.request.user.username}.'}
+        )
+        instance.delete()
     
     @action(detail=True, methods=['post'])
     def set_status(self, request, pk=None):
         device = self.get_object()
-        status = request.data.get('status')
+        old_status = device.status
+        status_val = request.data.get('status')
         
-        if not status or status not in ['online', 'offline', 'warning', 'error']:
+        if not status_val or status_val not in ['online', 'offline', 'warning', 'error']:
             return Response(
                 {'error': 'Valid status required (online, offline, warning, error)'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        device.status = status
+        device.status = status_val
         device.save()
+        ApplicationLog.log_activity(
+            user=request.user,
+            action='network_device_status_change',
+            object_type='NetworkDevice',
+            object_id=str(device.id),
+            object_name=device.label,
+            details={'message': f'Status of device {device.label} changed from {old_status} to {status_val} by {request.user.username}.'}
+        )
         
         return Response(self.get_serializer(device).data)
     
@@ -50,6 +90,14 @@ class NetworkDeviceViewSet(viewsets.ModelViewSet):
         device = self.get_object()
         device.is_ignored = True
         device.save()
+        ApplicationLog.log_activity(
+            user=request.user,
+            action='network_device_updated', # Or a more specific action like 'network_device_ignored'
+            object_type='NetworkDevice',
+            object_id=str(device.id),
+            object_name=device.label,
+            details={'message': f'Network device {device.label} ignored by {request.user.username}.'}
+        )
         return Response({'status': 'device ignored'})
     
     @action(detail=True, methods=['post'])
@@ -57,6 +105,14 @@ class NetworkDeviceViewSet(viewsets.ModelViewSet):
         device = self.get_object()
         device.is_ignored = False
         device.save()
+        ApplicationLog.log_activity(
+            user=request.user,
+            action='network_device_updated', # Or a more specific action like 'network_device_unignored'
+            object_type='NetworkDevice',
+            object_id=str(device.id),
+            object_name=device.label,
+            details={'message': f'Network device {device.label} unignored by {request.user.username}.'}
+        )
         return Response({'status': 'device unignored'})
 
 
@@ -135,6 +191,14 @@ class NetworkScanViewSet(viewsets.ModelViewSet):
             target=lambda: asyncio.run(run_scan()),
             daemon=True
         ).start()
+        
+        # Log the initiation of the scan
+        ApplicationLog.log_activity(
+            user=request.user,
+            action='network_scan',
+            category='network',
+            details={'message': f'Network scan started by {request.user.username}. IP range: {ip_range if ip_range else "auto-detected"}'}
+        )
         
         return Response({
             'status': 'success',

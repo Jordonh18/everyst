@@ -10,6 +10,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from django.urls import resolve, Resolver404
 from django.utils import timezone
+from api.models import ApplicationLog
 
 logger = logging.getLogger('middleware.activity')
 
@@ -107,7 +108,31 @@ class APIActivityMiddleware:
                 logger.warning(f"Slow API Response: {request.method} {request.path} - {response_time:.2f}s")
         
         # Log API requests for monitoring (using Django's user authentication system)
-        if hasattr(request, 'user') and request.user.is_authenticated:
+        log_this_request = False
+        status_code = response.status_code
+
+        if status_code < 200 or status_code >= 300: # Log errors
+            log_this_request = True
+        elif self._is_security_endpoint(request.path): # Log security-sensitive endpoints
+            log_this_request = True
+        
+        # Additional check: if the action is one of our specific logged actions from views,
+        # we might not need to double-log it here unless we want a generic 'api_access' entry.
+        # The current ApplicationLog.log_activity in views is more specific.
+        # This middleware part can serve as a catch-all for other API accesses if needed.
+
+        action = self._determine_action_type(request)
+        
+        # Avoid double logging if a more specific log was already created in a view
+        # This is a simple check; a more robust system might involve passing context.
+        if action in ['auth_login', 'auth_logout', 'network_scan']: # Actions that might be logged here AND in views
+             # For login/logout, the middleware is the primary logger.
+             # For network_scan, view is primary.
+             if action == 'network_scan' and status_code < 300 : # if scan started successfully, view logs it.
+                 log_this_request = False
+
+
+        if hasattr(request, 'user') and log_this_request: # Removed request.user.is_authenticated to log for anon users too if criteria met
             # Get the user's IP
             x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
             if x_forwarded_for:
@@ -115,41 +140,37 @@ class APIActivityMiddleware:
             else:
                 ip = request.META.get('REMOTE_ADDR')
                 
-            # Log only non-2xx responses or important security-related endpoints
-            status_code = response.status_code
-            if status_code < 200 or status_code >= 300 or self._is_security_endpoint(request.path):
-                # Get and sanitize request body for logging
-                body = self._get_sanitized_request_data(request)
-                
-                try:
-                    # Log the activity to the database if the model is available
-                    from api.models.activity import UserActivity
-                    
-                    # Determine action type based on path and method
-                    action = self._determine_action_type(request)
-                    
-                    # Log to database
-                    UserActivity.log_activity(
-                        user=request.user if request.user.is_authenticated else None,
-                        action=action,
-                        ip_address=ip,
-                        user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                        details={
-                            'method': request.method,
-                            'path': request.path,
-                            'status_code': status_code,
-                            'response_time': f"{response_time:.2f}s" if hasattr(request, 'start_time') else None,
-                            'query_params': dict(request.GET.items()),
-                            'body': body,
-                        }
-                    )
-                except (ImportError, Exception) as e:
-                    # Fall back to standard logging if database logging fails
-                    logger.error(f"Failed to log activity to database: {str(e)}")
-                    logger.info(
-                        f"API Activity: {request.user.username} - {request.method} {request.path} - "
-                        f"Status: {status_code} - Time: {response_time:.2f}s"
-                    )
+            # Get and sanitize request body for logging
+            body = self._get_sanitized_request_data(request)
+            
+            try:
+                # Log the activity to the database if the model is available
+                # Log to database
+                # Ensure category is passed or determined by log_activity method
+                ApplicationLog.log_activity(
+                    user=request.user if request.user.is_authenticated else None,
+                    action=action, # Use the determined action
+                    ip_address=ip,
+                    user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                    details={
+                        'method': request.method,
+                        'path': request.path,
+                        'status_code': status_code,
+                        'response_time': f"{response_time:.2f}s" if hasattr(request, 'start_time') else None,
+                        'query_params': dict(request.GET.items()),
+                        'body': body,
+                        'response_summary': response.content[:255].decode('utf-8', errors='ignore') if response.content else ''
+                    },
+                    severity='error' if status_code >= 400 else 'warning' if status_code >=300 else 'info',
+                    # category will be determined by log_activity based on action
+                )
+            except (ImportError, Exception) as e:
+                # Fall back to standard logging if database logging fails
+                logger.error(f"Failed to log activity to database: {str(e)}")
+                logger.info(
+                    f"API Activity: {request.user.username} - {request.method} {request.path} - "
+                    f"Status: {status_code} - Time: {response_time:.2f}s"
+                )
         
         return response
     
@@ -172,23 +193,28 @@ class APIActivityMiddleware:
         """Determine the type of action based on the request path and method"""
         path = request.path
         method = request.method
-        
+
         # Authentication actions
         if path.startswith('/api/auth/login'):
-            return 'login'
+            return 'auth_login' # Changed from 'login'
         elif path.startswith('/api/auth/logout'):
-            return 'logout'
-        elif path.startswith('/api/auth/refresh'):
-            return 'api_access'
-            
+            return 'auth_logout' # Changed from 'logout'
+        # Password change is handled in UserViewSet now
+        # elif path.startswith('/api/users/') and 'change-password' in path:
+        #     return 'auth_password_change'
+
         # User management actions
-        elif path.startswith('/api/users/') and 'change-password' in path:
-            return 'password_change'
-        elif path.startswith('/api/users/') and 'set_role' in path:
-            return 'role_change'
-        elif path.startswith('/api/users/') and method in ['PUT', 'PATCH']:
-            return 'profile_update'
-            
+        # Role change is handled in UserViewSet now
+        # elif path.startswith('/api/users/') and 'set_role' in path:
+        #     return 'user_role_change'
+        # Profile update is handled in UserViewSet now
+        # elif path.startswith('/api/users/') and method in ['PUT', 'PATCH']:
+        #     return 'user_profile_update'
+        
+        # Network scan start is handled in NetworkScanViewSet
+        if path.startswith('/api/network/scans/') and 'start_scan' in path and method == 'POST':
+            return 'network_scan'
+
         # Default for other API access
         return 'api_access'
     

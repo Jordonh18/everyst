@@ -5,7 +5,15 @@ All permissions are imported and then re-exported for use across the application
 
 # Role-based permissions
 from .role_permissions import IsFirstUser
-from .access_permissions import IsOwner, IsAdmin, IsManager, CanManageUsers, CanManageSystem, CanManageNetwork
+from .access_permissions import (
+    IsOwner, 
+    IsAdmin, 
+    IsManager, 
+    CanManageUsers, 
+    CanManageSystem, 
+    CanManageNetwork,
+    CanViewLogs
+)
 
 # Define what's exported when doing 'from api.permissions import *'
 __all__ = [
@@ -16,4 +24,5 @@ __all__ = [
     'CanManageUsers',
     'CanManageSystem',
     'CanManageNetwork',
+    'CanViewLogs',
 ]

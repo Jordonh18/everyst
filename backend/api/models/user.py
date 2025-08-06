@@ -54,6 +54,9 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
+    class Meta:
+        ordering = ['username']
+
     def save(self, *args, **kwargs):
         # Ensure existing users have a username
         if not self.username and self.email:

@@ -25,6 +25,9 @@ from .system import (
 # Notification-related serializers
 from .notification import NotificationSerializer
 
+# Activity log-related serializers
+from .activity import ApplicationLogSerializer
+
 # Define what's exported when doing 'from api.serializers import *'
 __all__ = [
     # User-related serializers
@@ -44,5 +47,8 @@ __all__ = [
     'SecurityStatusSerializer',
     
     # Notification-related serializers
-    'NotificationSerializer'
+    'NotificationSerializer',
+
+    # Activity log-related serializers
+    'ApplicationLogSerializer'
 ]

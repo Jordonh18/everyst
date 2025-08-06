@@ -94,3 +94,19 @@ class CanManageNetwork(permissions.BasePermission):
             (request.user.role.can_manage_network or 
              request.user.role.name in ['admin', 'owner'])
         )
+
+
+class CanViewLogs(permissions.BasePermission):
+    """
+    Permission based on the ability to view system logs
+    """
+    
+    def has_permission(self, request, view):
+        # Check if user is authenticated and has permission to view logs
+        return bool(
+            request.user and
+            request.user.is_authenticated and
+            request.user.role is not None and
+            (getattr(request.user.role, 'can_view_logs', False) or 
+             request.user.role.name in ['admin', 'owner'])
+        )

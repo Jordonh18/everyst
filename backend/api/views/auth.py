@@ -11,6 +11,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.serializers.user import UserSerializer
+from api.models.activity import ApplicationLog
 
 User = get_user_model()
 
@@ -62,6 +63,10 @@ class RegisterView(APIView):
             # Save the user from serializer
             user = serializer.save()
             
+            # Get client IP and user agent for logging
+            ip_address = self._get_client_ip(request)
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            
             # If this is the first user, make them owner and superuser
             if is_first_user:
                 # Ensure UserRole defaults exist
@@ -75,6 +80,26 @@ class RegisterView(APIView):
                 user.is_superuser = True
                 user.save()
                 
+            # Log the user creation
+            ApplicationLog.log_activity(
+                user=user,  # The newly created user is the actor
+                action='user_create',
+                category='user',
+                severity='info',
+                ip_address=ip_address,
+                user_agent=user_agent,
+                object_type='user',
+                object_id=str(user.id),
+                object_name=user.username,
+                details={
+                    'message': f'New user registered: {user.username} ({user.first_name} {user.last_name}) - {"System owner" if is_first_user else "Standard user"}',
+                    'is_first_user': is_first_user,
+                    'role': user.role.name if user.role else 'user',
+                    'email': user.email,
+                    'registration_type': 'first_user_setup' if is_first_user else 'standard_registration'
+                }
+            )
+                
             refresh = RefreshToken.for_user(user)
             
             # Get a fresh serialized user to include the updated role info
@@ -87,3 +112,16 @@ class RegisterView(APIView):
                 'is_owner': is_first_user
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def _get_client_ip(self, request):
+        """
+        Extract the client IP address from the request
+        Handles proxy servers by checking X-Forwarded-For
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            # Get the client IP (first in the list)
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip

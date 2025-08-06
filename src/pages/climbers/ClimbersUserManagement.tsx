@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
 import { Modal } from '../../components/ui/Modal';
-import { Button } from '../../components/ui';
+import { Button, Table, TableBody, TableRow, TableCell } from '../../components/ui';
 import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
 import { 
   UserPlus, 
@@ -686,6 +686,17 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
   const [addUserLoading, setAddUserLoading] = useState<boolean>(false);
   const [editUserLoading, setEditUserLoading] = useState<boolean>(false);
   
+  // Table columns definition
+  const userTableColumns = [
+    { key: 'id', label: 'ID', className: 'w-12' },
+    { key: 'user', label: 'User' },
+    { key: 'email', label: 'Email' },
+    { key: 'role', label: 'Role' },
+    { key: 'status', label: 'Status' },
+    { key: 'joined', label: 'Joined' },
+    { key: 'actions', label: 'Actions', className: 'text-right' }
+  ];
+  
   // Add event listener for ownership transfer
   useEffect(() => {
     const handleTransferOwnership = (event: CustomEvent<User>) => {
@@ -986,158 +997,144 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
           </div>
           {/* Users Table */}
           <Panel>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[rgba(var(--color-bg),0.5)]">
-                  <tr className="border-b border-[rgb(var(--color-border))]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider w-12">ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Role</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Joined</th>
-                    <th className="px-4 py-3 text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider text-right">Actions</th>
-                  </tr>
-                </thead>
-                
-                <tbody className="bg-[rgb(var(--color-card))] divide-y divide-[rgb(var(--color-border))]">
-                  {loading ? (
-                    // Loading state
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <tr key={`loading-${index}`} className="animate-pulse">
-                        <td className="px-4 py-3"><div className="h-4 w-8 bg-[rgb(var(--color-border))] rounded"></div></td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-border))]"></div>
-                            <div className="ml-3 space-y-1">
-                              <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                              <div className="h-3 w-16 bg-[rgb(var(--color-border))] rounded"></div>
-                            </div>
+            <Table columns={userTableColumns}>
+              <TableBody>
+                {loading ? (
+                  // Loading state
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={`loading-${index}`} className="animate-pulse">
+                      <TableCell><div className="h-4 w-8 bg-[rgb(var(--color-border))] rounded"></div></TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-border))]"></div>
+                          <div className="ml-3 space-y-1">
+                            <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
+                            <div className="h-3 w-16 bg-[rgb(var(--color-border))] rounded"></div>
                           </div>
-                        </td>
-                        <td className="px-4 py-3"><div className="h-4 w-32 bg-[rgb(var(--color-border))] rounded"></div></td>
-                        <td className="px-4 py-3"><div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div></td>
-                        <td className="px-4 py-3"><div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div></td>
-                        <td className="px-4 py-3"><div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div></td>
-                        <td className="px-4 py-3 text-right"><div className="h-8 w-16 bg-[rgb(var(--color-border))] rounded ml-auto"></div></td>
-                      </tr>
-                    ))
-                  ) : error ? (
-                    // Error state
-                    <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-[rgb(var(--color-text-secondary))]">
-                        <AlertCircle className="h-6 w-6 mx-auto mb-2 text-[rgb(var(--color-error))]" />
-                        <p>{error}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell><div className="h-4 w-32 bg-[rgb(var(--color-border))] rounded"></div></TableCell>
+                      <TableCell><div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div></TableCell>
+                      <TableCell><div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div></TableCell>
+                      <TableCell><div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div></TableCell>
+                      <TableCell className="text-right"><div className="h-8 w-16 bg-[rgb(var(--color-border))] rounded ml-auto"></div></TableCell>
+                    </TableRow>
+                  ))
+                ) : error ? (
+                  // Error state
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
+                      <AlertCircle className="h-6 w-6 mx-auto mb-2 text-[rgb(var(--color-error))]" />
+                      <p>{error}</p>
+                      <Button
+                        onClick={() => window.location.reload()}
+                        variant="ghost"
+                        className="mt-2"
+                      >
+                        Try Again
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredUsers.length === 0 ? (
+                  // Empty state
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
+                      <UserX className="h-6 w-6 mx-auto mb-2" />
+                      <p>No users found matching your criteria</p>
+                      {searchTerm && (
                         <Button
-                          onClick={() => window.location.reload()}
+                          onClick={() => setSearchTerm('')}
                           variant="ghost"
-                          className="mt-2"
+                          className="mt-1"
                         >
-                          Try Again
+                          Clear Search
                         </Button>
-                      </td>
-                    </tr>
-                  ) : filteredUsers.length === 0 ? (
-                    // Empty state
-                    <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-[rgb(var(--color-text-secondary))]">
-                        <UserX className="h-6 w-6 mx-auto mb-2" />
-                        <p>No users found matching your criteria</p>
-                        {searchTerm && (
-                          <Button
-                            onClick={() => setSearchTerm('')}
-                            variant="ghost"
-                            className="mt-1"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  // User list
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="text-sm text-[rgb(var(--color-text-secondary))]">
+                        {typeof user.id === 'number' ? `#${user.id}` : user.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-primary))] text-white flex items-center justify-center uppercase font-medium text-sm">
+                            {user.first_name ? user.first_name[0] : user.username[0]}
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-[rgb(var(--color-text))]">
+                              {user.first_name && user.last_name 
+                                ? `${user.first_name} ${user.last_name}` 
+                                : user.username}
+                              {user.id === currentUser?.id && (
+                                <span className="ml-2 text-xs text-[rgb(var(--color-text-secondary))]">(You)</span>
+                              )}
+                            </div>
+                            <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                              @{user.username}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-[rgb(var(--color-text))]">{user.email}</TableCell>
+                      <TableCell>
+                        <RoleBadge role={user.role || 'user'} />
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.is_active 
+                            ? 'bg-[rgb(var(--color-status-active-bg))] text-[rgb(var(--color-status-active-text))]' 
+                            : 'bg-[rgb(var(--color-status-inactive-bg))] text-[rgb(var(--color-status-inactive-text))]'
+                        }`}>
+                          {user.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-[rgb(var(--color-text-secondary))]">
+                        {user.date_joined 
+                          ? new Date(user.date_joined).toLocaleDateString() 
+                          : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowEditUserModal(true);
+                            }}
+                            className="text-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-primary-hover))]"
+                            aria-label={`Edit ${user.username}`}
                           >
-                            Clear Search
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ) : (
-                    // User list
-                    filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-[rgba(var(--color-bg),0.5)]">
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text-secondary))]">
-                          {typeof user.id === 'number' ? `#${user.id}` : user.id.substring(0, 8)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-primary))] text-white flex items-center justify-center uppercase font-medium text-sm">
-                              {user.first_name ? user.first_name[0] : user.username[0]}
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-sm font-medium text-[rgb(var(--color-text))]">
-                                {user.first_name && user.last_name 
-                                  ? `${user.first_name} ${user.last_name}` 
-                                  : user.username}
-                                {user.id === currentUser?.id && (
-                                  <span className="ml-2 text-xs text-[rgb(var(--color-text-secondary))]">(You)</span>
-                                )}
-                              </div>
-                              <div className="text-xs text-[rgb(var(--color-text-secondary))]">
-                                @{user.username}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">{user.email}</td>
-                        <td className="px-4 py-3">
-                          <RoleBadge role={user.role || 'user'} />
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            user.is_active 
-                              ? 'bg-[rgb(var(--color-status-active-bg))] text-[rgb(var(--color-status-active-text))]' 
-                              : 'bg-[rgb(var(--color-status-inactive-bg))] text-[rgb(var(--color-status-inactive-text))]'
-                          }`}>
-                            {user.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text-secondary))]">
-                          {user.date_joined 
-                            ? new Date(user.date_joined).toLocaleDateString() 
-                            : 'N/A'}
-                        </td>
-                        <td className="px-4 py-3 text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-2">
-                            <button
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setShowEditUserModal(true);
-                              }}
-                              className="text-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-primary-hover))]"
-                              aria-label={`Edit ${user.username}`}
-                            >
-                              <UserCog className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleUserDelete(user.id)}
-                              className={`${
-                                user.id === currentUser?.id || user.role === 'owner'
-                                  ? 'text-[rgba(var(--color-error),0.4)] cursor-not-allowed'
-                                  : 'text-[rgb(var(--color-error))] hover:text-[rgb(var(--color-error-hover))]'
-                              }`}
-                              aria-label={`Delete ${user.username}`}
-                              disabled={user.id === currentUser?.id || user.role === 'owner'}
-                              title={
-                                user.id === currentUser?.id 
-                                  ? "You cannot delete your own account"
-                                  : user.role === 'owner'
-                                    ? "System owners cannot be deleted - transfer ownership first"
-                                    : `Delete ${user.username}`
-                              }
-                            >
-                              <UserX className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                            <UserCog className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleUserDelete(user.id)}
+                            className={`${
+                              user.id === currentUser?.id || user.role === 'owner'
+                                ? 'text-[rgba(var(--color-error),0.4)] cursor-not-allowed'
+                                : 'text-[rgb(var(--color-error))] hover:text-[rgb(var(--color-error-hover))]'
+                            }`}
+                            aria-label={`Delete ${user.username}`}
+                            disabled={user.id === currentUser?.id || user.role === 'owner'}
+                            title={
+                              user.id === currentUser?.id 
+                                ? "You cannot delete your own account"
+                                : user.role === 'owner'
+                                  ? "System owners cannot be deleted - transfer ownership first"
+                                  : `Delete ${user.username}`
+                            }
+                          >
+                            <UserX className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </Panel>
           
           {/* Stats Cards */}

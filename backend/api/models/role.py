@@ -30,6 +30,7 @@ class UserRole(models.Model):
     can_manage_system = models.BooleanField(default=False)
     can_manage_network = models.BooleanField(default=False)
     can_view_all_data = models.BooleanField(default=False)
+    can_view_logs = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['priority']
@@ -49,6 +50,7 @@ class UserRole(models.Model):
                 'can_manage_system': True,
                 'can_manage_network': True,
                 'can_view_all_data': True,
+                'can_view_logs': True,
             },
             {
                 'name': cls.ADMIN,
@@ -58,6 +60,7 @@ class UserRole(models.Model):
                 'can_manage_system': True,
                 'can_manage_network': True,
                 'can_view_all_data': True,
+                'can_view_logs': True,
             },
             {
                 'name': cls.MANAGER,
@@ -67,6 +70,7 @@ class UserRole(models.Model):
                 'can_manage_system': True,
                 'can_manage_network': True,
                 'can_view_all_data': True,
+                'can_view_logs': False,
             },
             {
                 'name': cls.USER,
@@ -76,6 +80,7 @@ class UserRole(models.Model):
                 'can_manage_system': False,
                 'can_manage_network': False,
                 'can_view_all_data': False,
+                'can_view_logs': False,
             },
         ]
         

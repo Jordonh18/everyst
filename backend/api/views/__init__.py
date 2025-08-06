@@ -34,16 +34,8 @@ from .system import (
 # Notification views
 from .notification import NotificationViewSet
 
-# System-related views
-from .system import (
-    SystemMetricsViewSet,
-    AlertViewSet,
-    SecurityStatusViewSet,
-    get_current_metrics
-)
-
-# Notification views
-from .notification import NotificationViewSet
+# Activity log views
+from .activity import ApplicationLogViewSet
 
 # Define __all__ to specify what 'from api.views import *' should import,
 # and also for clarity on what this package exports.
@@ -83,5 +75,8 @@ __all__ = [
     'get_current_metrics',
     
     # Notification views
-    'NotificationViewSet'
+    'NotificationViewSet',
+    
+    # Activity log views
+    'ApplicationLogViewSet'
 ]

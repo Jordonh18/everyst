@@ -13,6 +13,7 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import AccountSettingsPage from './pages/account/AccountSettingsPage';
 import GlacierNetworkMap from './pages/glacier/GlacierNetworkMap';
 import ClimbersUserManagement from './pages/climbers/ClimbersUserManagement';
+import ActivityLogs from './pages/activity/ActivityLogs';
 import PermissionGate from './components/auth/PermissionGate';
 import './App.css';
 
@@ -48,7 +49,7 @@ function App() {
                     <Route path="network-map" element={<GlacierNetworkMap />} />
                     <Route path="metrics" element={<div className="p-4">Altitude Metrics (Coming Soon)</div>} />
                     <Route path="security" element={<div className="p-4">IceWall Security (Coming Soon)</div>} />
-                    <Route path="logs" element={<div className="p-4">TrekLog Viewer (Coming Soon)</div>} />
+                    <Route path="logs" element={<PermissionGate permission="canViewLogs" fallback={<Navigate to="/summit" replace />}><ActivityLogs /></PermissionGate>} />
                     <Route path="alerts" element={<div className="p-4">Avalanche Alerts (Coming Soon)</div>} />
                     <Route path="integrations" element={<BasecampIntegrations />} />
                     <Route path="tools" element={<GearRoomTools />} />

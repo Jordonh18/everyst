@@ -28,6 +28,7 @@ interface AuthContextValue {
   canManageSystem: boolean;
   canManageNetwork: boolean;
   canViewAllData: boolean;
+  canViewLogs: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -49,6 +50,7 @@ const AuthContext = createContext<AuthContextValue>({
   canManageSystem: false,
   canManageNetwork: false,
   canViewAllData: false,
+  canViewLogs: false,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -66,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [canManageSystem, setCanManageSystem] = useState<boolean>(false);
   const [canManageNetwork, setCanManageNetwork] = useState<boolean>(false);
   const [canViewAllData, setCanViewAllData] = useState<boolean>(false);
+  const [canViewLogs, setCanViewLogs] = useState<boolean>(false);
   
   const { connect, disconnect } = useWebSocket();
 
@@ -80,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCanManageSystem(false);
       setCanManageNetwork(false);
       setCanViewAllData(false);
+      setCanViewLogs(false);
       return;
     }
 
@@ -98,12 +102,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCanManageSystem(roleDetails.can_manage_system);
       setCanManageNetwork(roleDetails.can_manage_network);
       setCanViewAllData(roleDetails.can_view_all_data);
+      // For canViewLogs, use role-based permissions since it's a new addition
+      setCanViewLogs(role === 'owner' || role === 'admin');
     } else {
       // Fallback to role-based permissions if details not available
       setCanManageUsers(role === 'owner' || role === 'admin');
       setCanManageSystem(role === 'owner' || role === 'admin' || role === 'manager');
       setCanManageNetwork(role === 'owner' || role === 'admin' || role === 'manager');
       setCanViewAllData(role === 'owner' || role === 'admin' || role === 'manager');
+      setCanViewLogs(role === 'owner' || role === 'admin');
     }
   }, []);
 
@@ -484,6 +491,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         canManageSystem,
         canManageNetwork,
         canViewAllData,
+        canViewLogs,
       }}
     >
       {children}

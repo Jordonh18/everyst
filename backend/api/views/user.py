@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.serializers.user import UserSerializer, UserRoleSerializer
 from api.models.role import UserRole
 from api.permissions import CanManageUsers
+from ..models import ApplicationLog
 
 User = get_user_model()
 
@@ -95,6 +96,79 @@ class UserViewSet(viewsets.ModelViewSet):
         # Continue with the standard create process
         return super().create(request, *args, **kwargs)
     
+    def perform_create(self, serializer):
+        user = serializer.save()
+        
+        # Get client IP and user agent
+        ip_address = self._get_client_ip(self.request)
+        user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
+        ApplicationLog.log_activity(
+            user=self.request.user,
+            action='user_create',
+            category='user',
+            severity='info',
+            ip_address=ip_address,
+            user_agent=user_agent,
+            object_type='user',
+            object_id=str(user.id),
+            object_name=user.username,
+            details={
+                'message': f'New user created: {user.username} ({user.first_name} {user.last_name})',
+                'created_by': self.request.user.username,
+                'user_role': user.role.name if user.role else 'No role assigned',
+                'user_email': user.email
+            }
+        )
+
+    def perform_update(self, serializer):
+        user = serializer.save()
+        
+        # Get client IP and user agent
+        ip_address = self._get_client_ip(self.request)
+        user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
+        ApplicationLog.log_activity(
+            user=self.request.user,
+            action='user_update',
+            category='user',
+            severity='info',
+            ip_address=ip_address,
+            user_agent=user_agent,
+            object_type='user',
+            object_id=str(user.id),
+            object_name=user.username,
+            details={
+                'message': f'User profile updated: {user.username} ({user.first_name} {user.last_name})',
+                'updated_by': self.request.user.username,
+                'current_role': user.role.name if user.role else 'No role assigned'
+            }
+        )
+
+    def perform_destroy(self, instance):
+        # Get client IP and user agent
+        ip_address = self._get_client_ip(self.request)
+        user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+        
+        ApplicationLog.log_activity(
+            user=self.request.user,
+            action='user_delete',
+            category='user',
+            severity='warning',
+            ip_address=ip_address,
+            user_agent=user_agent,
+            object_type='user',
+            object_id=str(instance.id),
+            object_name=instance.username,
+            details={
+                'message': f'User account deleted: {instance.username} ({instance.first_name} {instance.last_name})',
+                'deleted_by': self.request.user.username,
+                'deleted_user_role': instance.role.name if instance.role else 'No role assigned',
+                'deleted_user_email': instance.email
+            }
+        )
+        instance.delete()
+
     @action(detail=True, methods=['post'])
     def set_role(self, request, pk=None):
         """Set the role for a user"""
@@ -168,6 +242,25 @@ class UserViewSet(viewsets.ModelViewSet):
                 
             user.save()
             
+            ApplicationLog.log_activity(
+                user=request.user,
+                action='user_role_change',
+                category='user',
+                severity='info',
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                object_type='user',
+                object_id=str(user.id),
+                object_name=user.username,
+                details={
+                    'message': f'Role changed: {user.username} assigned role {role.name}',
+                    'changed_by': request.user.username,
+                    'previous_role': user.role.name if user.role else 'No role',
+                    'new_role': role.name,
+                    'target_user': user.username
+                }
+            )
+            
             # Return updated user data
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -201,6 +294,18 @@ class UserViewSet(viewsets.ModelViewSet):
         # Update the password
         user.set_password(new_password)
         user.save()
+        
+        ApplicationLog.log_activity(
+            user=request.user, # Can be self or other user if admin
+            action='auth_password_change',
+            ip_address=self._get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            object_type='User',
+            object_id=str(user.id),
+            object_name=user.username,
+            details={'message': f'Password changed for user {user.username}.'},
+            severity='info'
+        )
         
         return Response({"detail": "Password changed successfully"}, status=status.HTTP_200_OK)
     
@@ -263,6 +368,33 @@ class UserViewSet(viewsets.ModelViewSet):
                 "detail": "Profile image updated successfully",
                 "url": request.build_absolute_uri(user.profile_image.url)
             }, status=status.HTTP_200_OK)
+    
+    def _get_client_ip(self, request):
+        """
+        Extract the client IP address from the request
+        Handles proxy servers by checking multiple headers
+        """
+        # Check various proxy headers in order of preference
+        headers_to_check = [
+            'HTTP_CF_CONNECTING_IP',      # Cloudflare
+            'HTTP_X_FORWARDED_FOR',       # Standard proxy header
+            'HTTP_X_REAL_IP',             # Nginx proxy
+            'HTTP_X_CLIENT_IP',           # Alternative header
+            'REMOTE_ADDR'                 # Direct connection
+        ]
+        
+        for header in headers_to_check:
+            ip = request.META.get(header)
+            if ip:
+                # For comma-separated IPs, take the first (original client)
+                if ',' in ip:
+                    ip = ip.split(',')[0].strip()
+                # Skip private/local IPs if we have multiple options
+                if not ip.startswith(('127.', '10.', '192.168.', '172.')) or header == 'REMOTE_ADDR':
+                    return ip
+        
+        # Fallback to REMOTE_ADDR if nothing else found
+        return request.META.get('REMOTE_ADDR', 'unknown')
 
 @api_view(['GET'])
 def check_users_exist(request):

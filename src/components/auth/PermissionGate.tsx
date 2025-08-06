@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 interface PermissionGateProps {
-  permission: 'isOwner' | 'isAdmin' | 'isManager' | 'canManageUsers' | 'canManageSystem' | 'canManageNetwork' | 'canViewAllData';
+  permission: 'isOwner' | 'isAdmin' | 'isManager' | 'canManageUsers' | 'canManageSystem' | 'canManageNetwork' | 'canViewAllData' | 'canViewLogs';
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }

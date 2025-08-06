@@ -104,3 +104,19 @@ class CanViewAllData(permissions.BasePermission):
             request.user.role is not None and
             request.user.role.can_view_all_data
         )
+
+
+class CanViewLogs(permissions.BasePermission):
+    """
+    Permission based on the ability to view system logs
+    """
+    
+    def has_permission(self, request, view):
+        # Check if user is authenticated and has permission to view logs
+        return bool(
+            request.user and
+            request.user.is_authenticated and
+            request.user.role is not None and
+            (request.user.role.name in ['admin', 'owner'] or
+             hasattr(request.user.role, 'can_view_logs') and request.user.role.can_view_logs)
+        )
