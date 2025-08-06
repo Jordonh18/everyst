@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
-import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui';
+import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Card } from '../../components/ui';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -558,142 +558,160 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
           </div>
           
           {/* Logs Table */}
-          <Panel>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {activityTableColumns.map((column) => (
-                    <TableHead key={column.key}>{column.label}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  // Loading state
-                  Array.from({ length: 5 }).map((_, index) => (
-                    <TableRow key={`loading-${index}`} className="animate-pulse">
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="h-4 w-32 bg-[rgb(var(--color-border))] rounded"></div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="h-4 w-16 bg-[rgb(var(--color-border))] rounded"></div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="h-4 w-48 bg-[rgb(var(--color-border))] rounded"></div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div>
+          <Card className="border border-border bg-card rounded-xl shadow-sm">
+            <div className="rounded-xl overflow-hidden">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="border-b border-border hover:bg-transparent">
+                    {activityTableColumns.map((column) => (
+                      <TableHead key={column.key} className="font-semibold text-foreground">
+                        {column.label}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    // Loading state
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <TableRow key={`loading-${index}`} className="animate-pulse border-b border-border/50">
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="h-4 w-32 bg-muted rounded"></div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-4 w-24 bg-muted rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-4 w-24 bg-muted rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-4 w-16 bg-muted rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-4 w-48 bg-muted rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-4 w-24 bg-muted rounded"></div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-5 w-16 bg-muted rounded-full"></div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : error ? (
+                    // Error state
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <AlertCircle className="h-8 w-8 mx-auto mb-3 text-destructive" />
+                        <p className="text-lg font-medium mb-2">Error Loading Logs</p>
+                        <p className="text-sm mb-4">{error}</p>
+                        <Button
+                          onClick={() => window.location.reload()}
+                          variant="outline"
+                        >
+                          Try Again
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : error ? (
-                  // Error state
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
-                      <AlertCircle className="h-6 w-6 mx-auto mb-2 text-[rgb(var(--color-error))]" />
-                      <p>{error}</p>
-                      <Button
-                        onClick={() => window.location.reload()}
-                        variant="ghost"
-                        className="mt-2"
-                      >
-                        Try Again
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredLogs.length === 0 ? (
-                  // Empty state
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
-                      <Clock className="h-6 w-6 mx-auto mb-2" />
-                      <p>No activity logs found matching your criteria</p>
-                      {(searchTerm || severityFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') && (
-                        <Button
-                          onClick={resetFilters}
-                          variant="ghost"
-                          className="mt-1"
-                        >
-                          Clear Filters
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  // Log list
-                  filteredLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
-                        <div className="whitespace-nowrap">{formatDate(log.timestamp)}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {log.user ? (
-                            <>
-                              <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-primary))] text-white flex items-center justify-center uppercase font-medium text-xs">
-                                {log.user.first_name ? log.user.first_name[0] : log.user.username[0]}
-                              </div>
-                              <div className="ml-3">
-                                <div className="text-sm font-medium text-[rgb(var(--color-text))]">
-                                  {log.user.first_name && log.user.last_name 
-                                    ? `${log.user.first_name} ${log.user.last_name}` 
-                                    : log.user.username}
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="flex items-center">
-                              <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-text-secondary))] text-white flex items-center justify-center uppercase font-medium text-xs">
-                                {log.object_name ? log.object_name[0] : 'S'}
-                              </div>
-                              <div className="ml-3">
-                                <span className="text-sm font-medium text-[rgb(var(--color-text-secondary))]">
-                                  {log.object_name && (log.action === 'auth_failed' || log.action === 'auth_login') 
-                                    ? `${log.object_name} (Failed)` 
-                                    : 'System'}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
-                        {formatActionType(log.action)}
-                      </TableCell>
-                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
-                        <span className="whitespace-nowrap">{formatCategory(log.category)}</span>
-                        {log.object_type && (
-                          <span className="ml-1 text-xs text-[rgb(var(--color-text-secondary))]">
-                            {log.object_type}
-                            {log.object_id && ` #${log.object_id}`}
-                          </span>
+                  ) : filteredLogs.length === 0 ? (
+                    // Empty state
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <Clock className="h-8 w-8 mx-auto mb-3" />
+                        <p className="text-lg font-medium mb-2">No Activity Logs Found</p>
+                        <p className="text-sm mb-4">
+                          {(searchTerm || severityFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') 
+                            ? 'No logs match your current filters' 
+                            : 'No activity logs are available'
+                          }
+                        </p>
+                        {(searchTerm || severityFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') && (
+                          <Button
+                            onClick={resetFilters}
+                            variant="outline"
+                          >
+                            Clear Filters
+                          </Button>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
-                        {(log.details?.message as string) || log.object_name || 'No description'}
-                      </TableCell>
-                      <TableCell className="text-sm text-[rgb(var(--color-text-secondary))]">
-                        {log.ip_address}
-                      </TableCell>
-                      <TableCell>
-                        <SeverityBadge severity={log.severity} />
-                      </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Panel>
+                  ) : (
+                    // Log list
+                    filteredLogs.map((log, index) => (
+                      <TableRow 
+                        key={log.id} 
+                        className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${
+                          index % 2 === 0 ? 'bg-background' : 'bg-muted/10'
+                        }`}
+                      >
+                        <TableCell className="text-sm font-mono">
+                          <div className="whitespace-nowrap">{formatDate(log.timestamp)}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {log.user ? (
+                              <>
+                                <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                                  {log.user.first_name ? log.user.first_name[0] : log.user.username[0]}
+                                </div>
+                                <div className="ml-3">
+                                  <div className="text-sm font-medium">
+                                    {log.user.first_name && log.user.last_name 
+                                      ? `${log.user.first_name} ${log.user.last_name}` 
+                                      : log.user.username}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="flex items-center">
+                                <div className="h-8 w-8 rounded-full bg-muted-foreground text-background flex items-center justify-center text-xs font-medium">
+                                  {log.object_name ? log.object_name[0] : 'S'}
+                                </div>
+                                <div className="ml-3">
+                                  <span className="text-sm font-medium text-muted-foreground">
+                                    {log.object_name && (log.action === 'auth_failed' || log.action === 'auth_login') 
+                                      ? `${log.object_name} (Failed)` 
+                                      : 'System'}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm font-medium">
+                          {formatActionType(log.action)}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{formatCategory(log.category)}</span>
+                            {log.object_type && (
+                              <span className="text-xs text-muted-foreground">
+                                {log.object_type}
+                                {log.object_id && ` #${log.object_id}`}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm max-w-md">
+                          <div className="truncate">
+                            {(log.details?.message as string) || log.object_name || 'No description'}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground font-mono">
+                          {log.ip_address}
+                        </TableCell>
+                        <TableCell>
+                          <SeverityBadge severity={log.severity} />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
           
           {/* Pagination */}
           {!loading && !error && filteredLogs.length > 0 && (

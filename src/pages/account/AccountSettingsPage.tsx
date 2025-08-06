@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '@/components/theme-provider';
 import { useLocation } from 'react-router-dom';
-import { Panel } from '../../components/ui/Panel';
-import { Button, Label, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from '../../components/ui';
+import { Button, Label, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Input, Checkbox, Textarea } from '../../components/ui';
 import { 
   User, 
   Shield, 
@@ -14,7 +13,8 @@ import {
   X, 
   Upload,
   Palette,
-  Monitor
+  Monitor,
+  Trash2
 } from 'lucide-react';
 import { useNotificationsManager } from '../../hooks/state/useNotificationsManager';
 
@@ -35,6 +35,7 @@ const AccountSettingsPage: React.FC = () => {
     firstName: user?.first_name || '',
     lastName: user?.last_name || '',
     email: user?.email || '',
+    bio: '',
   });
   
   // State for password change
@@ -97,7 +98,7 @@ const AccountSettingsPage: React.FC = () => {
   }, [user?.id, getAccessToken]);
   
   // Handle input changes for user data
-  const handleUserDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUserDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUserData(prev => ({
       ...prev,
@@ -289,229 +290,369 @@ const AccountSettingsPage: React.FC = () => {
         <div className="flex-1">
           {/* Profile Information Tab */}
           {activeTab === 'profile' && (
-            <Panel>
-              <h2 className="text-xl font-semibold mb-6 text-[rgb(var(--color-text))]">Profile Information</h2>
-              
-              {/* Error/Success Messages */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{error}</span>
-                  <Button
-                    onClick={() => setError(null)}
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{success}</span>
-                  <Button
-                    onClick={() => setSuccess(null)}
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              <form onSubmit={handleProfileUpdate}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Left column - User details */}
-                  <div>
-                    <div className="mb-4">
-                      <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={userData.firstName}
-                        onChange={handleUserDataChange}
-                        className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                      />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
+                <CardDescription>
+                  Update your personal information and profile picture
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Error/Success Messages */}
+                {error && (
+                  <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-4 flex justify-between items-center">
+                    <span>{error}</span>
+                    <Button
+                      onClick={() => setError(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-destructive/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
+                
+                {success && (
+                  <div className="bg-green-500/15 border border-green-500/20 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-4 flex justify-between items-center">
+                    <span>{success}</span>
+                    <Button
+                      onClick={() => setSuccess(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-green-500/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
+                
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left column - User details */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          value={userData.firstName}
+                          onChange={handleUserDataChange}
+                          placeholder="Enter your first name"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          value={userData.lastName}
+                          onChange={handleUserDataChange}
+                          placeholder="Enter your last name"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          name="email"
+                          value={userData.email}
+                          onChange={handleUserDataChange}
+                          placeholder="Enter your email address"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Bio</Label>
+                        <Textarea
+                          id="bio"
+                          name="bio"
+                          value={userData.bio || ''}
+                          onChange={handleUserDataChange}
+                          placeholder="Tell us about yourself..."
+                          rows={3}
+                        />
+                      </div>
                     </div>
                     
-                    <div className="mb-4">
-                      <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={userData.lastName}
-                        onChange={handleUserDataChange}
-                        className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                      />
-                    </div>
-                    
-                    <div className="mb-4">
-                      <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={userData.email}
-                        onChange={handleUserDataChange}
-                        className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                      />
+                    {/* Right column - Profile picture */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Profile Picture</Label>
+                        <div className="flex flex-col items-center border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
+                          <div className="mb-4 w-32 h-32 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                            {profileImage ? (
+                              <img 
+                                src={profileImage} 
+                                alt="Profile"
+                                className="w-full h-full object-cover" 
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-medium text-4xl">
+                                {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <label className="cursor-pointer">
+                            <Button variant="outline" asChild>
+                              <span>
+                                <Upload size={16} className="mr-2" />
+                                Upload Picture
+                              </span>
+                            </Button>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageUpload}
+                            />
+                          </label>
+                          
+                          <p className="mt-2 text-sm text-muted-foreground text-center">
+                            JPG, PNG or GIF (max 2MB)
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Notification Preferences */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium">Notification Preferences</Label>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="emailNotifications" />
+                            <Label htmlFor="emailNotifications" className="text-sm font-normal">
+                              Email notifications
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="pushNotifications" />
+                            <Label htmlFor="pushNotifications" className="text-sm font-normal">
+                              Push notifications
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="securityAlerts" defaultChecked />
+                            <Label htmlFor="securityAlerts" className="text-sm font-normal">
+                              Security alerts
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Right column - Profile picture */}
-                  <div>
-                    <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                      Profile Picture
-                    </label>
-                    
-                    <div className="flex flex-col items-center border border-dashed border-[rgb(var(--color-border))] bg-[rgba(var(--color-card-light),0.5)] rounded-lg p-6">
-                      <div className="mb-4 w-32 h-32 rounded-full overflow-hidden bg-[rgb(var(--color-card-light))] flex items-center justify-center">
-                        {profileImage ? (
-                          <img 
-                            src={profileImage} 
-                            alt="Profile"
-                            className="w-full h-full object-cover" 
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[rgb(var(--color-primary))] to-[rgba(var(--color-primary),0.7)] flex items-center justify-center text-white font-medium text-4xl">
-                            {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <label className="cursor-pointer">
-                        <Button
-                          variant="default"
-                        >
-                          <Upload size={16} className="mr-2" />
-                          Upload a picture
-                        </Button>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-                      </label>
-                      
-                      <p className="mt-2 text-sm text-[rgb(var(--color-text-secondary))]">
-                        Max size: 2MB
-                      </p>
-                    </div>
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="min-w-[120px]"
+                    >
+                      {!isLoading ? <Save size={16} className="mr-2" /> : null}
+                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    </Button>
                   </div>
-                </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    type="submit"
-                    variant="default"
-                    disabled={isLoading}
-                  >
-                    {!isLoading ? <Save size={16} className="mr-2" /> : null}
-                    {isLoading ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </div>
-              </form>
-            </Panel>
+                </form>
+              </CardContent>
+            </Card>
           )}
           
           {/* Security Tab */}
           {activeTab === 'security' && (
-            <Panel>
-              <h2 className="text-xl font-semibold mb-6 text-[rgb(var(--color-text))]">Security Settings</h2>
-              
-              {/* Error/Success Messages */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{error}</span>
-                  <Button
-                    onClick={() => setError(null)}
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{success}</span>
-                  <Button
-                    onClick={() => setSuccess(null)}
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              <form onSubmit={handlePasswordUpdate}>
-                <div className="mb-4">
-                  <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    name="currentPassword"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                    className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                  />
-                </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Security Settings
+                </CardTitle>
+                <CardDescription>
+                  Manage your password and security preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Error/Success Messages */}
+                {error && (
+                  <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex justify-between items-center">
+                    <span>{error}</span>
+                    <Button
+                      onClick={() => setError(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-destructive/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
                 
-                <div className="mb-4">
-                  <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    name="newPassword"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                  />
-                </div>
+                {success && (
+                  <div className="bg-green-500/15 border border-green-500/20 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex justify-between items-center">
+                    <span>{success}</span>
+                    <Button
+                      onClick={() => setSuccess(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-green-500/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
                 
-                <div className="mb-4">
-                  <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                  />
+                {/* Password Change Section */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Change Password</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Update your password to keep your account secure
+                    </p>
+                  </div>
+                  
+                  <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        name="currentPassword"
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="Enter your current password"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="Enter your new password"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Password must be at least 8 characters long
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="Confirm your new password"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end pt-2">
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="min-w-[140px]"
+                      >
+                        {!isLoading ? <Key size={16} className="mr-2" /> : null}
+                        {isLoading ? 'Changing...' : 'Change Password'}
+                      </Button>
+                    </div>
+                  </form>
                 </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    type="submit"
-                    variant="default"
-                    disabled={isLoading}
-                  >
-                    {!isLoading ? <Key size={16} className="mr-2" /> : null}
-                    {isLoading ? 'Changing...' : 'Change Password'}
-                  </Button>
+
+                <Separator />
+
+                {/* Security Preferences */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Security Preferences</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Configure additional security settings for your account
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Two-Factor Authentication</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Add an extra layer of security to your account
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        Enable
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Login Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Get notified of new sign-ins to your account
+                        </p>
+                      </div>
+                      <Checkbox defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Session Timeout</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically sign out after period of inactivity
+                        </p>
+                      </div>
+                      <Select defaultValue="30m">
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15m">15 minutes</SelectItem>
+                          <SelectItem value="30m">30 minutes</SelectItem>
+                          <SelectItem value="1h">1 hour</SelectItem>
+                          <SelectItem value="4h">4 hours</SelectItem>
+                          <SelectItem value="never">Never</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </form>
-            </Panel>
+
+                <Separator />
+
+                {/* Account Actions */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Account Actions</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manage your account and data
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Button variant="outline" className="justify-start w-full">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Export Account Data
+                    </Button>
+                    
+                    <Button variant="outline" className="justify-start w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
           
           {/* Appearance Tab */}
