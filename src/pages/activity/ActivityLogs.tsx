@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
-import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
+import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -451,74 +451,66 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
             <div className="flex flex-wrap md:flex-nowrap items-center gap-2">
               {/* Severity Filter */}
               <div className="relative">
-                <select
+                <Select
                   value={severityFilter}
-                  onChange={(e) => setSeverityFilter(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 rounded-md border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))]"
-                  style={{ 
-                    backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.7rem center',
-                    backgroundSize: '0.7em'
-                  }}
+                  onValueChange={setSeverityFilter}
                 >
-                  <option value="all" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">All Severities</option>
-                  <option value="info" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Info</option>
-                  <option value="warning" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Warning</option>
-                  <option value="error" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Error</option>
-                  <option value="critical" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Critical</option>
-                </select>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Severities</SelectItem>
+                    <SelectItem value="info">Info</SelectItem>
+                    <SelectItem value="warning">Warning</SelectItem>
+                    <SelectItem value="error">Error</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Action Filter */}
               <div className="relative">
-                <select
+                <Select
                   value={actionFilter}
-                  onChange={(e) => setActionFilter(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 rounded-md border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))]"
-                  style={{ 
-                    backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.7rem center',
-                    backgroundSize: '0.7em'
-                  }}
+                  onValueChange={setActionFilter}
                 >
-                  <option value="all" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">All Actions</option>
-                  {uniqueActions.map(action => (
-                    <option 
-                      key={action} 
-                      value={action} 
-                      className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]"
-                    >
-                      {formatActionType(action)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Actions</SelectItem>
+                    {uniqueActions.map(action => (
+                      <SelectItem 
+                        key={action} 
+                        value={action}
+                      >
+                        {formatActionType(action)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Date Range Filter */}
               <div className="relative">
-                <select
+                <Select
                   value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 rounded-md border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))]"
-                  style={{ 
-                    backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.7rem center',
-                    backgroundSize: '0.7em'
-                  }}
+                  onValueChange={setDateFilter}
                 >
-                  {Object.entries(dateRanges).map(([key, { label }]) => (
-                    <option 
-                      key={key} 
-                      value={key} 
-                      className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]"
-                    >
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(dateRanges).map(([key, { label }]) => (
+                      <SelectItem 
+                        key={key} 
+                        value={key}
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Reset Filters Button */}

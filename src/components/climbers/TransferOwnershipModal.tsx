@@ -6,6 +6,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import type { User } from '../../types/users';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationsManager } from '../../hooks/state/useNotificationsManager';
@@ -132,22 +139,25 @@ const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
             <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
               Select New System Owner*
             </label>
-            <select
-              value={newOwnerId}
-              onChange={(e) => setNewOwnerId(e.target.value)}
-              className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
+            <Select
+              value={newOwnerId.toString()}
+              onValueChange={(value) => setNewOwnerId(value)}
               disabled={loading}
             >
-              <option value="">-- Select a User --</option>
-              {eligibleUsers.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.first_name && user.last_name
-                    ? `${user.first_name} ${user.last_name} (@${user.username})`
-                    : `${user.username}`}
-                  {user.id === currentUser?.id ? ' (You)' : ''}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Select a User --" />
+              </SelectTrigger>
+              <SelectContent>
+                {eligibleUsers.map((user) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.first_name && user.last_name
+                      ? `${user.first_name} ${user.last_name} (@${user.username})`
+                      : `${user.username}`}
+                    {user.id === currentUser?.id ? ' (You)' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
               Only active users with admin role or higher are eligible to become system owners.
             </p>

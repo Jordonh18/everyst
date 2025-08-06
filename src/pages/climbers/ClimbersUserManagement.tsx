@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
-import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
+import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui';
 import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
 import { 
   UserPlus, 
@@ -313,37 +313,32 @@ const AddUserForm: React.FC<{
         <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
           Role*
         </label>
-        <select
+        <Select
           name="role"
           value={formData.role}
-          onChange={handleChange}
-          className={`w-full px-3 py-2 border ${
-            errors.role ? 'border-[rgb(var(--color-error))]' : 'border-[rgb(var(--color-border))]'
-          } rounded-md bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))] focus:border-[rgb(var(--color-primary))] appearance-none`}
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 0.7rem center',
-            backgroundSize: '0.7em'
-          }}
+          onValueChange={(value) => handleChange({ target: { name: 'role', value } } as React.ChangeEvent<HTMLSelectElement>)}
         >
-          {Array.isArray(availableRoles) ? availableRoles.map((role) => {
-            // Don't show owner option if there's already an owner
-            if (role.name === 'owner' && hasExistingOwner) {
-              return null;
-            }
-            return (
-              <option 
-                key={role.name} 
-                value={role.name}
-                className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]"
-              >
-                {role.name.charAt(0).toUpperCase() + role.name.slice(1)} - {role.description}
-              </option>
-            );
-          }) : <option value="" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Loading roles...</option>}
-          {Array.isArray(availableRoles) && availableRoles.length === 0 && <option value="user" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">User</option>}
-        </select>
+          <SelectTrigger className={`w-full ${errors.role ? 'border-[rgb(var(--color-error))]' : ''}`}>
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.isArray(availableRoles) ? availableRoles.map((role) => {
+              // Don't show owner option if there's already an owner
+              if (role.name === 'owner' && hasExistingOwner) {
+                return null;
+              }
+              return (
+                <SelectItem 
+                  key={role.name} 
+                  value={role.name}
+                >
+                  {role.name.charAt(0).toUpperCase() + role.name.slice(1)} - {role.description}
+                </SelectItem>
+              );
+            }) : <SelectItem value="" disabled>Loading roles...</SelectItem>}
+            {Array.isArray(availableRoles) && availableRoles.length === 0 && <SelectItem value="user">User</SelectItem>}
+          </SelectContent>
+        </Select>
         {errors.role && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.role}</p>}
         {hasExistingOwner && (
           <p className="mt-1 text-sm text-[rgb(var(--color-warning-text))]">
@@ -597,19 +592,17 @@ const EditUserForm: React.FC<{
       <div>
         <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
           Role
-        </label>          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))] focus:border-[rgb(var(--color-primary))] appearance-none disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{ 
-              backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 0.7rem center',
-              backgroundSize: '0.7em'
-            }}
-            disabled={isCurrentOwner} // Disable role selection for the owner
-          >
+        </label>
+        <Select
+          name="role"
+          value={formData.role}
+          onValueChange={(value) => handleChange({ target: { name: 'role', value } } as React.ChangeEvent<HTMLSelectElement>)}
+          disabled={isCurrentOwner} // Disable role selection for the owner
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
             {Array.isArray(roles) && roles.map((role) => {
               // For non-owner users, don't show owner role if there already is one
               const hasExistingOwner = users.some(u => u.role === 'owner' && u.id !== user.id);
@@ -618,22 +611,22 @@ const EditUserForm: React.FC<{
               }
               
               return (
-                <option 
+                <SelectItem 
                   key={role.name} 
-                  value={role.name} 
-                  className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]"
+                  value={role.name}
                 >
                   {role.name.charAt(0).toUpperCase() + role.name.slice(1)} - {role.description}
-                </option>
+                </SelectItem>
               );
             })}
-            {(!Array.isArray(roles) || roles.length === 0) && <option value="user" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">User</option>}
-          </select>
-          {isCurrentOwner && (
-            <p className="mt-1 text-sm text-[rgb(var(--color-warning-text))]">
-              To change this user's role, you must first transfer system ownership to another user.
-            </p>
-          )}
+            {(!Array.isArray(roles) || roles.length === 0) && <SelectItem value="user">User</SelectItem>}
+          </SelectContent>
+        </Select>
+        {isCurrentOwner && (
+          <p className="mt-1 text-sm text-[rgb(var(--color-warning-text))]">
+            To change this user's role, you must first transfer system ownership to another user.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center">
@@ -969,23 +962,21 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
             <div className="flex flex-wrap md:flex-nowrap items-center gap-2">
               {/* Role Filter */}
               <div className="relative">
-                <select
+                <Select
                   value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="appearance-none pl-4 pr-10 py-2 rounded-md border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] text-[rgb(var(--color-text))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--color-primary))] focus:border-[rgb(var(--color-primary))] hover:border-[rgb(var(--color-border))]"
-                  style={{ 
-                    backgroundImage: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='rgb(var(--color-text-secondary))' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.7rem center',
-                    backgroundSize: '0.7em'
-                  }}
+                  onValueChange={setRoleFilter}
                 >
-                  <option value="all" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">All Roles</option>
-                  <option value="owner" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Owner</option>
-                  <option value="admin" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Admin</option>
-                  <option value="manager" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">Manager</option>
-                  <option value="user" className="text-[rgb(var(--color-text))] bg-[rgb(var(--color-input-bg))]">User</option>
-                </select>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="owner">Owner</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                  </SelectContent>
+                </Select>
                 {/* Remove the ChevronDown icon since we're using CSS for the dropdown arrow */}
               </div>
               

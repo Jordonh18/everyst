@@ -3,7 +3,12 @@ import {
   Card, 
   Panel, 
   Badge, 
-  Button
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '../../components/ui';
 import {
   Dialog,
@@ -844,15 +849,17 @@ export const BasecampIntegrations: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Region</label>
-                      <select
-                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      >
-                        <option value="">Select region</option>
-                        <option value="us-east-1">US East (N. Virginia)</option>
-                        <option value="us-west-1">US West (N. California)</option>
-                        <option value="eu-west-1">EU (Ireland)</option>
-                        <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
-                      </select>
+                      <Select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select region" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="us-east-1">US East (N. Virginia)</SelectItem>
+                          <SelectItem value="us-west-1">US West (N. California)</SelectItem>
+                          <SelectItem value="eu-west-1">EU (Ireland)</SelectItem>
+                          <SelectItem value="ap-southeast-1">Asia Pacific (Singapore)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </>
                 )}
