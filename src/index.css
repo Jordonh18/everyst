@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 @layer base {
   :root {
     /* Shadcn/ui CSS Variables - Default Gray Theme */
@@ -30,12 +28,6 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-
-    /* Legacy Everyst Theme Variables */
-    --color-primary: 56 189 248;     /* Ice Blue (#38BDF8) */
-    --color-primary-light: 14 165 233; /* Glacier Blue (#0EA5E9) */
-    --color-secondary: 139 92 246;
-    --color-secondary-light: 99 102 241;
 
     /* Other variables for theming */
     --color-background: 249 250 251;
@@ -90,255 +82,6 @@
     --color-modal-overlay: 0 0 0 / 0.7;        /* Modal overlay background */
   }
 
-  .dark {
-    /* Shadcn/ui CSS Variables - Dark Mode */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-
-    /* Legacy Everyst Theme Variables - Dark Mode */
-    --color-background: 18 24 38;
-    --color-card: 31 41 55;
-    --color-card-header: 24 32 48;  /* Table header background - darker gray (#182030) */
-    --color-border: 55 65 81;
-    --color-text: 229 231 235;       /* Slightly less bright white (#E5E7EB) */
-    --color-text-secondary: 156 163 175; /* Less bright secondary text (#9CA3AF) */
-    --color-skeleton: 71 85 105;     /* Skeleton background for dark mode (#475569) */
-    --color-search-bg: 55 65 81;     /* Search background for dark mode (#374151) */
-
-    /* Role-specific colors - dark mode */
-    --color-role-owner-bg: 91 33 182 / 0.3;  /* dark purple bg with opacity */
-    --color-role-owner-text: 216 180 254;    /* light purple text */
-    --color-role-admin-bg: 30 58 138 / 0.3;  /* dark blue bg with opacity */
-    --color-role-admin-text: 191 219 254;    /* light blue text */
-    --color-role-manager-bg: 6 78 59 / 0.3;  /* dark emerald bg with opacity */
-    --color-role-manager-text: 167 243 208;  /* light emerald text */
-    --color-role-user-bg: 31 41 55;         /* dark gray bg */
-    --color-role-user-text: 209 213 219;    /* light gray text */
-
-    /* Error color - dark mode */
-    --color-error: 248 113 113;             /* red-400 */
-    --color-error-hover: 239 68 68;         /* red-500 */
-
-    /* Status indicators - dark mode */
-    --color-status-active-bg: 20 83 45 / 0.3;     /* dark green bg with opacity */
-    --color-status-active-text: 134 239 172;      /* light green text */
-    --color-status-inactive-bg: 31 41 55;         /* dark gray bg */
-    --color-status-inactive-text: 209 213 219;    /* light gray text */
-    --color-warning-text: 253 211 77;             /* amber-300 for warning text in dark mode */
-    --color-warning-bg: 146 64 14 / 0.2;          /* amber-900/20 for warning bg in dark mode */
-    --color-warning-border: 146 64 14;            /* amber-800 for warning border in dark mode */
-
-    /* Button colors - dark mode */
-    --color-button-primary: 56 189 248;           /* Keep primary color consistent */
-    --color-button-primary-hover: 2 132 199;      /* Darker primary hover for dark mode */
-    --color-button-secondary: 75 85 99;           /* Darker secondary button */
-    --color-button-secondary-hover: 55 65 81;     /* Darker secondary hover */
-    --color-button-text: 255 255 255;             /* Button text color */
-
-    /* Form control colors - dark mode */
-    --color-input-bg: 31 41 55;                  /* Input background in dark mode */
-    --color-input-border: 55 65 81;              /* Input border in dark mode */
-    --color-input-border-focus: 56 189 248;      /* Input focus border same as light */
-    --color-input-text: 229 231 235;             /* Input text in dark mode */
-    --color-input-placeholder: 156 163 175;      /* Input placeholder in dark mode */
-  }
-
-  /* Everyst Theme - Legacy Theme as Option */
-  .theme-everyst {
-    --color-primary: 56 189 248;     /* Ice Blue (#38BDF8) */
-    --color-primary-light: 14 165 233; /* Glacier Blue (#0EA5E9) */
-    --color-secondary: 139 92 246;
-    --color-secondary-light: 99 102 241;
-    --color-button: 56 189 248;      /* Ice Blue button (#38BDF8) */
-    --color-button-hover: 14 165 233; /* Glacier Blue button hover (#0EA5E9) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Blue Theme */
-  .theme-blue {
-    --color-primary: 37 99 235;      /* Royal Blue (#2563EB) */
-    --color-primary-light: 59 130 246; /* Blue (#3B82F6) */
-    --color-secondary: 99 102 241;   /* Indigo (#6366F1) */
-    --color-secondary-light: 129 140 248; /* Light Indigo (#818CF8) */
-    --color-button: 37 99 235;       /* Royal Blue button (#2563EB) */
-    --color-button-hover: 30 64 175; /* Darker Royal Blue button hover (#1E40AF) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Purple Theme */
-  .theme-purple {
-    --color-primary: 139 92 246;     /* Purple (#8B5CF6) */
-    --color-primary-light: 124 58 237; /* Darker purple for light mode (#7C3AED) */
-    --color-secondary: 217 70 239;   /* Fuchsia (#D946EF) */
-    --color-secondary-light: 232 121 249; /* Light Fuchsia (#E879F9) */
-    --color-button: 139 92 246;      /* Purple button (#8B5CF6) */
-    --color-button-hover: 124 58 237; /* Darker purple button hover (#7C3AED) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Forest Theme */
-  .theme-forest {
-    --color-primary: 20 83 45;       /* Forest Green (#14532D) */
-    --color-primary-light: 34 197 94; /* Green (#22C55E) */
-    --color-secondary: 4 120 87;     /* Emerald (#047857) */
-    --color-secondary-light: 16 185 129; /* Light Emerald (#10B981) */
-    --color-button: 20 83 45;        /* Forest Green button (#14532D) */
-    --color-button-hover: 22 101 52; /* Darker Forest Green button hover (#166534) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Amber Theme */
-  .theme-amber {
-    --color-primary: 217 119 6;      /* Amber (#D97706) */
-    --color-primary-light: 245 158 11; /* Amber light (#F59E0B) */
-    --color-secondary: 234 88 12;    /* Orange (#EA580C) */
-    --color-secondary-light: 249 115 22; /* Orange light (#F97316) */
-    --color-button: 217 119 6;       /* Amber button (#D97706) */
-    --color-button-hover: 180 83 9;  /* Darker Amber button hover (#B45309) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Teal Theme */
-  .theme-teal {
-    --color-primary: 13 148 136;     /* Teal (#0D9488) */
-    --color-primary-light: 20 184 166; /* Teal light (#14B8A6) */
-    --color-secondary: 8 145 178;    /* Cyan (#08919B) */
-    --color-secondary-light: 6 182 212; /* Cyan light (#06B6D4) */
-    --color-button: 13 148 136;      /* Teal button (#0D9488) */
-    --color-button-hover: 15 118 110; /* Darker Teal button hover (#0F766E) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Rose Theme */
-  .theme-rose {
-    --color-primary: 225 29 72;      /* Rose (#E11D48) */
-    --color-primary-light: 244 63 94; /* Rose light (#F43F5E) */
-    --color-secondary: 219 39 119;   /* Pink (#DB2777) */
-    --color-secondary-light: 236 72 153; /* Pink light (#EC4899) */
-    --color-button: 225 29 72;       /* Rose button (#E11D48) */
-    --color-button-hover: 190 18 60; /* Darker Rose button hover (#BE123C) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Crimson Theme */
-  .theme-crimson {
-    --color-primary: 185 28 28;      /* Crimson (#B91C1C) */
-    --color-primary-light: 220 38 38; /* Crimson light (#DC2626) */
-    --color-secondary: 153 27 27;    /* Red (#991B1B) */
-    --color-secondary-light: 239 68 68; /* Red light (#EF4444) */
-    --color-button: 185 28 28;       /* Crimson button (#B91C1C) */
-    --color-button-hover: 127 29 29; /* Darker Crimson button hover (#7F1D1D) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Emerald Theme */
-  .theme-emerald {
-    --color-primary: 6 95 70;        /* Emerald (#065F46) */
-    --color-primary-light: 16 185 129; /* Emerald light (#10B981) */
-    --color-secondary: 5 150 105;    /* Emerald medium (#059669) */
-    --color-secondary-light: 52 211 153; /* Emerald lighter (#34D399) */
-    --color-button: 6 95 70;         /* Emerald button (#065F46) */
-    --color-button-hover: 4 120 87;  /* Darker Emerald button hover (#047857) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Indigo Theme */
-  .theme-indigo {
-    --color-primary: 67 56 202;      /* Indigo (#4338CA) */
-    --color-primary-light: 79 70 229; /* Indigo light (#4F46E5) */
-    --color-secondary: 99 102 241;   /* Indigo medium (#6366F1) */
-    --color-secondary-light: 129 140 248; /* Indigo lighter (#818CF8) */
-    --color-button: 67 56 202;       /* Indigo button (#4338CA) */
-    --color-button-hover: 55 48 163; /* Darker Indigo button hover (#3730A3) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Slate Theme */
-  .theme-slate {
-    --color-primary: 71 85 105;      /* Slate (#475569) */
-    --color-primary-light: 100 116 139; /* Slate light (#64748B) */
-    --color-secondary: 51 65 85;     /* Slate dark (#334155) */
-    --color-secondary-light: 148 163 184; /* Slate lighter (#94A3B8) */
-    --color-button: 71 85 105;       /* Slate button (#475569) */
-    --color-button-hover: 51 65 85;  /* Darker Slate button hover (#334155) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Sunset Theme */
-  .theme-sunset {
-    --color-primary: 251 146 60;     /* Orange (#FB923C) */
-    --color-primary-light: 249 115 22; /* Orange dark (#F97316) */
-    --color-secondary: 236 72 153;   /* Pink (#EC4899) */
-    --color-secondary-light: 244 114 182; /* Pink light (#F472B6) */
-    --color-button: 251 146 60;      /* Orange button (#FB923C) */
-    --color-button-hover: 234 88 12; /* Darker Orange button hover (#EA580C) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Ocean Theme */
-  .theme-ocean {
-    --color-primary: 8 145 178;      /* Cyan (#08919B) */
-    --color-primary-light: 6 182 212; /* Cyan light (#06B6D4) */
-    --color-secondary: 14 116 144;   /* Cyan dark (#0E7490) */
-    --color-secondary-light: 34 211 238; /* Cyan lighter (#22D3EE) */
-    --color-button: 8 145 178;       /* Cyan button (#08919B) */
-    --color-button-hover: 14 116 144; /* Darker Cyan button hover (#0E7490) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Special Mode: High Contrast */
-  .high-contrast {
-    --color-text: 0 0 0;             /* Pure black text (#000000) */
-    --color-background: 255 255 255; /* Pure white background (#FFFFFF) */
-    --color-border: 0 0 0;          /* Pure black borders (#000000) */
-    --color-primary: 0 0 139;        /* Dark blue (#00008B) */
-    --color-primary-light: 0 0 205;  /* Medium blue (#0000CD) */
-  }
-
-  /* Special Mode: Reduced Motion */
-  .reduced-motion * {
-    transition: none !important;
-    animation: none !important;
-    scroll-behavior: auto !important;
-  }
-
-  /* Special Mode: Soft/Comfort */
-  .soft {
-    --color-background: 245 245 250; /* Soft background (#F5F5FA) */
-    --color-card: 250 250 255;      /* Soft card (#FAFAFF) */
-    --color-text: 60 60 70;         /* Soft text (#3C3C46) */
-    --color-border: 220 220 235;    /* Soft borders (#DCDCEB) */
-  }
-
-  .dark.soft {
-    --color-background: 38 38 50;    /* Soft dark background (#262632) */
-    --color-card: 50 50 65;         /* Soft dark card (#323241) */
-    --color-text: 220 220 235;      /* Soft dark text (#DCDCEB) */
-    --color-border: 75 75 90;       /* Soft dark borders (#4B4B5A) */
-  }
-
   html {
     @apply text-base antialiased;
   }
@@ -352,16 +95,6 @@
   /* For accessibility: visible focus indicators - general rule */
   *:focus-visible {
     @apply outline-none ring-2 ring-[rgb(var(--color-primary))] ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
-  }
-
-  /* Default styling for form inputs */
-  input, select, textarea {
-    @apply bg-[rgb(var(--color-input-bg))] border border-[rgb(var(--color-input-border))] text-[rgb(var(--color-input-text))] placeholder-[rgb(var(--color-input-placeholder))];
-  }
-
-  /* Special focus for form inputs - cleaner border approach */
-  input:focus-visible, select:focus-visible, textarea:focus-visible {
-    @apply outline-none ring-0 ring-offset-0 border border-[rgb(var(--color-input-border-focus))];
   }
 
   /* Ensure all interactive elements have pointer cursor */
@@ -396,15 +129,7 @@
     @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-white p-4;
   }
 
-  /* For prefers-reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
+
 
   /* Dropdown animation */
   @keyframes dropdownFade {
@@ -416,36 +141,6 @@
       opacity: 1;
       transform: translateY(0) scale(1);
     }
-  }
-}
-
-@layer components {
-  .card {
-    @apply bg-[rgb(var(--color-card))] rounded-lg border border-[rgb(var(--color-border))] shadow-sm p-4;
-  }
-
-  .panel {
-    @apply w-full mb-6;
-  }
-
-  .status-pill {
-    @apply px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-
-  .status-pill-success {
-    @apply bg-[rgba(var(--color-success),0.2)] text-[rgb(var(--color-success-light))] dark:text-[rgb(var(--color-success))];
-  }
-
-  .status-pill-warning {
-    @apply bg-[rgba(var(--color-warning),0.2)] text-[rgb(var(--color-warning-light))] dark:text-[rgb(var(--color-warning))];
-  }
-
-  .status-pill-error {
-    @apply bg-[rgba(var(--color-error),0.2)] text-[rgb(var(--color-error-light))] dark:text-[rgb(var(--color-error))];
-  }
-
-  .status-pill-neutral {
-    @apply bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
   }
 }
 
@@ -473,16 +168,6 @@ body.modal-open {
   overflow: hidden;
 }
 
-:root {
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
 
 .dark {
   --sidebar: hsl(240 5.9% 10%);

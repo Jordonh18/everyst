@@ -304,7 +304,8 @@ export const SummitDashboard: React.FC = () => {
   }, [isConnected]);
   
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="space-y-6 p-6">
       {/* Page header with breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
         <div>
@@ -880,6 +881,7 @@ export const SummitDashboard: React.FC = () => {
           </Card>
         </div>
       </Panel>
+      </div>
     </div>
   );
 };

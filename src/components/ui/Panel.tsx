@@ -39,16 +39,16 @@ export const Panel: React.FC<PanelProps> = ({
   };
 
   return (
-    <div className={`panel text-[rgb(var(--color-text))] ${className}`}>
+    <div className={`panel text-foreground ${className}`}>
       {/* Panel header */}
       {title && (
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center">
-              <h2 className="text-xl font-semibold text-[rgb(var(--color-text))]">{title}</h2>
+              <h2 className="text-xl font-semibold text-foreground">{title}</h2>
               <button
                 onClick={handleToggleExpand}
-                className="ml-2 p-1 hover:bg-[rgba(var(--color-primary),0.15)] text-[rgb(var(--color-text))] hover:text-[rgb(var(--color-primary))] rounded-full transition-colors duration-200"
+                className="ml-2 p-1 hover:bg-primary/15 text-foreground hover:text-primary rounded-full transition-colors duration-200"
                 aria-expanded={isExpanded}
                 aria-label={isExpanded ? "Collapse panel" : "Expand panel"}
               >
@@ -56,7 +56,7 @@ export const Panel: React.FC<PanelProps> = ({
               </button>
             </div>
             {description && (
-              <p className="text-sm text-[rgb(var(--color-text-secondary))] mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {description}
               </p>
             )}
