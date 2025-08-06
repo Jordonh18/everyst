@@ -14,7 +14,7 @@ export const Layout: React.FC = () => {
         {/* Main content area */}
         <SidebarInset>
           <TopBar />
-          <main id="main-content" className="flex-1 overflow-y-auto relative z-10">
+          <main id="main-content" className="flex-1 overflow-y-auto p-6 relative z-10">
             <Outlet />
           </main>
         </SidebarInset>

@@ -5,7 +5,13 @@ import {
   Badge, 
   Button
 } from '../../components/ui';
-import { Modal } from '../../components/ui/Modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../../components/ui/dialog';
 import { 
   MessageSquare, 
   Bell,
@@ -709,22 +715,161 @@ export const BasecampIntegrations: React.FC = () => {
       
       {/* Add Integration Modal */}
       {showAddModal && selectedService && (
-        <Modal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          title={
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[rgba(var(--color-primary),0.1)] rounded-lg text-[rgb(var(--color-primary))]">
-                {selectedService.icon}
-              </div>
+        <Dialog open={showAddModal} onOpenChange={(open) => !open && setShowAddModal(false)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-[rgba(var(--color-primary),0.1)] rounded-lg text-[rgb(var(--color-primary))]">
+                    {selectedService.icon}
+                  </div>
+                  <div>
+                    <span>{selectedService.name}</span>
+                    <p className="text-sm text-[rgb(var(--color-text-secondary))]">{selectedService.provider}</p>
+                  </div>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
               <div>
-                <span>{selectedService.name}</span>
-                <p className="text-sm text-[rgb(var(--color-text-secondary))]">{selectedService.provider}</p>
+                <h3 className="font-medium mb-2">Configuration Settings</h3>
+                <p className="text-sm text-[rgb(var(--color-text-secondary))] mb-4">
+                  Configure your {selectedService.name} integration
+                </p>
+              </div>
+              
+              {/* Configuration fields */}
+              <div className="space-y-4">
+                {selectedService.type === 'authentication' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Client ID</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter client ID"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Client Secret</label>
+                      <input
+                        type="password"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter client secret"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Redirect URI</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] bg-[rgba(var(--color-card-muted),0.3)] rounded-md text-[rgb(var(--color-text))]"
+                        value="https://app.everyst.com/auth/callback"
+                        disabled
+                      />
+                      <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
+                        Use this URL in your {selectedService.name} application settings
+                      </p>
+                    </div>
+                  </>
+                )}
+                
+                {selectedService.type === 'communication' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Webhook URL</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter webhook URL"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">API Key</label>
+                      <input
+                        type="password"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter API key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Channel</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter channel name"
+                      />
+                    </div>
+                  </>
+                )}
+                
+                {selectedService.type === 'notification' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Notification Endpoint</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter endpoint URL"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">API Key</label>
+                      <input
+                        type="password"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter API key"
+                      />
+                    </div>
+                  </>
+                )}
+                
+                {selectedService.type === 'cloud' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Access Key</label>
+                      <input
+                        type="text"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter access key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Secret Key</label>
+                      <input
+                        type="password"
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                        placeholder="Enter secret key"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Region</label>
+                      <select
+                        className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
+                      >
+                        <option value="">Select region</option>
+                        <option value="us-east-1">US East (N. Virginia)</option>
+                        <option value="us-west-1">US West (N. California)</option>
+                        <option value="eu-west-1">EU (Ireland)</option>
+                        <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                <div className="pt-2">
+                  <label className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      className="mr-2 w-4 h-4 text-[rgb(var(--color-primary))]" 
+                    />
+                    <span className="text-sm">Enable notifications from this integration</span>
+                  </label>
+                </div>
               </div>
             </div>
-          }
-          footerContent={
-            <div className="flex justify-end space-x-3">
+            
+            <DialogFooter>
               <Button 
                 variant="outline"
                 onClick={() => setShowAddModal(false)}
@@ -755,147 +900,9 @@ export const BasecampIntegrations: React.FC = () => {
               >
                 Connect Service
               </Button>
-            </div>
-          }
-        >
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-medium mb-2">Configuration Settings</h3>
-              <p className="text-sm text-[rgb(var(--color-text-secondary))] mb-4">
-                Configure your {selectedService.name} integration
-              </p>
-            </div>
-            
-            {/* Configuration fields */}
-            <div className="space-y-4">
-              {selectedService.type === 'authentication' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Client ID</label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter client ID"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Client Secret</label>
-                    <input
-                      type="password"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter client secret"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Redirect URI</label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] bg-[rgba(var(--color-card-muted),0.3)] rounded-md text-[rgb(var(--color-text))]"
-                      value="https://app.everyst.com/auth/callback"
-                      disabled
-                    />
-                    <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
-                      Use this URL in your {selectedService.name} application settings
-                    </p>
-                  </div>
-                </>
-              )}
-              
-              {selectedService.type === 'communication' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Webhook URL</label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter webhook URL"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">API Key</label>
-                    <input
-                      type="password"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter API key"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Channel</label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter channel name"
-                    />
-                  </div>
-                </>
-              )}
-              
-              {selectedService.type === 'notification' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Notification Endpoint</label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter endpoint URL"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">API Key</label>
-                    <input
-                      type="password"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter API key"
-                    />
-                  </div>
-                </>
-              )}
-              
-              {selectedService.type === 'cloud' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Access Key</label>
-                    <input
-                      type="text"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter access key"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Secret Key</label>
-                    <input
-                      type="password"
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                      placeholder="Enter secret key"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">Region</label>
-                    <select
-                      className="w-full p-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-card))] text-[rgb(var(--color-text))]"
-                    >
-                      <option value="">Select region</option>
-                      <option value="us-east-1">US East (N. Virginia)</option>
-                      <option value="us-west-1">US West (N. California)</option>
-                      <option value="eu-west-1">EU (Ireland)</option>
-                      <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
-                    </select>
-                  </div>
-                </>
-              )}
-
-              <div className="pt-2">
-                <label className="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    className="mr-2 w-4 h-4 text-[rgb(var(--color-primary))]" 
-                  />
-                  <span className="text-sm">Enable notifications from this integration</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </Modal>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Server, Monitor, Router, Shield, Box, HelpCircle } from 'lucide-react';
-import { Modal } from '../../../components/ui/Modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui';
 import type { NetworkDevice } from '../../../types/network';
 
@@ -84,16 +90,124 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
   };
   
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onCancel}
-      title="Add New Device"
-      footerContent={
-        <div className="flex justify-end">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Device</DialogTitle>
+        </DialogHeader>
+        
+        {/* Form */}
+        <form id="addDeviceForm" onSubmit={handleSubmit}>
+          {/* Device Type Selection */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-2">
+              Device Type
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {deviceTypes.map((option) => (
+                <button
+                  key={option.type}
+                  type="button"
+                  className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-colors ${
+                    deviceType === option.type
+                      ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.1)]'
+                      : 'border-[rgb(var(--color-border))] hover:bg-[rgba(var(--color-card-muted),0.5)]'
+                  }`}
+                  onClick={() => setDeviceType(option.type)}
+                >
+                  <div className={`mb-1 ${deviceType === option.type ? 'text-[rgb(var(--color-primary))]' : 'text-[rgb(var(--color-text-secondary))]'}`}>
+                    {option.icon}
+                  </div>
+                  <span className={`text-xs font-medium ${deviceType === option.type ? 'text-[rgb(var(--color-primary))]' : 'text-[rgb(var(--color-text-secondary))]'}`}>
+                    {option.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Device Name */}
+          <div className="mb-4">
+            <label htmlFor="deviceName" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+              Device Name *
+            </label>
+            <input
+              id="deviceName"
+              type="text"
+              value={deviceName}
+              onChange={(e) => setDeviceName(e.target.value)}
+              className={`w-full p-2 rounded-md border ${
+                errors.deviceName 
+                  ? 'border-[rgb(var(--color-error))]' 
+                  : 'border-[rgb(var(--color-border))]'
+              } focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]`}
+              placeholder="e.g., Main Server"
+            />
+            {errors.deviceName && (
+              <p className="mt-1 text-xs text-[rgb(var(--color-error))]">{errors.deviceName}</p>
+            )}
+          </div>
+          
+          {/* IP Address */}
+          <div className="mb-4">
+            <label htmlFor="ipAddress" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+              IP Address
+            </label>
+            <input
+              id="ipAddress"
+              type="text"
+              value={ipAddress}
+              onChange={(e) => setIpAddress(e.target.value)}
+              className={`w-full p-2 rounded-md border ${
+                errors.ipAddress 
+                  ? 'border-[rgb(var(--color-error))]' 
+                  : 'border-[rgb(var(--color-border))]'
+              } focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]`}
+              placeholder="e.g., 192.168.1.10"
+            />
+            {errors.ipAddress && (
+              <p className="mt-1 text-xs text-[rgb(var(--color-error))]">{errors.ipAddress}</p>
+            )}
+          </div>
+          
+          {/* Hostname */}
+          <div className="mb-4">
+            <label htmlFor="hostname" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+              Hostname
+            </label>
+            <input
+              id="hostname"
+              type="text"
+              value={hostname}
+              onChange={(e) => setHostname(e.target.value)}
+              className="w-full p-2 rounded-md border border-[rgb(var(--color-border))] focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]"
+              placeholder="e.g., main-server"
+            />
+          </div>
+          
+          {/* Tags */}
+          <div className="mb-4">
+            <label htmlFor="tags" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+              Tags (comma separated)
+            </label>
+            <input
+              id="tags"
+              type="text"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="w-full p-2 rounded-md border border-[rgb(var(--color-border))] focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]"
+              placeholder="e.g., production, core, database"
+            />
+            <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
+              Separate multiple tags with commas
+            </p>
+          </div>
+        </form>
+        
+        <DialogFooter>
           <Button
             variant="outline"
             onClick={onCancel}
-            className="mr-2"
           >
             Cancel
           </Button>
@@ -103,117 +217,9 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
           >
             Add Device
           </Button>
-        </div>
-      }
-    >
-      {/* Form */}
-      <form id="addDeviceForm" onSubmit={handleSubmit}>
-        {/* Device Type Selection */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-2">
-            Device Type
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {deviceTypes.map((option) => (
-              <button
-                key={option.type}
-                type="button"
-                className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-colors ${
-                  deviceType === option.type
-                    ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.1)]'
-                    : 'border-[rgb(var(--color-border))] hover:bg-[rgba(var(--color-card-muted),0.5)]'
-                }`}
-                onClick={() => setDeviceType(option.type)}
-              >
-                <div className={`mb-1 ${deviceType === option.type ? 'text-[rgb(var(--color-primary))]' : 'text-[rgb(var(--color-text-secondary))]'}`}>
-                  {option.icon}
-                </div>
-                <span className={`text-xs font-medium ${deviceType === option.type ? 'text-[rgb(var(--color-primary))]' : 'text-[rgb(var(--color-text-secondary))]'}`}>
-                  {option.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Device Name */}
-        <div className="mb-4">
-          <label htmlFor="deviceName" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
-            Device Name *
-          </label>
-          <input
-            id="deviceName"
-            type="text"
-            value={deviceName}
-            onChange={(e) => setDeviceName(e.target.value)}
-            className={`w-full p-2 rounded-md border ${
-              errors.deviceName 
-                ? 'border-[rgb(var(--color-error))]' 
-                : 'border-[rgb(var(--color-border))]'
-            } focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]`}
-            placeholder="e.g., Main Server"
-          />
-          {errors.deviceName && (
-            <p className="mt-1 text-xs text-[rgb(var(--color-error))]">{errors.deviceName}</p>
-          )}
-        </div>
-        
-        {/* IP Address */}
-        <div className="mb-4">
-          <label htmlFor="ipAddress" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
-            IP Address
-          </label>
-          <input
-            id="ipAddress"
-            type="text"
-            value={ipAddress}
-            onChange={(e) => setIpAddress(e.target.value)}
-            className={`w-full p-2 rounded-md border ${
-              errors.ipAddress 
-                ? 'border-[rgb(var(--color-error))]' 
-                : 'border-[rgb(var(--color-border))]'
-            } focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]`}
-            placeholder="e.g., 192.168.1.10"
-          />
-          {errors.ipAddress && (
-            <p className="mt-1 text-xs text-[rgb(var(--color-error))]">{errors.ipAddress}</p>
-          )}
-        </div>
-        
-        {/* Hostname */}
-        <div className="mb-4">
-          <label htmlFor="hostname" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
-            Hostname
-          </label>
-          <input
-            id="hostname"
-            type="text"
-            value={hostname}
-            onChange={(e) => setHostname(e.target.value)}
-            className="w-full p-2 rounded-md border border-[rgb(var(--color-border))] focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]"
-            placeholder="e.g., main-server"
-          />
-        </div>
-        
-        {/* Tags */}
-        <div className="mb-4">
-          <label htmlFor="tags" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
-            Tags (comma separated)
-          </label>
-          <input
-            id="tags"
-            type="text"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            className="w-full p-2 rounded-md border border-[rgb(var(--color-border))] focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]"
-            placeholder="e.g., production, core, database"
-          />
-          <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
-            Separate multiple tags with commas
-          </p>
-        </div>
-      </form>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

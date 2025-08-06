@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Modal } from '../ui/Modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../ui/dialog';
 import type { User } from '../../types/users';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationsManager } from '../../hooks/state/useNotificationsManager';
@@ -100,12 +106,55 @@ const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Transfer System Ownership"
-      footerContent={
-        <div className="flex justify-end space-x-2">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Transfer System Ownership</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div className="bg-[rgb(var(--color-warning-bg))] border border-[rgb(var(--color-warning-border))] text-[rgb(var(--color-warning-text))] p-4 rounded-md mb-4">
+            <h3 className="font-medium">Important</h3>
+            <p className="text-sm mt-1">
+              You are about to transfer system ownership from <strong>{currentOwner.username}</strong>.
+              The system must have exactly one owner at all times. The current owner will be demoted
+              to an administrator role.
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-[rgb(var(--color-error-bg))] border border-[rgb(var(--color-error-border))] text-[rgb(var(--color-error))] p-3 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+              Select New System Owner*
+            </label>
+            <select
+              value={newOwnerId}
+              onChange={(e) => setNewOwnerId(e.target.value)}
+              className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
+              disabled={loading}
+            >
+              <option value="">-- Select a User --</option>
+              {eligibleUsers.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.first_name && user.last_name
+                    ? `${user.first_name} ${user.last_name} (@${user.username})`
+                    : `${user.username}`}
+                  {user.id === currentUser?.id ? ' (You)' : ''}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
+              Only active users with admin role or higher are eligible to become system owners.
+            </p>
+          </div>
+        </div>
+        
+        <DialogFooter>
           <button
             type="button"
             onClick={onClose}
@@ -121,51 +170,9 @@ const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
           >
             {loading ? 'Transferring...' : 'Transfer Ownership'}
           </button>
-        </div>
-      }
-    >
-      <div className="space-y-4">
-        <div className="bg-[rgb(var(--color-warning-bg))] border border-[rgb(var(--color-warning-border))] text-[rgb(var(--color-warning-text))] p-4 rounded-md mb-4">
-          <h3 className="font-medium">Important</h3>
-          <p className="text-sm mt-1">
-            You are about to transfer system ownership from <strong>{currentOwner.username}</strong>.
-            The system must have exactly one owner at all times. The current owner will be demoted
-            to an administrator role.
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-[rgb(var(--color-error-bg))] border border-[rgb(var(--color-error-border))] text-[rgb(var(--color-error))] p-3 rounded-md">
-            {error}
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
-            Select New System Owner*
-          </label>
-          <select
-            value={newOwnerId}
-            onChange={(e) => setNewOwnerId(e.target.value)}
-            className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
-            disabled={loading}
-          >
-            <option value="">-- Select a User --</option>
-            {eligibleUsers.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.first_name && user.last_name
-                  ? `${user.first_name} ${user.last_name} (@${user.username})`
-                  : `${user.username}`}
-                {user.id === currentUser?.id ? ' (You)' : ''}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
-            Only active users with admin role or higher are eligible to become system owners.
-          </p>
-        </div>
-      </div>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

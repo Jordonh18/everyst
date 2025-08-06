@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
-import { Modal } from '../../components/ui/Modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../../components/ui/dialog';
 import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
 import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
 import { 
@@ -1205,12 +1211,24 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
       </PermissionGate>
       
       {/* Modals */}
-      <Modal
-        isOpen={showAddUserModal}
-        onClose={() => setShowAddUserModal(false)}
-        title="Add User"
-        footerContent={
-          <div className="flex justify-end space-x-2">
+      <Dialog open={showAddUserModal} onOpenChange={(open) => !open && setShowAddUserModal(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add User</DialogTitle>
+          </DialogHeader>
+          
+          <AddUserForm 
+            onClose={() => setShowAddUserModal(false)} 
+            onSuccess={() => {
+              // Use the main loading state for refreshing the data
+              setLoading(true);
+              setTimeout(() => setLoading(false), 500); // Simulate refresh
+            }}
+            setExternalLoading={setAddUserLoading}
+            users={users}
+          />
+          
+          <DialogFooter>
             <Button
               type="button"
               onClick={() => setShowAddUserModal(false)}
@@ -1226,27 +1244,30 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
             >
               {addUserLoading ? 'Creating...' : 'Create User'}
             </Button>
-          </div>
-        }
-      >
-        <AddUserForm 
-          onClose={() => setShowAddUserModal(false)} 
-          onSuccess={() => {
-            // Use the main loading state for refreshing the data
-            setLoading(true);
-            setTimeout(() => setLoading(false), 500); // Simulate refresh
-          }}
-          setExternalLoading={setAddUserLoading}
-          users={users}
-        />
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
-      <Modal
-        isOpen={showEditUserModal}
-        onClose={() => setShowEditUserModal(false)}
-        title="Edit User"
-        footerContent={
-          <div className="flex justify-end space-x-2">
+      <Dialog open={showEditUserModal} onOpenChange={(open) => !open && setShowEditUserModal(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          
+          {selectedUser && (
+            <EditUserForm 
+              user={selectedUser}
+              users={users}
+              onClose={() => setShowEditUserModal(false)} 
+              onSuccess={() => {
+                setLoading(true);
+                setTimeout(() => setLoading(false), 500); // Simulate refresh
+              }} 
+              setExternalLoading={setEditUserLoading}
+            />
+          )}
+          
+          <DialogFooter>
             <Button
               type="button"
               onClick={() => setShowEditUserModal(false)}
@@ -1262,22 +1283,9 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
             >
               {editUserLoading ? 'Updating...' : 'Update User'}
             </Button>
-          </div>
-        }
-      >
-        {selectedUser && (
-          <EditUserForm 
-            user={selectedUser}
-            users={users}
-            onClose={() => setShowEditUserModal(false)} 
-            onSuccess={() => {
-              setLoading(true);
-              setTimeout(() => setLoading(false), 500); // Simulate refresh
-            }} 
-            setExternalLoading={setEditUserLoading}
-          />
-        )}
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Ownership Transfer Modal */}
       {systemOwner && (
