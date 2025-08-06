@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
-import { Button } from '../../components/ui';
+import { Button, Table, TableBody, TableRow, TableCell } from '../../components/ui';
 import { 
   Search, 
   RefreshCw,
@@ -136,6 +136,17 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [uniqueActions, setUniqueActions] = useState<string[]>([]);
+
+  // Table columns definition
+  const activityTableColumns = [
+    { key: 'timestamp', label: 'Timestamp' },
+    { key: 'user', label: 'User' },
+    { key: 'action', label: 'Action' },
+    { key: 'category', label: 'Category/Object' },
+    { key: 'description', label: 'Description' },
+    { key: 'ip', label: 'IP Address' },
+    { key: 'severity', label: 'Severity' }
+  ];
 
   // Calculate date range options
   const dateRanges = useMemo(() => ({
@@ -543,147 +554,133 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
           
           {/* Logs Table */}
           <Panel>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[rgba(var(--color-bg),0.5)]">
-                  <tr className="border-b border-[rgb(var(--color-border))]">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Timestamp</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Category/Object</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Description</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">IP Address</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[rgb(var(--color-text-secondary))] uppercase tracking-wider">Severity</th>
-                  </tr>
-                </thead>
-                
-                <tbody className="bg-[rgb(var(--color-card))] divide-y divide-[rgb(var(--color-border))]">
-                  {loading ? (
-                    // Loading state
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <tr key={`loading-${index}`} className="animate-pulse">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            <div className="h-4 w-32 bg-[rgb(var(--color-border))] rounded"></div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-16 bg-[rgb(var(--color-border))] rounded"></div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-48 bg-[rgb(var(--color-border))] rounded"></div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : error ? (
-                    // Error state
-                    <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-[rgb(var(--color-text-secondary))]">
-                        <AlertCircle className="h-6 w-6 mx-auto mb-2 text-[rgb(var(--color-error))]" />
-                        <p>{error}</p>
+            <Table columns={activityTableColumns}>
+              <TableBody>
+                {loading ? (
+                  // Loading state
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={`loading-${index}`} className="animate-pulse">
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className="h-4 w-32 bg-[rgb(var(--color-border))] rounded"></div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-16 bg-[rgb(var(--color-border))] rounded"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-48 bg-[rgb(var(--color-border))] rounded"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-4 w-24 bg-[rgb(var(--color-border))] rounded"></div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="h-5 w-16 bg-[rgb(var(--color-border))] rounded-full"></div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : error ? (
+                  // Error state
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
+                      <AlertCircle className="h-6 w-6 mx-auto mb-2 text-[rgb(var(--color-error))]" />
+                      <p>{error}</p>
+                      <Button
+                        onClick={() => window.location.reload()}
+                        variant="ghost"
+                        className="mt-2"
+                      >
+                        Try Again
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredLogs.length === 0 ? (
+                  // Empty state
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
+                      <Clock className="h-6 w-6 mx-auto mb-2" />
+                      <p>No activity logs found matching your criteria</p>
+                      {(searchTerm || severityFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') && (
                         <Button
-                          onClick={() => window.location.reload()}
+                          onClick={resetFilters}
                           variant="ghost"
-                          className="mt-2"
+                          className="mt-1"
                         >
-                          Try Again
+                          Clear Filters
                         </Button>
-                      </td>
-                    </tr>
-                  ) : filteredLogs.length === 0 ? (
-                    // Empty state
-                    <tr>
-                      <td colSpan={7} className="px-4 py-6 text-center text-[rgb(var(--color-text-secondary))]">
-                        <Clock className="h-6 w-6 mx-auto mb-2" />
-                        <p>No activity logs found matching your criteria</p>
-                        {(searchTerm || severityFilter !== 'all' || actionFilter !== 'all' || dateFilter !== 'all') && (
-                          <Button
-                            onClick={resetFilters}
-                            variant="ghost"
-                            className="mt-1"
-                          >
-                            Clear Filters
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ) : (
-                    // Log list
-                    filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-[rgba(var(--color-bg),0.5)]">
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          <div className="whitespace-nowrap">{formatDate(log.timestamp)}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            {log.user ? (
-                              <>
-                                <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-primary))] text-white flex items-center justify-center uppercase font-medium text-xs">
-                                  {log.user.first_name ? log.user.first_name[0] : log.user.username[0]}
-                                </div>
-                                <div className="ml-3">
-                                  <div className="text-sm font-medium text-[rgb(var(--color-text))]">
-                                    {log.user.first_name && log.user.last_name 
-                                      ? `${log.user.first_name} ${log.user.last_name}` 
-                                      : log.user.username}
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <div className="flex items-center">
-                                <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-text-secondary))] text-white flex items-center justify-center uppercase font-medium text-xs">
-                                  {log.object_name ? log.object_name[0] : 'S'}
-                                </div>
-                                <div className="ml-3">
-                                  <span className="text-sm font-medium text-[rgb(var(--color-text-secondary))]">
-                                    {log.object_name && (log.action === 'auth_failed' || log.action === 'auth_login') 
-                                      ? `${log.object_name} (Failed)` 
-                                      : 'System'}
-                                  </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  // Log list
+                  filteredLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
+                        <div className="whitespace-nowrap">{formatDate(log.timestamp)}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          {log.user ? (
+                            <>
+                              <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-primary))] text-white flex items-center justify-center uppercase font-medium text-xs">
+                                {log.user.first_name ? log.user.first_name[0] : log.user.username[0]}
+                              </div>
+                              <div className="ml-3">
+                                <div className="text-sm font-medium text-[rgb(var(--color-text))]">
+                                  {log.user.first_name && log.user.last_name 
+                                    ? `${log.user.first_name} ${log.user.last_name}` 
+                                    : log.user.username}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          {formatActionType(log.action)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          <span className="whitespace-nowrap">{formatCategory(log.category)}</span>
-                          {log.object_type && (
-                            <span className="ml-1 text-xs text-[rgb(var(--color-text-secondary))]">
-                              {log.object_type}
-                              {log.object_id && ` #${log.object_id}`}
-                            </span>
+                            </>
+                          ) : (
+                            <div className="flex items-center">
+                              <div className="h-7 w-7 rounded-full bg-[rgb(var(--color-text-secondary))] text-white flex items-center justify-center uppercase font-medium text-xs">
+                                {log.object_name ? log.object_name[0] : 'S'}
+                              </div>
+                              <div className="ml-3">
+                                <span className="text-sm font-medium text-[rgb(var(--color-text-secondary))]">
+                                  {log.object_name && (log.action === 'auth_failed' || log.action === 'auth_login') 
+                                    ? `${log.object_name} (Failed)` 
+                                    : 'System'}
+                                </span>
+                              </div>
+                            </div>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text))]">
-                          {(log.details?.message as string) || log.object_name || 'No description'}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[rgb(var(--color-text-secondary))]">
-                          {log.ip_address}
-                        </td>
-                        <td className="px-4 py-3">
-                          <SeverityBadge severity={log.severity} />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
+                        {formatActionType(log.action)}
+                      </TableCell>
+                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
+                        <span className="whitespace-nowrap">{formatCategory(log.category)}</span>
+                        {log.object_type && (
+                          <span className="ml-1 text-xs text-[rgb(var(--color-text-secondary))]">
+                            {log.object_type}
+                            {log.object_id && ` #${log.object_id}`}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-[rgb(var(--color-text))]">
+                        {(log.details?.message as string) || log.object_name || 'No description'}
+                      </TableCell>
+                      <TableCell className="text-sm text-[rgb(var(--color-text-secondary))]">
+                        {log.ip_address}
+                      </TableCell>
+                      <TableCell>
+                        <SeverityBadge severity={log.severity} />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </Panel>
           
           {/* Pagination */}

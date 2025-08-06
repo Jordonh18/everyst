@@ -10,6 +10,7 @@
     /* Other variables for theming */
     --color-background: 249 250 251;
     --color-card: 255 255 255;
+    --color-card-header: 248 250 252;  /* Table header background - light gray (#F8FAFC) */
     --color-border: 229 231 235;
     --color-text: 31 41 55;          /* Less harsh text for light mode (#1F2937) */
     --color-text-secondary: 107 114 128; /* Less harsh secondary text (#6B7280) */
@@ -62,6 +63,7 @@
   .dark {
     --color-background: 18 24 38;
     --color-card: 31 41 55;
+    --color-card-header: 24 32 48;  /* Table header background - darker gray (#182030) */
     --color-border: 55 65 81;
     --color-text: 229 231 235;       /* Slightly less bright white (#E5E7EB) */
     --color-text-secondary: 156 163 175; /* Less bright secondary text (#9CA3AF) */
