@@ -270,11 +270,10 @@ export const RegisterPage: React.FC = () => {
             <Button
               type="submit"
               variant="default"
-              fullWidth
-              isLoading={submitting}
+              className="w-full"
               disabled={submitting}
             >
-              Create Account
+              {submitting ? 'Creating Account...' : 'Create Account'}
             </Button>
           </div>
         </form>

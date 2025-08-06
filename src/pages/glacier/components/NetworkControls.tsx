@@ -98,7 +98,7 @@ export const NetworkControls: React.FC<NetworkControlsProps> = ({ className = ''
           {/* Layout options */}
           <div className="relative">
             <Button
-              variant={showLayoutOptions ? 'primary' : 'ghost'}
+              variant={showLayoutOptions ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setShowLayoutOptions(!showLayoutOptions)}
               aria-label="Layout options"
@@ -175,7 +175,7 @@ export const NetworkControls: React.FC<NetworkControlsProps> = ({ className = ''
                   <div className="mt-3 pt-3 border-t border-[rgb(var(--color-border))]">
                     <Button
                       variant="default"
-                      fullWidth
+                      className="w-full"
                       size="sm"
                       onClick={() => {
                         // Apply the layout - in a real app this would trigger a layout algorithm

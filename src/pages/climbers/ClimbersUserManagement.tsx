@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
 import { Modal } from '../../components/ui/Modal';
-import { Button, Table, TableBody, TableRow, TableCell } from '../../components/ui';
+import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
 import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
 import { 
   UserPlus, 
@@ -989,15 +989,24 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
               <Button
                 onClick={() => setShowAddUserModal(true)}
                 variant="default"
-                leftIcon={<UserPlus className="h-4 w-4" />}
               >
+                <UserPlus className="h-4 w-4 mr-2" />
                 Add User
               </Button>
             </div>
           </div>
           {/* Users Table */}
           <Panel>
-            <Table columns={userTableColumns}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {userTableColumns.map((column) => (
+                    <TableHead key={column.key} className={column.className || ''}>
+                      {column.label}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 {loading ? (
                   // Loading state
@@ -1214,7 +1223,6 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
               type="submit"
               disabled={addUserLoading}
               variant="default"
-              isLoading={addUserLoading}
             >
               {addUserLoading ? 'Creating...' : 'Create User'}
             </Button>
@@ -1251,7 +1259,6 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
               type="submit"
               disabled={editUserLoading}
               variant="default"
-              isLoading={editUserLoading}
             >
               {editUserLoading ? 'Updating...' : 'Update User'}
             </Button>

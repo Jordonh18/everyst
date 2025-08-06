@@ -251,9 +251,8 @@ const AccountSettingsPage: React.FC = () => {
                   : 'text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-hover))]'
               }`}
               variant="ghost"
-              leftIcon={<User size={20} />}
-              active={activeTab === 'profile'}
             >
+              <User size={20} className="mr-2" />
               Profile Information
             </Button>
             
@@ -265,9 +264,8 @@ const AccountSettingsPage: React.FC = () => {
                   : 'text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-hover))]'
               }`}
               variant="ghost"
-              leftIcon={<Shield size={20} />}
-              active={activeTab === 'security'}
             >
+              <Shield size={20} className="mr-2" />
               Security
             </Button>
             
@@ -279,9 +277,8 @@ const AccountSettingsPage: React.FC = () => {
                   : 'text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-hover))]'
               }`}
               variant="ghost"
-              leftIcon={<Palette size={20} />}
-              active={activeTab === 'appearance'}
             >
+              <Palette size={20} className="mr-2" />
               Theme & Appearance
             </Button>
           </nav>
@@ -393,8 +390,8 @@ const AccountSettingsPage: React.FC = () => {
                       <label className="cursor-pointer">
                         <Button
                           variant="default"
-                          leftIcon={<Upload size={16} />}
                         >
+                          <Upload size={16} className="mr-2" />
                           Upload a picture
                         </Button>
                         <input
@@ -417,10 +414,9 @@ const AccountSettingsPage: React.FC = () => {
                     type="submit"
                     variant="default"
                     disabled={isLoading}
-                    isLoading={isLoading}
-                    leftIcon={!isLoading ? <Save size={16} /> : undefined}
                   >
-                    Save Changes
+                    {!isLoading ? <Save size={16} className="mr-2" /> : null}
+                    {isLoading ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
               </form>
@@ -508,10 +504,9 @@ const AccountSettingsPage: React.FC = () => {
                     type="submit"
                     variant="default"
                     disabled={isLoading}
-                    isLoading={isLoading}
-                    leftIcon={!isLoading ? <Key size={16} /> : undefined}
                   >
-                    Change Password
+                    {!isLoading ? <Key size={16} className="mr-2" /> : null}
+                    {isLoading ? 'Changing...' : 'Change Password'}
                   </Button>
                 </div>
               </form>

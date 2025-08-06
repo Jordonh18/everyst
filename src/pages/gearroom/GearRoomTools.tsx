@@ -12,7 +12,6 @@ import {
   Database, 
   Play,
   RefreshCw, 
-  Settings, 
   Activity,
   Code,
   RotateCcw,

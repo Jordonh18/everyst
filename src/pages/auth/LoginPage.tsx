@@ -121,11 +121,10 @@ export const LoginPage: React.FC = () => {
             <Button
               type="submit"
               variant="default"
-              fullWidth
-              isLoading={submitting}
+              className="w-full"
               disabled={submitting}
             >
-              Sign in
+              {submitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </div>
         </form>

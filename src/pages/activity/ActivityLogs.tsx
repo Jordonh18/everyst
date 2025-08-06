@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
-import { Button, Table, TableBody, TableRow, TableCell } from '../../components/ui';
+import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
 import { 
   Search, 
   RefreshCw,
@@ -535,8 +535,8 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
               <Button
                 onClick={exportToCsv}
                 variant="default"
-                leftIcon={<FileDown className="h-4 w-4" />}
               >
+                <FileDown className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
 
@@ -544,9 +544,9 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
               <Button
                 onClick={purgeLogs}
                 variant="outline"
-                leftIcon={<Trash2 className="h-4 w-4" />}
                 className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white transition-colors"
               >
+                <Trash2 className="h-4 w-4 mr-2" />
                 Purge Logs
               </Button>
             </div>
@@ -554,7 +554,14 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
           
           {/* Logs Table */}
           <Panel>
-            <Table columns={activityTableColumns}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {activityTableColumns.map((column) => (
+                    <TableHead key={column.key}>{column.label}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 {loading ? (
                   // Loading state

@@ -127,7 +127,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onCollapse }) => 
 
   const activeIndicatorVariants = {
     initial: { height: 0 },
-    animate: { height: '80%', transition: { type: "spring", stiffness: 300, damping: 20 } }
+    animate: { 
+      height: '80%', 
+      transition: { 
+        type: "spring" as const, 
+        stiffness: 300, 
+        damping: 20 
+      } 
+    }
   };
 
   return (

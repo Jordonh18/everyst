@@ -75,10 +75,10 @@ export const EmptyScanState: React.FC<EmptyScanStateProps> = ({ onScan }) => {
             onClick={onScan}
             variant="default"
             size="lg"
-            leftIcon={<Scan size={20} />}
-            rightIcon={<ArrowRight size={18} />}
           >
+            <Scan size={20} className="mr-2" />
             Begin Network Scan
+            <ArrowRight size={18} className="ml-2" />
           </Button>
           
           <motion.div
