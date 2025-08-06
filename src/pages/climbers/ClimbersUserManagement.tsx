@@ -1052,7 +1052,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
                 ) : filteredUsers.length === 0 ? (
                   // Empty state
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-[rgb(var(--color-text-secondary))] py-6">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
                       <UserX className="h-6 w-6 mx-auto mb-2" />
                       <p>No users found matching your criteria</p>
                       {searchTerm && (
@@ -1070,12 +1070,12 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
                   // User list
                   filteredUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="text-sm text-[rgb(var(--color-text-secondary))]">
+                      <TableCell className="text-sm text-muted-foreground">
                         {typeof user.id === 'number' ? `#${user.id}` : user.id.substring(0, 8)}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-primary))] text-white flex items-center justify-center uppercase font-medium text-sm">
+                          <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center uppercase font-medium text-sm">
                             {user.first_name ? user.first_name[0] : user.username[0]}
                           </div>
                           <div className="ml-3">
@@ -1093,7 +1093,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-[rgb(var(--color-text))]">{user.email}</TableCell>
+                      <TableCell className="text-sm">{user.email}</TableCell>
                       <TableCell>
                         <RoleBadge role={user.role || 'user'} />
                       </TableCell>
