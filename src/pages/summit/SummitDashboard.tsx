@@ -305,8 +305,7 @@ export const SummitDashboard: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-background">
-      <div className="space-y-6 p-6">
-      {/* System status overview panel */}
+      <div className="space-y-6">
       <Panel 
         
         description="Real-time health and performance indicators"

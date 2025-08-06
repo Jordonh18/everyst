@@ -7,7 +7,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../../components/ui/dialog';
-import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
+import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
 import TransferOwnershipModal from '../../components/climbers/TransferOwnershipModal';
 import { 
   UserPlus, 
@@ -215,14 +225,12 @@ const AddUserForm: React.FC<{
         <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
           Username*
         </label>
-        <input
+        <Input
           type="text"
           name="username"
           value={formData.username}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border ${
-            errors.username ? 'border-[rgb(var(--color-error))]' : 'border-[rgb(var(--color-border))]'
-          } rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]`}
+          className={errors.username ? 'border-[rgb(var(--color-error))]' : ''}
           placeholder="username"
         />
         {errors.username && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.username}</p>}
@@ -232,14 +240,12 @@ const AddUserForm: React.FC<{
         <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
           Email*
         </label>
-        <input
+        <Input
           type="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border ${
-            errors.email ? 'border-[rgb(var(--color-error))]' : 'border-[rgb(var(--color-border))]'
-          } rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]`}
+          className={errors.email ? 'border-[rgb(var(--color-error))]' : ''}
           placeholder="email@example.com"
         />
         {errors.email && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.email}</p>}
@@ -250,12 +256,11 @@ const AddUserForm: React.FC<{
           <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
             First Name
           </label>
-          <input
+          <Input
             type="text"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
             placeholder="First name"
           />
         </div>
@@ -264,12 +269,11 @@ const AddUserForm: React.FC<{
           <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
             Last Name
           </label>
-          <input
+          <Input
             type="text"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-[rgb(var(--color-border))] rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]"
             placeholder="Last name"
           />
         </div>
@@ -279,14 +283,12 @@ const AddUserForm: React.FC<{
         <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
           Password*
         </label>
-        <input
+        <Input
           type="password"
           name="password"
           value={formData.password}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border ${
-            errors.password ? 'border-[rgb(var(--color-error))]' : 'border-[rgb(var(--color-border))]'
-          } rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]`}
+          className={errors.password ? 'border-[rgb(var(--color-error))]' : ''}
           placeholder="••••••••"
         />
         {errors.password && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.password}</p>}
@@ -296,14 +298,12 @@ const AddUserForm: React.FC<{
         <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
           Confirm Password*
         </label>
-        <input
+        <Input
           type="password"
           name="confirmPassword"
           value={formData.confirmPassword}
           onChange={handleChange}
-          className={`w-full px-3 py-2 border ${
-            errors.confirmPassword ? 'border-[rgb(var(--color-error))]' : 'border-[rgb(var(--color-border))]'
-          } rounded-md bg-[rgb(var(--color-input))] text-[rgb(var(--color-text))]`}
+          className={errors.confirmPassword ? 'border-[rgb(var(--color-error))]' : ''}
           placeholder="••••••••"
         />
         {errors.confirmPassword && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.confirmPassword}</p>}
@@ -688,6 +688,8 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [systemOwner, setSystemOwner] = useState<User | null>(null);
   const [showOwnershipModal, setShowOwnershipModal] = useState<boolean>(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState<boolean>(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   // Dedicated loading states for form buttons in modal footers
   const [addUserLoading, setAddUserLoading] = useState<boolean>(false);
   const [editUserLoading, setEditUserLoading] = useState<boolean>(false);
@@ -862,10 +864,10 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
     }
     
     // Get the user to be deleted
-    const userToDelete = users.find(user => user.id === userId);
+    const userToDeleteData = users.find(user => user.id === userId);
     
     // Prevent deleting system owner
-    if (userToDelete?.role === 'owner') {
+    if (userToDeleteData?.role === 'owner') {
       sendUserNotification(
         currentUser?.id as string,
         'Error',
@@ -875,10 +877,13 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
       return;
     }
     
-    // Confirm before deletion
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      return;
-    }
+    // Set user to delete and show confirmation dialog
+    setUserToDelete(userToDeleteData || null);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
     
     try {
       const token = getAccessToken();
@@ -886,7 +891,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
         throw new Error('Authentication token not found');
       }
       
-      const response = await fetch(`${getApiUrl()}/users/${userId}/`, {
+      const response = await fetch(`${getApiUrl()}/users/${userToDelete.id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -899,7 +904,7 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
       }
       
       // Update the users list, ensuring users is treated as an array
-      setUsers(Array.isArray(users) ? users.filter(user => user.id !== userId) : []);
+      setUsers(Array.isArray(users) ? users.filter(user => user.id !== userToDelete.id) : []);
       
       sendUserNotification(
         currentUser?.id as string,
@@ -907,6 +912,9 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
         'User was successfully deleted.',
         'success'
       );
+      
+      setShowDeleteConfirmModal(false);
+      setUserToDelete(null);
     } catch (err) {
       console.error('Error deleting user:', err);
       sendUserNotification(
@@ -1336,6 +1344,28 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
           )}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirmModal} onOpenChange={setShowDeleteConfirmModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {userToDelete?.first_name && userToDelete?.last_name 
+                ? `${userToDelete.first_name} ${userToDelete.last_name}` 
+                : userToDelete?.username}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteConfirmModal(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete User
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

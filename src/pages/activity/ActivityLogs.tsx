@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Panel } from '../../components/ui/Panel';
 import { Button, Table, TableBody, TableRow, TableCell, TableHeader, TableHead } from '../../components/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
 import { 
   Search, 
   RefreshCw,
@@ -136,6 +146,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [uniqueActions, setUniqueActions] = useState<string[]>([]);
+  const [showPurgeConfirmModal, setShowPurgeConfirmModal] = useState<boolean>(false);
 
   // Table columns definition
   const activityTableColumns = [
@@ -351,10 +362,10 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
 
   // Purge old logs
   const purgeLogs = async () => {
-    if (!window.confirm('Are you sure you want to purge old logs? This action cannot be undone.')) {
-      return;
-    }
+    setShowPurgeConfirmModal(true);
+  };
 
+  const confirmPurgeLogs = async () => {
     try {
       const token = await getAccessToken();
       if (!token) {
@@ -384,6 +395,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
 
       // Refresh the logs after purging
       setPage(1); // Reset to first page to trigger useEffect
+      setShowPurgeConfirmModal(false);
     } catch (err) {
       console.error('Error purging logs:', err);
       sendUserNotification(
@@ -392,6 +404,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
         'Failed to purge old logs.',
         'error'
       );
+      setShowPurgeConfirmModal(false);
     }
   };
   
@@ -768,6 +781,26 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
           </div>
         </div>
       </PermissionGate>
+
+      {/* Purge Confirmation Dialog */}
+      <AlertDialog open={showPurgeConfirmModal} onOpenChange={setShowPurgeConfirmModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Purge Old Logs</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to purge old logs? This will permanently delete old activity log entries and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowPurgeConfirmModal(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPurgeLogs} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Purge Logs
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

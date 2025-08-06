@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   X, 
@@ -18,6 +18,16 @@ import {
   Power,
 } from 'lucide-react';
 import { Card, IconButton, Badge, Button } from '../../../components/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../../components/ui/alert-dialog';
 import type { NetworkDevice } from '../../../types/network';
 
 interface DeviceDetailsProps {
@@ -55,6 +65,8 @@ export const DeviceDetails: React.FC<DeviceDetailsProps> = ({
   onToggleStatus,
   onRemove 
 }) => {
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  
   if (!device) return null;
   
   // Format the last seen timestamp
@@ -235,11 +247,7 @@ export const DeviceDetails: React.FC<DeviceDetailsProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              if (window.confirm(`Are you sure you want to remove ${device.label || device.hostname || device.ip || 'this device'}?`)) {
-                if (onRemove) onRemove(device.id);
-              }
-            }}
+            onClick={() => setShowRemoveDialog(true)}
             aria-label="Remove device"
             title="Remove device"
           >
@@ -247,6 +255,31 @@ export const DeviceDetails: React.FC<DeviceDetailsProps> = ({
           </Button>
         </div>
       </Card>
+
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Device</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {device.label || device.hostname || device.ip || 'this device'}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowRemoveDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (onRemove) onRemove(device.id);
+                setShowRemoveDialog(false);
+              }}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };

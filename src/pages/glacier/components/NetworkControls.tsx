@@ -16,6 +16,15 @@ import {
   Square
 } from 'lucide-react';
 import { Card, Button } from '../../../components/ui';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../../components/ui/alert-dialog';
 import { useReactFlow } from 'reactflow';
 
 interface NetworkControlsProps {
@@ -25,8 +34,15 @@ interface NetworkControlsProps {
 export const NetworkControls: React.FC<NetworkControlsProps> = ({ className = '' }) => {
   const [showLayoutOptions, setShowLayoutOptions] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<string>('force');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertContent, setAlertContent] = useState({ title: '', description: '' });
   
   const reactFlowInstance = useReactFlow();
+  
+  const showAlertDialog = (title: string, description: string) => {
+    setAlertContent({ title, description });
+    setShowAlert(true);
+  };
   
   // Zoom controls
   const zoomIn = () => {
@@ -45,13 +61,13 @@ export const NetworkControls: React.FC<NetworkControlsProps> = ({ className = ''
   const exportImage = () => {
     // ReactFlow has a toImage function but we need to handle it differently in a production app
     // For now, just a placeholder
-    alert('Export image feature will be implemented in the next version.');
+    showAlertDialog('Export Image', 'Export image feature will be implemented in the next version.');
   };
   
   // Save network layout
   const saveLayout = () => {
     // In a real app, this would persist the layout to the backend
-    alert('Save layout feature will be implemented in the next version.');
+    showAlertDialog('Save Layout', 'Save layout feature will be implemented in the next version.');
   };
   
   return (
@@ -243,6 +259,22 @@ export const NetworkControls: React.FC<NetworkControlsProps> = ({ className = ''
           </Button>
         </div>
       </Card>
+
+      <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{alertContent.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {alertContent.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowAlert(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

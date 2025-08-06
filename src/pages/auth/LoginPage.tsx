@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { User, Lock} from 'lucide-react';
 import { AuthNotification } from '../../components/auth/AuthNotification';
-import { Button } from '../../components/ui';
+import { Button, Input } from '../../components/ui';
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -51,12 +51,12 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url("/images/everyst-bg.jpg")' }}>
-      <div className="max-w-md w-full px-6 py-8 bg-[rgba(var(--color-card),0.97)] backdrop-blur-sm shadow-xl rounded-lg border border-[rgb(var(--color-border))]">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="max-w-md w-full px-6 py-8 bg-card shadow-xl rounded-lg border border-border">
         <div className="flex flex-col items-center mb-6">
-          <img src="/images/everyst-logo.svg" alt="Everyst Logo" className="h-16 mb-4" />
-          <h1 className="text-3xl font-bold text-[rgb(var(--color-text))]">Login to everyst</h1>
-          <p className="text-[rgb(var(--color-text))] font-medium">Enter your credentials</p>
+          <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 mb-4" />
+          <h1 className="text-3xl font-bold text-foreground">Login to everyst</h1>
+          <p className="text-muted-foreground font-medium">Enter your credentials</p>
         </div>
 
         {error && (
@@ -76,20 +76,20 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium text-[rgb(var(--color-text))] mb-2 block">
+            <label htmlFor="username" className="text-sm font-medium text-foreground mb-2 block">
               Username
             </label>
             <div className="relative mt-1.5">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User size={16} className="text-[rgb(var(--color-text))]" />
+                <User size={16} className="text-muted-foreground" />
               </div>
-              <input
+              <Input
                 id="username"
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-md py-2 pl-10 pr-3 font-medium"
+                className="pl-10"
                 placeholder="Enter username"
               />
             </div>
@@ -97,21 +97,21 @@ export const LoginPage: React.FC = () => {
 
           <div className="space-y-2">
             <div className="flex justify-between mb-2">
-              <label htmlFor="password" className="text-sm font-medium text-[rgb(var(--color-text))]">
+              <label htmlFor="password" className="text-sm font-medium text-foreground">
                 Password
               </label>
             </div>
             <div className="relative mt-1.5">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock size={16} className="text-[rgb(var(--color-text))]" />
+                <Lock size={16} className="text-muted-foreground" />
               </div>
-              <input
+              <Input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md py-2 pl-10 pr-3 font-medium" 
+                className="pl-10" 
                 placeholder="Enter password"
               />
             </div>

@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../../../components/ui/dialog';
-import { Button } from '../../../components/ui';
+import { Button, Input } from '../../../components/ui';
 import type { NetworkDevice } from '../../../types/network';
 
 interface AddDeviceModalProps {
@@ -131,16 +131,12 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
             <label htmlFor="deviceName" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
               Device Name *
             </label>
-            <input
+            <Input
               id="deviceName"
               type="text"
               value={deviceName}
               onChange={(e) => setDeviceName(e.target.value)}
-              className={`w-full p-2 rounded-md border ${
-                errors.deviceName 
-                  ? 'border-[rgb(var(--color-error))]' 
-                  : 'border-[rgb(var(--color-border))]'
-              } focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]`}
+              className={errors.deviceName ? 'border-[rgb(var(--color-error))]' : ''}
               placeholder="e.g., Main Server"
             />
             {errors.deviceName && (
@@ -153,16 +149,12 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
             <label htmlFor="ipAddress" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
               IP Address
             </label>
-            <input
+            <Input
               id="ipAddress"
               type="text"
               value={ipAddress}
               onChange={(e) => setIpAddress(e.target.value)}
-              className={`w-full p-2 rounded-md border ${
-                errors.ipAddress 
-                  ? 'border-[rgb(var(--color-error))]' 
-                  : 'border-[rgb(var(--color-border))]'
-              } focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]`}
+              className={errors.ipAddress ? 'border-[rgb(var(--color-error))]' : ''}
               placeholder="e.g., 192.168.1.10"
             />
             {errors.ipAddress && (
@@ -175,12 +167,11 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
             <label htmlFor="hostname" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
               Hostname
             </label>
-            <input
+            <Input
               id="hostname"
               type="text"
               value={hostname}
               onChange={(e) => setHostname(e.target.value)}
-              className="w-full p-2 rounded-md border border-[rgb(var(--color-border))] focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]"
               placeholder="e.g., main-server"
             />
           </div>
@@ -190,12 +181,11 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({ onAdd, onCancel,
             <label htmlFor="tags" className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
               Tags (comma separated)
             </label>
-            <input
+            <Input
               id="tags"
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              className="w-full p-2 rounded-md border border-[rgb(var(--color-border))] focus:outline-none focus:border-[rgb(var(--color-primary))] text-[rgb(var(--color-text))] bg-[rgb(var(--color-card))]"
               placeholder="e.g., production, core, database"
             />
             <p className="mt-1 text-xs text-[rgb(var(--color-text-secondary))]">
