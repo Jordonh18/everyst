@@ -1,6 +1,6 @@
 # Everyst - Server Management Dashboard
 
-![Everyst Logo](./public/images/everyst-logo.svg)
+![Everyst Logo](./public/Logo-white-no-text.svg)
 
 ## Hey there, welcome to Everyst
 

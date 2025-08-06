@@ -1,5 +1,5 @@
 /**
- * API client for network tools in GearRoom
+ * API client for network tools
  */
 
 // Type definitions for tool responses

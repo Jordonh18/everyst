@@ -99,7 +99,7 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url("/images/everyst-bg.jpg")' }}>
       <div className="max-w-md w-full px-6 py-8 bg-[rgba(var(--color-card),0.97)] backdrop-blur-sm shadow-xl rounded-lg border border-[rgb(var(--color-border))]">
         <div className="flex flex-col items-center mb-6">
-          <img src="/images/everyst-logo.svg" alt="Everyst Logo" className="h-16 mb-4" />
+          <img src="/Logo-white-no-text.svg" alt="Everyst Logo" className="h-16 mb-4" />
           <h1 className="text-3xl font-bold text-[rgb(var(--color-text))]">Create an Account</h1>
           <p className="text-[rgb(var(--color-text))] font-medium">Set up administrator account</p>
         </div>
