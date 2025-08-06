@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   Panel, 
-  StatusPill, 
+  Badge, 
   Button
 } from '../../components/ui';
 import { Modal } from '../../components/ui/Modal';
@@ -29,7 +29,7 @@ interface ServiceConnection {
   name: string;
   type: 'communication' | 'notification' | 'cloud' | 'authentication';
   provider: string;
-  status: 'connected' | 'disconnected' | 'error' | 'pending';
+  status: 'connected' | 'disconnected' | 'destructive' | 'pending';
   lastConnected: string | null;
   icon: React.ReactNode;
   connectedAccount?: string;
@@ -107,7 +107,7 @@ export const BasecampIntegrations: React.FC = () => {
   
   // Get counts for the overview
   const connectedCount = connections.filter(c => c.status === 'connected').length;
-  const errorCount = connections.filter(c => c.status === 'error').length;
+  const errorCount = connections.filter(c => c.status === 'destructive').length;
   const pendingCount = connections.filter(c => c.status === 'pending').length;
   
   
@@ -192,8 +192,8 @@ export const BasecampIntegrations: React.FC = () => {
           <Button
             key={button.id === null ? 'all' : button.id}
             onClick={() => setActiveFilter(button.id)}
-            variant={activeFilter === button.id ? 'primary' : 'outline'}
-            size="sm"
+            variant={activeFilter === button.id ? 'default' : 'outline'}
+           
             className={activeFilter === button.id ? '' : 'bg-[rgba(var(--color-primary),0.1)]'}
           >
             {button.label}
@@ -247,14 +247,14 @@ export const BasecampIntegrations: React.FC = () => {
                         
                         <div className="flex items-center space-x-2">
                           {existingConnection && (
-                            <StatusPill 
-                              status={
-                                existingConnection.status === 'connected' ? 'success' : 
-                                existingConnection.status === 'pending' ? 'warning' : 
-                                existingConnection.status === 'error' ? 'error' : 'warning'
+                            <Badge 
+                              variant={
+                                existingConnection.status === 'connected' ? 'default' : 
+                                existingConnection.status === 'pending' ? 'secondary' : 
+                                existingConnection.status === 'destructive' ? 'destructive' : 'secondary'
                               } 
-                              text={existingConnection.status} 
-                              size="sm"
+                              
+                             
                             />
                           )}
                         </div>
@@ -277,12 +277,12 @@ export const BasecampIntegrations: React.FC = () => {
                               setShowAddModal(true);
                             }
                           }}
-                          variant={existingConnection ? "outline" : "primary"}
-                          size="sm"
-                          fullWidth
+                          variant={existingConnection ? "outline" : "default"}
+                         
+                          className="w-full"
                           disabled={service.comingSoon}
-                          leftIcon={existingConnection ? <Settings size={14} /> : <ExternalLink size={14} />}
                         >
+                          {existingConnection ? <Settings size={14} className="mr-2" /> : <ExternalLink size={14} className="mr-2" />}
                           {existingConnection ? 'Configure' : 'Connect'}
                         </Button>
                       </div>
@@ -338,14 +338,14 @@ export const BasecampIntegrations: React.FC = () => {
                         
                         <div className="flex items-center space-x-2">
                           {existingConnection && (
-                            <StatusPill 
-                              status={
-                                existingConnection.status === 'connected' ? 'success' : 
-                                existingConnection.status === 'pending' ? 'warning' : 
-                                existingConnection.status === 'error' ? 'error' : 'warning'
+                            <Badge 
+                              variant={
+                                existingConnection.status === 'connected' ? 'default' : 
+                                existingConnection.status === 'pending' ? 'secondary' : 
+                                existingConnection.status === 'destructive' ? 'destructive' : 'secondary'
                               } 
-                              text={existingConnection.status} 
-                              size="sm"
+                              
+                             
                             />
                           )}
                         </div>
@@ -368,12 +368,12 @@ export const BasecampIntegrations: React.FC = () => {
                               setShowAddModal(true);
                             }
                           }}
-                          variant={existingConnection ? "outline" : "primary"}
-                          size="sm"
-                          fullWidth
+                          variant={existingConnection ? "outline" : "default"}
+                         
+                          className="w-full"
                           disabled={service.comingSoon}
-                          leftIcon={existingConnection ? <Settings size={14} /> : <ExternalLink size={14} />}
                         >
+                          {existingConnection ? <Settings size={14} className="mr-2" /> : <ExternalLink size={14} className="mr-2" />}
                           {existingConnection ? 'Configure' : 'Connect'}
                         </Button>
                       </div>
@@ -425,14 +425,14 @@ export const BasecampIntegrations: React.FC = () => {
                         
                         <div className="flex items-center space-x-2">
                           {existingConnection && (
-                            <StatusPill 
-                              status={
-                                existingConnection.status === 'connected' ? 'success' : 
-                                existingConnection.status === 'pending' ? 'warning' : 
-                                existingConnection.status === 'error' ? 'error' : 'warning'
+                            <Badge 
+                              variant={
+                                existingConnection.status === 'connected' ? 'default' : 
+                                existingConnection.status === 'pending' ? 'secondary' : 
+                                existingConnection.status === 'destructive' ? 'destructive' : 'secondary'
                               } 
-                              text={existingConnection.status} 
-                              size="sm"
+                              
+                             
                             />
                           )}
                         </div>
@@ -455,12 +455,12 @@ export const BasecampIntegrations: React.FC = () => {
                               setShowAddModal(true);
                             }
                           }}
-                          variant={existingConnection ? "outline" : "primary"}
-                          size="sm"
-                          fullWidth
+                          variant={existingConnection ? "outline" : "default"}
+                         
+                          className="w-full"
                           disabled={service.comingSoon}
-                          leftIcon={existingConnection ? <Settings size={14} /> : <ExternalLink size={14} />}
                         >
+                          {existingConnection ? <Settings size={14} className="mr-2" /> : <ExternalLink size={14} className="mr-2" />}
                           {existingConnection ? 'Configure' : 'Connect'}
                         </Button>
                       </div>
@@ -512,14 +512,14 @@ export const BasecampIntegrations: React.FC = () => {
                         
                         <div className="flex items-center space-x-2">
                           {existingConnection && (
-                            <StatusPill 
-                              status={
-                                existingConnection.status === 'connected' ? 'success' : 
-                                existingConnection.status === 'pending' ? 'warning' : 
-                                existingConnection.status === 'error' ? 'error' : 'warning'
+                            <Badge 
+                              variant={
+                                existingConnection.status === 'connected' ? 'default' : 
+                                existingConnection.status === 'pending' ? 'secondary' : 
+                                existingConnection.status === 'destructive' ? 'destructive' : 'secondary'
                               } 
-                              text={existingConnection.status} 
-                              size="sm"
+                              
+                             
                             />
                           )}
                         </div>
@@ -542,12 +542,12 @@ export const BasecampIntegrations: React.FC = () => {
                               setShowAddModal(true);
                             }
                           }}
-                          variant={existingConnection ? "outline" : "primary"}
-                          size="sm"
-                          fullWidth
+                          variant={existingConnection ? "outline" : "default"}
+                         
+                          className="w-full"
                           disabled={service.comingSoon}
-                          leftIcon={existingConnection ? <Settings size={14} /> : <ExternalLink size={14} />}
                         >
+                          {existingConnection ? <Settings size={14} className="mr-2" /> : <ExternalLink size={14} className="mr-2" />}
                           {existingConnection ? 'Configure' : 'Connect'}
                         </Button>
                       </div>
@@ -599,14 +599,14 @@ export const BasecampIntegrations: React.FC = () => {
                         
                         <div className="flex items-center space-x-2">
                           {existingConnection && (
-                            <StatusPill 
-                              status={
-                                existingConnection.status === 'connected' ? 'success' : 
-                                existingConnection.status === 'pending' ? 'warning' : 
-                                existingConnection.status === 'error' ? 'error' : 'warning'
+                            <Badge 
+                              variant={
+                                existingConnection.status === 'connected' ? 'default' : 
+                                existingConnection.status === 'pending' ? 'secondary' : 
+                                existingConnection.status === 'destructive' ? 'destructive' : 'secondary'
                               } 
-                              text={existingConnection.status} 
-                              size="sm"
+                              
+                             
                             />
                           )}
                         </div>
@@ -629,12 +629,12 @@ export const BasecampIntegrations: React.FC = () => {
                               setShowAddModal(true);
                             }
                           }}
-                          variant={existingConnection ? "outline" : "primary"}
-                          size="sm"
-                          fullWidth
+                          variant={existingConnection ? "outline" : "default"}
+                         
+                          className="w-full"
                           disabled={service.comingSoon}
-                          leftIcon={existingConnection ? <Settings size={14} /> : <ExternalLink size={14} />}
                         >
+                          {existingConnection ? <Settings size={14} className="mr-2" /> : <ExternalLink size={14} className="mr-2" />}
                           {existingConnection ? 'Configure' : 'Connect'}
                         </Button>
                       </div>

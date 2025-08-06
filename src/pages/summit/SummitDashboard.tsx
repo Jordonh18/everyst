@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Button } from '../../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '../../components/ui';
 import { Panel } from '../../components/ui/Panel';
 import { Skeleton } from '../../components/skeletons/Skeleton';
 import { RefreshCw, Cpu, Server, HardDrive, Activity, Wifi, Shield, Plus, AlertTriangle, Globe, Network, Terminal, Info } from 'lucide-react';
@@ -314,18 +314,18 @@ export const SummitDashboard: React.FC = () => {
         <div className="flex space-x-2">
           <Button 
             variant="outline" 
-            leftIcon={<RefreshCw size={16} />}
             onClick={refreshConnection}
-            isLoading={isLoading}
+            disabled={isLoading}
             size="sm"
           >
+            <RefreshCw size={16} className="mr-2" />
             Refresh
           </Button>
           <Button 
             variant="default" 
-            leftIcon={<Plus size={16} />}
             size="sm"
           >
+            <Plus size={16} className="mr-2" />
             Add Widget
           </Button>
         </div>
@@ -333,7 +333,7 @@ export const SummitDashboard: React.FC = () => {
 
       {/* System status overview panel */}
       <Panel 
-        title="System Status" 
+        
         description="Real-time health and performance indicators"
         actions={
           <Badge 
@@ -345,42 +345,54 @@ export const SummitDashboard: React.FC = () => {
       >
         {/* All cards now have the same frost level */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card title="CPU Usage" isLoading={isLoading}>
-            {metrics.cpu ? (
-              <>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Cpu className="mr-2 text-[rgb(var(--color-primary))]" size={24} />
-                    <div>
-                      <div className="text-2xl font-semibold">{metrics.cpu.usage}%</div>
-                      <div className="text-xs text-[rgb(var(--color-text-secondary))]">
-                        {metrics.cpu.cores} cores @ {metrics.cpu.speed}GHz
+          <Card>
+            <CardHeader>
+              <CardTitle>CPU Usage</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {metrics.cpu ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <Cpu className="mr-2 text-[rgb(var(--color-primary))]" size={24} />
+                      <div>
+                        <div className="text-2xl font-semibold">{metrics.cpu.usage}%</div>
+                        <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                          {metrics.cpu.cores} cores @ {metrics.cpu.speed}GHz
+                        </div>
                       </div>
                     </div>
+                    <Badge variant={
+                      metrics.cpu.status === 'success' ? 'default' : 
+                      metrics.cpu.status === 'warning' ? 'secondary' : 'destructive'
+                    } />
                   </div>
-                  <Badge status={metrics.cpu.status} size="sm" />
+                  <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-[rgb(var(--color-primary))]" 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${metrics.cpu.usage}%` }} 
+                      transition={{ duration: 0.5 }}
+                    ></motion.div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
                 </div>
-                <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-[rgb(var(--color-primary))]" 
-                    initial={{ width: 0 }} 
-                    animate={{ width: `${metrics.cpu.usage}%` }} 
-                    transition={{ duration: 0.5 }}
-                  ></motion.div>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-6 w-6 rounded-full" />
-                </div>
-                <Skeleton className="h-2 w-full rounded-full" />
-              </div>
-            )}
+              )}
+            </CardContent>
           </Card>
           
-          <Card title="Memory" isLoading={isLoading}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Memory</CardTitle>
+            </CardHeader>
+            <CardContent>
             {metrics.memory ? (
               <>
                 <div className="flex justify-between items-center">
@@ -393,7 +405,10 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <Badge status={metrics.memory.status} size="sm" />
+                  <Badge variant={
+                    metrics.memory.status === 'success' ? 'default' : 
+                    metrics.memory.status === 'warning' ? 'secondary' : 'destructive'
+                  } />
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -413,9 +428,10 @@ export const SummitDashboard: React.FC = () => {
                 <Skeleton className="h-2 w-full rounded-full" />
               </div>
             )}
+            </CardContent>
           </Card>
           
-          <Card title="Disk" isLoading={isLoading}>
+          <Card>
             {metrics.disk ? (
               <>
                 <div className="flex justify-between items-center">
@@ -428,7 +444,12 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <Badge status={metrics.disk.status} text={`${metrics.disk.percentage}%`} size="sm" />
+                  <Badge variant={
+                    metrics.disk.status === 'success' ? 'default' : 
+                    metrics.disk.status === 'warning' ? 'secondary' : 'destructive'
+                  }>
+                    {metrics.disk.percentage}%
+                  </Badge>
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -450,7 +471,7 @@ export const SummitDashboard: React.FC = () => {
             )}
           </Card>
           
-          <Card title="Network" isLoading={isLoading}>
+          <Card>
             {metrics.network ? (
               <>
                 <div className="flex justify-between items-center">
@@ -463,7 +484,10 @@ export const SummitDashboard: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <Badge status={metrics.network.status} size="sm" />
+                  <Badge variant={
+                    metrics.network.status === 'success' ? 'default' : 
+                    metrics.network.status === 'warning' ? 'secondary' : 'destructive'
+                  } />
                 </div>
                 <div className="mt-4 h-2 bg-[rgb(var(--color-progress-bg))] dark:bg-[rgb(var(--color-progress-bg-dark))] rounded-full overflow-hidden">
                   <motion.div 
@@ -488,10 +512,10 @@ export const SummitDashboard: React.FC = () => {
       </Panel>
       
       {/* Server Information Panel */}
-      <Panel title="Server Information" description="Detailed server specifications and network information">
+      <Panel description="Detailed server specifications and network information">
         {metrics.server_info ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card title="System Identity">
+            <Card>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <Server className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
@@ -527,7 +551,7 @@ export const SummitDashboard: React.FC = () => {
               </div>
             </Card>
             
-            <Card title="Network Configuration">
+            <Card>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <Network className="mt-0.5 mr-3 text-[rgb(var(--color-primary))]" size={20} />
@@ -548,8 +572,8 @@ export const SummitDashboard: React.FC = () => {
                 <div className="flex items-center justify-center mt-6">
                   <Button 
                     variant="default"
-                    leftIcon={<RefreshCw size={16} />}
                   >
+                    <RefreshCw size={16} className="mr-2" />
                     Refresh Network Information
                   </Button>
                 </div>
@@ -558,7 +582,7 @@ export const SummitDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card title="System Identity">
+            <Card>
               <div className="space-y-4">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="flex items-start">
@@ -572,7 +596,7 @@ export const SummitDashboard: React.FC = () => {
               </div>
             </Card>
             
-            <Card title="Network Configuration">
+            <Card>
               <div className="space-y-4">
                 {[...Array(2)].map((_, i) => (
                   <div key={i} className="flex items-start">
@@ -594,8 +618,8 @@ export const SummitDashboard: React.FC = () => {
       
       {/* Middle row with two panels */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Panel title="Security Status" description="IceWall status report">
-          <Card title="Security Posture" className="mb-4" isLoading={isLoading}>
+        <Panel description="IceWall status report">
+          <Card className="mb-4">
             {metrics.security ? (
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
@@ -611,10 +635,14 @@ export const SummitDashboard: React.FC = () => {
                   </div>
                 </div>
                 <Badge 
-                  status={metrics.security.status} 
-                  text={metrics.security.status === 'success' ? 'Protected' : 
-                        metrics.security.status === 'warning' ? 'Caution' : 'At Risk'} 
-                />
+                  variant={
+                    metrics.security.status === 'success' ? 'default' : 
+                    metrics.security.status === 'warning' ? 'secondary' : 'destructive'
+                  }
+                >
+                  {metrics.security.status === 'success' ? 'Protected' : 
+                   metrics.security.status === 'warning' ? 'Caution' : 'At Risk'}
+                </Badge>
               </div>
             ) : (
               <div className="flex justify-between items-center">
@@ -630,7 +658,7 @@ export const SummitDashboard: React.FC = () => {
             )}
           </Card>
           
-          <Card title="Recent Threats" isLoading={isLoading}>
+          <Card>
             {metrics.threats && metrics.threats.length > 0 ? (
               <table className="w-full text-sm">
                 <thead>
@@ -645,13 +673,20 @@ export const SummitDashboard: React.FC = () => {
                     <tr key={index} className="border-t border-[rgb(var(--color-border))]">
                       <td className="py-2">{threat.type}</td>
                       <td className="py-2">{threat.time}</td>
-                      <td className="py-2"><Badge status={threat.status} size="sm" /></td>
+                      <td className="py-2">
+                        <Badge variant={
+                          threat.status === 'success' ? 'default' : 
+                          threat.status === 'warning' ? 'secondary' : 'destructive'
+                        } />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : metrics.threats && metrics.threats.length === 0 ? (
-              <CardEmptyState message="No recent threats detected" />
+              <div className="py-4 text-center text-[rgb(var(--color-text-secondary))]">
+                No recent threats detected
+              </div>
             ) : (
               <div className="space-y-4">
                 <Skeleton className="h-6 w-full" />
@@ -662,8 +697,8 @@ export const SummitDashboard: React.FC = () => {
           </Card>
         </Panel>
         
-        <Panel title="System Health" description="Active alerts and notifications">
-          <Card title="Alerts" className="mb-4" isLoading={isLoading || isAlertsLoading}>
+        <Panel description="Active alerts and notifications">
+          <Card className="mb-4">
             {metrics.alerts ? (
               <>
                 <div className="flex items-center justify-between">
@@ -674,10 +709,10 @@ export const SummitDashboard: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    leftIcon={<RefreshCw size={16} />}
                     onClick={refreshAlerts}
-                    isLoading={isAlertsLoading}
+                    disabled={isAlertsLoading}
                   >
+                    <RefreshCw size={16} className="mr-2" />
                     Refresh
                   </Button>
                 </div>
@@ -717,7 +752,7 @@ export const SummitDashboard: React.FC = () => {
             )}
           </Card>
           
-          <Card title="System Uptime" isLoading={isLoading}>
+          <Card>
             {metrics.uptime ? (
               <>
                 <div className="flex justify-between items-center">
@@ -731,10 +766,13 @@ export const SummitDashboard: React.FC = () => {
                     </div>
                   </div>
                   <Badge 
-                    status={metrics.uptime.percentage >= 99.9 ? 'success' : metrics.uptime.percentage >= 99.0 ? 'warning' : 'error'} 
-                    text={`${metrics.uptime.percentage}%`}
-                    size="sm" 
-                  />
+                    variant={
+                      metrics.uptime.percentage >= 99.9 ? 'default' : 
+                      metrics.uptime.percentage >= 99.0 ? 'secondary' : 'destructive'
+                    }
+                  >
+                    {metrics.uptime.percentage}%
+                  </Badge>
                 </div>
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-[rgb(var(--color-text-secondary))] mb-1">
@@ -783,9 +821,9 @@ export const SummitDashboard: React.FC = () => {
       </div>
       
       {/* Bottom row */}
-      <Panel title="Additional Resources" defaultExpanded={false}>
+      <Panel defaultExpanded={false}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card title="Documentation" collapsible defaultCollapsed={false}>
+          <Card>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center">
                 <span className="w-1.5 h-1.5 bg-[rgb(var(--color-primary))] rounded-full mr-2"></span>
@@ -802,15 +840,13 @@ export const SummitDashboard: React.FC = () => {
             </ul>
           </Card>
           
-          <Card title="Get Support" collapsible defaultCollapsed={true}>
-            <CardEmptyState 
-              message="Need help with everyst?"
-              action={
-                <Button variant="default">
-                  Submit an issue
-                </Button>
-              }
-            />
+          <Card>
+            <div className="py-4 text-center text-[rgb(var(--color-text-secondary))]">
+              <p className="mb-4">Need help with everyst?</p>
+              <Button variant="default">
+                Submit an issue
+              </Button>
+            </div>
           </Card>
         </div>
       </Panel>
