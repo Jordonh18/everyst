@@ -14,9 +14,6 @@ export const Layout: React.FC = () => {
         <SidebarInset>
           {/* Main content with accessibility skip link */}
           <main id="main-content" className="flex-1 overflow-y-auto p-6 relative z-10">
-            <a href="#main-content" className="skip-link">
-              Skip to content
-            </a>
             <Outlet />
           </main>
         </SidebarInset>

@@ -307,30 +307,7 @@ export const SummitDashboard: React.FC = () => {
     <div className="min-h-screen bg-background">
       <div className="space-y-6 p-6">
       {/* Page header with breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Summit</h1>
-          <p className="text-muted-foreground">Your system at a glance</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={refreshConnection}
-            disabled={isLoading}
-            size="sm"
-          >
-            <RefreshCw size={16} className="mr-2" />
-            Refresh
-          </Button>
-          <Button 
-            variant="default" 
-            size="sm"
-          >
-            <Plus size={16} className="mr-2" />
-            Add Widget
-          </Button>
-        </div>
-      </div>
+
 
       {/* System status overview panel */}
       <Panel 
