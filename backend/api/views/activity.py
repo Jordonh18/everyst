@@ -129,7 +129,7 @@ class ApplicationLogViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def purge(self, request):
-        """Purge old logs based on retention policy"""
+        """Purge ALL logs"""
         # Additional role-based permission check (beyond IsAdminUser from get_permissions)
         if hasattr(request.user, 'role') and request.user.role:
             if request.user.role.name not in ['admin', 'owner']:
@@ -143,26 +143,10 @@ class ApplicationLogViewSet(viewsets.ModelViewSet):
                 status=403
             )
         
-        # Get retention days from request or use default
-        retention_days = request.data.get('retention_days', 90)
+        # Delete ALL logs
+        deleted_count, _ = ApplicationLog.objects.all().delete()
         
-        try:
-            retention_days = int(retention_days)
-            if retention_days < 1:
-                return Response(
-                    {"detail": "Retention days must be at least 1"},
-                    status=400
-                )
-        except (ValueError, TypeError):
-            return Response(
-                {"detail": "Invalid retention_days value"},
-                status=400
-            )
-        
-        # Purge old logs
-        deleted_count = ApplicationLog.purge_old_logs(retention_days)
-        
-        # Log the purge action
+        # Log the purge action (create a new log entry after purging)
         ApplicationLog.log_activity(
             user=request.user,
             action='admin_action',
@@ -172,14 +156,11 @@ class ApplicationLogViewSet(viewsets.ModelViewSet):
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             object_type='system',
             details={
-                'message': f'Admin {request.user.username} purged {deleted_count} old log entries',
-                'retention_days': retention_days,
-                'deleted_count': deleted_count
+                'message': f'Admin {request.user.username} purged all {deleted_count} log entries'
             }
         )
         
         return Response({
-            "message": f"Successfully purged {deleted_count} old log entries",
-            "deleted_count": deleted_count,
-            "retention_days": retention_days
+            "message": f"Successfully purged all {deleted_count} log entries",
+            "deleted_count": deleted_count
         })
