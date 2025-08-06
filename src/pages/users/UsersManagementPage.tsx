@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
 import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Checkbox } from '../../components/ui';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import TransferOwnershipModal from '../../components/users/TransferOwnershipModal';
 import { 
   UserPlus, 
@@ -1064,9 +1065,14 @@ const UsersManagementPage: React.FC<UsersPageProps> = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center uppercase font-medium text-sm">
-                            {user.first_name ? user.first_name[0] : user.username[0]}
-                          </div>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={undefined} alt={user.first_name && user.last_name 
+                              ? `${user.first_name} ${user.last_name}` 
+                              : user.username} />
+                            <AvatarFallback className="bg-primary text-primary-foreground uppercase font-medium text-sm">
+                              {user.first_name ? user.first_name[0] : user.username[0]}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="ml-3">
                             <div className="text-sm font-medium text-[rgb(var(--color-text))]">
                               {user.first_name && user.last_name 

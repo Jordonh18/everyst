@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Card } from '../../components/ui';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -629,9 +630,14 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                       <div className="flex items-center">
                         {log.user ? (
                           <>
-                            <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                              {log.user.first_name ? log.user.first_name[0] : log.user.username[0]}
-                            </div>
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={undefined} alt={log.user.first_name && log.user.last_name 
+                                ? `${log.user.first_name} ${log.user.last_name}` 
+                                : log.user.username} />
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                                {log.user.first_name ? log.user.first_name[0] : log.user.username[0]}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="ml-3">
                               <div className="text-sm font-medium">
                                 {log.user.first_name && log.user.last_name 
@@ -642,9 +648,12 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                           </>
                         ) : (
                           <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-muted-foreground text-background flex items-center justify-center text-xs font-medium">
-                              {log.object_name ? log.object_name[0] : 'S'}
-                            </div>
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={undefined} alt="System" />
+                              <AvatarFallback className="bg-muted-foreground text-background text-xs font-medium">
+                                {log.object_name ? log.object_name[0] : 'S'}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="ml-3">
                               <span className="text-sm font-medium text-muted-foreground">
                                 {log.object_name && (log.action === 'auth_failed' || log.action === 'auth_login') 

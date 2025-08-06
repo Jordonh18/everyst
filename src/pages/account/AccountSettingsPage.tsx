@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '@/components/theme-provider';
 import { useLocation } from 'react-router-dom';
 import { Button, Label, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Input, Checkbox, Textarea } from '../../components/ui';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { 
   User, 
   Shield, 
@@ -388,19 +389,15 @@ const AccountSettingsPage: React.FC = () => {
                       <div className="space-y-2">
                         <Label>Profile Picture</Label>
                         <div className="flex flex-col items-center border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
-                          <div className="mb-4 w-32 h-32 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                            {profileImage ? (
-                              <img 
-                                src={profileImage} 
-                                alt="Profile"
-                                className="w-full h-full object-cover" 
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-medium text-4xl">
-                                {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
-                              </div>
-                            )}
-                          </div>
+                          <Avatar className="mb-4 w-32 h-32">
+                            <AvatarImage 
+                              src={profileImage || undefined} 
+                              alt="Profile"
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-medium text-4xl">
+                              {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
                           
                           <label className="cursor-pointer">
                             <Button variant="outline" asChild>
