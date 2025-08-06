@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Panel } from '../../components/ui/Panel';
 import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Card } from '../../components/ui';
 import {
   AlertDialog,
@@ -53,29 +52,17 @@ interface ActivityLog {
 // Level badge with appropriate color based on log severity
 const SeverityBadge: React.FC<{ severity: string }> = ({ severity }) => {
   const upperSeverity = severity.toUpperCase();
-  const severityStyles: Record<string, { bg: string, text: string }> = {
-    'INFO': { 
-      bg: 'bg-[rgb(var(--color-status-info-bg))]', 
-      text: 'text-[rgb(var(--color-status-info-text))]' 
-    },
-    'WARNING': { 
-      bg: 'bg-[rgb(var(--color-status-warning-bg))]', 
-      text: 'text-[rgb(var(--color-status-warning-text))]' 
-    },
-    'ERROR': { 
-      bg: 'bg-[rgb(var(--color-status-error-bg))]', 
-      text: 'text-[rgb(var(--color-status-error-text))]' 
-    },
-    'CRITICAL': { 
-      bg: 'bg-[rgb(var(--color-status-error-bg))]', 
-      text: 'text-[rgb(var(--color-status-error-text))]' 
-    }
+  const severityStyles: Record<string, string> = {
+    'INFO': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    'WARNING': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    'ERROR': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+    'CRITICAL': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
   };
 
-  const { bg, text } = severityStyles[upperSeverity] || severityStyles['INFO'];
+  const className = severityStyles[upperSeverity] || severityStyles['INFO'];
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bg} ${text}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${className}`}>
       {upperSeverity}
     </span>
   );
@@ -420,8 +407,8 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
       <PermissionGate 
         permission="canViewLogs"
         fallback={
-          <Panel className="bg-[rgb(var(--color-warning-bg))] border-[rgb(var(--color-warning-border))]">
-            <div className="p-4 text-[rgb(var(--color-warning-text))]">
+          <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800">
+            <div className="p-4 text-yellow-800 dark:text-yellow-200">
               <div className="flex items-center">
                 <AlertCircle className="h-5 w-5 mr-2" />
                 <h3 className="font-medium">Insufficient Permissions</h3>
@@ -430,7 +417,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                 You don't have permission to view activity logs. Contact your administrator for access.
               </p>
             </div>
-          </Panel>
+          </Card>
         }
       >
         <div className="space-y-6">
@@ -739,55 +726,88 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
           )}
           
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Panel className="p-4">
-              <h3 className="text-lg font-medium text-[rgb(var(--color-text))]">Activity Summary</h3>
-              <p className="text-3xl font-bold mt-2 text-[rgb(var(--color-text))]">{logs.length}</p>
-              <p className="text-sm text-[rgb(var(--color-text-secondary))] mt-1">
-                Events in current view
-              </p>
-            </Panel>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Activity Summary</h3>
+                  <p className="text-3xl font-bold mt-2">{logs.length}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Events in current view
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-primary/20 rounded-full flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+            </Card>
             
-            <Panel className="p-4">
-              <h3 className="text-lg font-medium text-[rgb(var(--color-text))]">Severity Distribution</h3>
-              <div className="mt-2 space-y-2">
+            <Card className="p-6 bg-gradient-to-br from-blue-500/5 to-blue-500/10 border border-blue-500/20">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Severity Distribution</h3>
+                <div className="h-12 w-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <AlertCircle className="h-6 w-6 text-blue-500" />
+                </div>
+              </div>
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[rgb(var(--color-text))]">Info</span>
-                  <span className="font-medium text-[rgb(var(--color-text))]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-sm">Info</span>
+                  </div>
+                  <span className="font-semibold">
                     {logs.filter(log => log.severity === 'info').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[rgb(var(--color-text))]">Warning</span>
-                  <span className="font-medium text-[rgb(var(--color-text))]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <span className="text-sm">Warning</span>
+                  </div>
+                  <span className="font-semibold">
                     {logs.filter(log => log.severity === 'warning').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[rgb(var(--color-text))]">Error</span>
-                  <span className="font-medium text-[rgb(var(--color-text))]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-sm">Error</span>
+                  </div>
+                  <span className="font-semibold">
                     {logs.filter(log => log.severity === 'error').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[rgb(var(--color-text))]">Critical</span>
-                  <span className="font-medium text-[rgb(var(--color-text))]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                    <span className="text-sm">Critical</span>
+                  </div>
+                  <span className="font-semibold">
                     {logs.filter(log => log.severity === 'critical').length}
                   </span>
                 </div>
               </div>
-            </Panel>
+            </Card>
             
-            <Panel className="p-4">
-              <h3 className="text-lg font-medium text-[rgb(var(--color-text))]">Recent Activity</h3>
-              <p className="text-sm text-[rgb(var(--color-text-secondary))] mt-2">
-                Latest log: {
-                  logs.length > 0 
-                    ? formatDate(logs[0].timestamp)
-                    : 'N/A'
-                }
-              </p>
-            </Panel>
+            <Card className="p-6 bg-gradient-to-br from-green-500/5 to-green-500/10 border border-green-500/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Latest Activity</h3>
+                  <p className="text-sm mt-2 break-all">
+                    {logs.length > 0 
+                      ? formatDate(logs[0].timestamp)
+                      : 'No recent activity'
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Most recent log entry
+                  </p>
+                </div>
+                <div className="h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <RefreshCw className="h-6 w-6 text-green-500" />
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </PermissionGate>
