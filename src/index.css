@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @layer base {
   :root {
     /* Shadcn/ui CSS Variables - Default Gray Theme */
@@ -34,7 +36,7 @@
     --color-primary-light: 14 165 233; /* Glacier Blue (#0EA5E9) */
     --color-secondary: 139 92 246;
     --color-secondary-light: 99 102 241;
-    
+
     /* Other variables for theming */
     --color-background: 249 250 251;
     --color-card: 255 255 255;
@@ -46,7 +48,7 @@
     --color-progress-bg: 229 231 235; /* Progress bar background for light mode (#E5E7EB) */
     --color-progress-bg-dark: 75 85 99; /* Progress bar background for dark mode (#4B5563) */
     --color-skeleton: 226 232 240;   /* Skeleton background for light mode (#E2E8F0) */
-    
+
     /* Role-specific colors */
     --color-role-owner-bg: 243 232 255;       /* light purple bg */
     --color-role-owner-text: 107 33 168;      /* dark purple text */
@@ -56,11 +58,11 @@
     --color-role-manager-text: 6 95 70;       /* dark emerald text */
     --color-role-user-bg: 243 244 246;        /* light gray bg */
     --color-role-user-text: 31 41 55;         /* dark gray text */
-    
+
     /* Error color */
     --color-error: 220 38 38;                 /* red-600 */
     --color-error-hover: 185 28 28;           /* red-700 */
-    
+
     /* Status indicators */
     --color-status-active-bg: 220 252 231;     /* light green bg */
     --color-status-active-text: 22 101 52;     /* dark green text */
@@ -69,21 +71,21 @@
     --color-warning-text: 180 83 9;            /* amber-800 for warning text in light mode */
     --color-warning-bg: 255 251 235;           /* amber-50 for warning bg in light mode */
     --color-warning-border: 253 230 138;       /* amber-200 for warning border in light mode */
-    
+
     /* Button colors */
     --color-button-primary: 56 189 248;        /* Primary button bg */
     --color-button-primary-hover: 14 165 233;  /* Primary button hover */
     --color-button-secondary: 107 114 128;     /* Secondary/Cancel button bg */
     --color-button-secondary-hover: 75 85 99;  /* Secondary button hover */
     --color-button-text: 255 255 255;          /* Button text color */
-    
+
     /* Form control colors */
     --color-input-bg: 255 255 255;             /* Input background */
     --color-input-border: 229 231 235;         /* Input border */
     --color-input-border-focus: 56 189 248;    /* Input border when focused */
     --color-input-text: 31 41 55;              /* Input text */
     --color-input-placeholder: 156 163 175;    /* Input placeholder */
-    
+
     /* Modal colors */
     --color-modal-overlay: 0 0 0 / 0.7;        /* Modal overlay background */
   }
@@ -124,7 +126,7 @@
     --color-text-secondary: 156 163 175; /* Less bright secondary text (#9CA3AF) */
     --color-skeleton: 71 85 105;     /* Skeleton background for dark mode (#475569) */
     --color-search-bg: 55 65 81;     /* Search background for dark mode (#374151) */
-    
+
     /* Role-specific colors - dark mode */
     --color-role-owner-bg: 91 33 182 / 0.3;  /* dark purple bg with opacity */
     --color-role-owner-text: 216 180 254;    /* light purple text */
@@ -134,11 +136,11 @@
     --color-role-manager-text: 167 243 208;  /* light emerald text */
     --color-role-user-bg: 31 41 55;         /* dark gray bg */
     --color-role-user-text: 209 213 219;    /* light gray text */
-    
+
     /* Error color - dark mode */
     --color-error: 248 113 113;             /* red-400 */
     --color-error-hover: 239 68 68;         /* red-500 */
-    
+
     /* Status indicators - dark mode */
     --color-status-active-bg: 20 83 45 / 0.3;     /* dark green bg with opacity */
     --color-status-active-text: 134 239 172;      /* light green text */
@@ -147,14 +149,14 @@
     --color-warning-text: 253 211 77;             /* amber-300 for warning text in dark mode */
     --color-warning-bg: 146 64 14 / 0.2;          /* amber-900/20 for warning bg in dark mode */
     --color-warning-border: 146 64 14;            /* amber-800 for warning border in dark mode */
-    
+
     /* Button colors - dark mode */
     --color-button-primary: 56 189 248;           /* Keep primary color consistent */
     --color-button-primary-hover: 2 132 199;      /* Darker primary hover for dark mode */
     --color-button-secondary: 75 85 99;           /* Darker secondary button */
     --color-button-secondary-hover: 55 65 81;     /* Darker secondary hover */
     --color-button-text: 255 255 255;             /* Button text color */
-    
+
     /* Form control colors - dark mode */
     --color-input-bg: 31 41 55;                  /* Input background in dark mode */
     --color-input-border: 55 65 81;              /* Input border in dark mode */
@@ -239,7 +241,7 @@
     --color-button-hover: 190 18 60; /* Darker Rose button hover (#BE123C) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Crimson Theme */
   .theme-crimson {
     --color-primary: 185 28 28;      /* Crimson (#B91C1C) */
@@ -250,7 +252,7 @@
     --color-button-hover: 127 29 29; /* Darker Crimson button hover (#7F1D1D) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Emerald Theme */
   .theme-emerald {
     --color-primary: 6 95 70;        /* Emerald (#065F46) */
@@ -261,7 +263,7 @@
     --color-button-hover: 4 120 87;  /* Darker Emerald button hover (#047857) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Indigo Theme */
   .theme-indigo {
     --color-primary: 67 56 202;      /* Indigo (#4338CA) */
@@ -272,7 +274,7 @@
     --color-button-hover: 55 48 163; /* Darker Indigo button hover (#3730A3) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Slate Theme */
   .theme-slate {
     --color-primary: 71 85 105;      /* Slate (#475569) */
@@ -283,7 +285,7 @@
     --color-button-hover: 51 65 85;  /* Darker Slate button hover (#334155) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Sunset Theme */
   .theme-sunset {
     --color-primary: 251 146 60;     /* Orange (#FB923C) */
@@ -294,7 +296,7 @@
     --color-button-hover: 234 88 12; /* Darker Orange button hover (#EA580C) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Ocean Theme */
   .theme-ocean {
     --color-primary: 8 145 178;      /* Cyan (#08919B) */
@@ -305,7 +307,7 @@
     --color-button-hover: 14 116 144; /* Darker Cyan button hover (#0E7490) */
     --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
   }
-  
+
   /* Special Mode: High Contrast */
   .high-contrast {
     --color-text: 0 0 0;             /* Pure black text (#000000) */
@@ -314,14 +316,14 @@
     --color-primary: 0 0 139;        /* Dark blue (#00008B) */
     --color-primary-light: 0 0 205;  /* Medium blue (#0000CD) */
   }
-  
+
   /* Special Mode: Reduced Motion */
   .reduced-motion * {
     transition: none !important;
     animation: none !important;
     scroll-behavior: auto !important;
   }
-  
+
   /* Special Mode: Soft/Comfort */
   .soft {
     --color-background: 245 245 250; /* Soft background (#F5F5FA) */
@@ -329,7 +331,7 @@
     --color-text: 60 60 70;         /* Soft text (#3C3C46) */
     --color-border: 220 220 235;    /* Soft borders (#DCDCEB) */
   }
-  
+
   .dark.soft {
     --color-background: 38 38 50;    /* Soft dark background (#262632) */
     --color-card: 50 50 65;         /* Soft dark card (#323241) */
@@ -356,12 +358,12 @@
   input, select, textarea {
     @apply bg-[rgb(var(--color-input-bg))] border border-[rgb(var(--color-input-border))] text-[rgb(var(--color-input-text))] placeholder-[rgb(var(--color-input-placeholder))];
   }
-  
+
   /* Special focus for form inputs - cleaner border approach */
   input:focus-visible, select:focus-visible, textarea:focus-visible {
     @apply outline-none ring-0 ring-offset-0 border border-[rgb(var(--color-input-border-focus))];
   }
-  
+
   /* Ensure all interactive elements have pointer cursor */
   button, 
   a, 
@@ -421,27 +423,27 @@
   .card {
     @apply bg-[rgb(var(--color-card))] rounded-lg border border-[rgb(var(--color-border))] shadow-sm p-4;
   }
-  
+
   .panel {
     @apply w-full mb-6;
   }
-  
+
   .status-pill {
     @apply px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  
+
   .status-pill-success {
     @apply bg-[rgba(var(--color-success),0.2)] text-[rgb(var(--color-success-light))] dark:text-[rgb(var(--color-success))];
   }
-  
+
   .status-pill-warning {
     @apply bg-[rgba(var(--color-warning),0.2)] text-[rgb(var(--color-warning-light))] dark:text-[rgb(var(--color-warning))];
   }
-  
+
   .status-pill-error {
     @apply bg-[rgba(var(--color-error),0.2)] text-[rgb(var(--color-error-light))] dark:text-[rgb(var(--color-error))];
   }
-  
+
   .status-pill-neutral {
     @apply bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
   }
@@ -470,3 +472,37 @@
 body.modal-open {
   overflow: hidden;
 }
+
+:root {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
