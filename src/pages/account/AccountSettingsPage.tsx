@@ -760,29 +760,21 @@ const AccountSettingsPage: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label className="text-sm">Reduce motion</Label>
+                        <Label htmlFor="reduceMotion" className="text-sm">Reduce motion</Label>
                         <p className="text-xs text-muted-foreground">
                           Minimizes animations and transitions
                         </p>
                       </div>
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 text-primary"
-                        // Add your reduce motion state here
-                      />
+                      <Checkbox id="reduceMotion" />
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label className="text-sm">High contrast</Label>
+                        <Label htmlFor="highContrast" className="text-sm">High contrast</Label>
                         <p className="text-xs text-muted-foreground">
                           Increases color contrast for better visibility
                         </p>
                       </div>
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 text-primary"
-                        // Add your high contrast state here
-                      />
+                      <Checkbox id="highContrast" />
                     </div>
                   </div>
                 </div>
