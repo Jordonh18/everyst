@@ -222,7 +222,7 @@ const AddUserForm: React.FC<{
   return (
     <form id="addUserForm" onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Username*
         </label>
         <Input
@@ -230,14 +230,14 @@ const AddUserForm: React.FC<{
           name="username"
           value={formData.username}
           onChange={handleChange}
-          className={errors.username ? 'border-[rgb(var(--color-error))]' : ''}
+          className={errors.username ? 'border-destructive' : ''}
           placeholder="username"
         />
-        {errors.username && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.username}</p>}
+        {errors.username && <p className="mt-1 text-sm text-destructive">{errors.username}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Email*
         </label>
         <Input
@@ -245,15 +245,15 @@ const AddUserForm: React.FC<{
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className={errors.email ? 'border-[rgb(var(--color-error))]' : ''}
+          className={errors.email ? 'border-destructive' : ''}
           placeholder="email@example.com"
         />
-        {errors.email && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.email}</p>}
+        {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+          <label className="block text-sm font-medium mb-1">
             First Name
           </label>
           <Input
@@ -266,7 +266,7 @@ const AddUserForm: React.FC<{
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+          <label className="block text-sm font-medium mb-1">
             Last Name
           </label>
           <Input
@@ -280,7 +280,7 @@ const AddUserForm: React.FC<{
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Password*
         </label>
         <Input
@@ -288,14 +288,14 @@ const AddUserForm: React.FC<{
           name="password"
           value={formData.password}
           onChange={handleChange}
-          className={errors.password ? 'border-[rgb(var(--color-error))]' : ''}
+          className={errors.password ? 'border-destructive' : ''}
           placeholder="••••••••"
         />
-        {errors.password && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.password}</p>}
+        {errors.password && <p className="mt-1 text-sm text-destructive">{errors.password}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Confirm Password*
         </label>
         <Input
@@ -303,14 +303,14 @@ const AddUserForm: React.FC<{
           name="confirmPassword"
           value={formData.confirmPassword}
           onChange={handleChange}
-          className={errors.confirmPassword ? 'border-[rgb(var(--color-error))]' : ''}
+          className={errors.confirmPassword ? 'border-destructive' : ''}
           placeholder="••••••••"
         />
-        {errors.confirmPassword && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.confirmPassword}</p>}
+        {errors.confirmPassword && <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-[rgb(var(--color-text))] mb-1">
+        <label className="block text-sm font-medium mb-1">
           Role*
         </label>
         <Select
@@ -339,7 +339,7 @@ const AddUserForm: React.FC<{
             {Array.isArray(availableRoles) && availableRoles.length === 0 && <SelectItem value="user">User</SelectItem>}
           </SelectContent>
         </Select>
-        {errors.role && <p className="mt-1 text-sm text-[rgb(var(--color-error))]">{errors.role}</p>}
+        {errors.role && <p className="mt-1 text-sm text-destructive">{errors.role}</p>}
         {hasExistingOwner && (
           <p className="mt-1 text-sm text-[rgb(var(--color-warning-text))]">
             There is already a system owner. You cannot create another owner.
@@ -949,13 +949,13 @@ const ClimbersUserManagement: React.FC<ClimbersPageProps> = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Search */}
             <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[rgb(var(--color-text-secondary))]" />
-              <input
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
                 type="text"
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full rounded-md"
+                className="pl-10"
               />
             </div>
             
