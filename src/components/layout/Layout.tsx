@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
+import { TopBar } from './TopBar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 export const Layout: React.FC = () => {
@@ -12,8 +13,8 @@ export const Layout: React.FC = () => {
         
         {/* Main content area */}
         <SidebarInset>
-          {/* Main content with accessibility skip link */}
-          <main id="main-content" className="flex-1 overflow-y-auto p-6 relative z-10">
+          <TopBar />
+          <main id="main-content" className="flex-1 overflow-y-auto relative z-10">
             <Outlet />
           </main>
         </SidebarInset>
