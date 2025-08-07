@@ -29,6 +29,9 @@ from .views import (
     whois_tool, ssl_check_tool, netstat_tool, ip_route_tool, tcpdump_tool
 )
 
+# SSH Key views
+from .views.ssh_keys import SSHKeyViewSet, SSHSessionViewSet
+
 # Import our custom token views
 from .views.auth_token import TokenObtainPairView, TokenRefreshView
 from .views.logout import LogoutView, LogoutAllView
@@ -48,6 +51,10 @@ router.register(r'activity-logs', ApplicationLogViewSet, basename='activity-logs
 router.register(r'network/devices', NetworkDeviceViewSet)
 router.register(r'network/connections', NetworkConnectionViewSet)
 router.register(r'network/scans', NetworkScanViewSet)
+
+# SSH routes
+router.register(r'ssh/keys', SSHKeyViewSet, basename='ssh-keys')
+router.register(r'ssh/sessions', SSHSessionViewSet, basename='ssh-sessions')
 
 urlpatterns = [
     path('health/', HealthCheckView.as_view(), name='health-check'),

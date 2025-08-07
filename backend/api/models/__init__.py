@@ -19,6 +19,9 @@ from .system import SystemMetrics, Alert, SecurityStatus
 # Notification model
 from .notification import Notification
 
+# SSH Key model
+from .ssh_keys import SSHKey, SSHSession
+
 # Activity-related models
 from .activity import ApplicationLog
 
@@ -36,4 +39,6 @@ __all__ = [
     'SecurityStatus',
     'Notification',
     'ApplicationLog',
+    'SSHKey',
+    'SSHSession',
 ]

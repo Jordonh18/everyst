@@ -72,7 +72,8 @@ django_application = ProtocolTypeRouter({
         TokenAuthMiddleware(  # Apply custom token authentication
             AuthMiddlewareStack(
                 URLRouter([
-                    # WebSocket URL patterns will be routed through this path
+                    # Import WebSocket URL patterns
+                    *__import__('api.routing', fromlist=['websocket_urlpatterns']).websocket_urlpatterns
                 ])
             )
         )

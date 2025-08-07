@@ -207,7 +207,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,  # Rotate refresh tokens for better security
     'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
+    'UPDATE_LAST_LOGIN': False,  # Temporarily disabled to test duplicate logging issue
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
