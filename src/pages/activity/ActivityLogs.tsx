@@ -135,6 +135,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [uniqueActions, setUniqueActions] = useState<string[]>([]);
   const [showPurgeConfirmModal, setShowPurgeConfirmModal] = useState<boolean>(false);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
   // Table columns definition
   const activityTableColumns = [
@@ -256,7 +257,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
     };
     
     fetchData();
-  }, [getAccessToken, sendUserNotification, currentUser, page, searchTerm, severityFilter, actionFilter, dateFilter, dateRanges]);
+  }, [getAccessToken, sendUserNotification, currentUser, page, searchTerm, severityFilter, actionFilter, dateFilter, dateRanges, refreshTrigger]);
   
   // Filtered logs based on search term (client-side filtering as backup)
   const filteredLogs = useMemo(() => {
@@ -381,9 +382,13 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
         'success'
       );
 
-      // Refresh the logs after purging
-      setPage(1); // Reset to first page to trigger useEffect
+      // Close the modal first
       setShowPurgeConfirmModal(false);
+      
+      // Reset to first page and trigger refresh
+      setPage(1);
+      setRefreshTrigger(prev => prev + 1);
+      
     } catch (err) {
       console.error('Error purging logs:', err);
       sendUserNotification(
@@ -510,8 +515,7 @@ const ActivityLogs: React.FC<ActivityLogsProps> = () => {
                 title="Refresh logs"
                 className="p-2"
                 onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => setLoading(false), 500); // Simulate refresh
+                  setRefreshTrigger(prev => prev + 1);
                 }}
               >
                 <RefreshCw size={16} />
