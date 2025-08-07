@@ -113,10 +113,12 @@ class CanViewLogs(permissions.BasePermission):
     
     def has_permission(self, request, view):
         # Check if user is authenticated and has permission to view logs
-        return bool(
-            request.user and
-            request.user.is_authenticated and
-            request.user.role is not None and
-            (request.user.role.name in ['admin', 'owner'] or
-             hasattr(request.user.role, 'can_view_logs') and request.user.role.can_view_logs)
-        )
+        if not (request.user and request.user.is_authenticated and request.user.role):
+            return False
+            
+        # Owner and admin always have access
+        if request.user.role.name in ['admin', 'owner']:
+            return True
+            
+        # Check the specific permission
+        return getattr(request.user.role, 'can_view_logs', False)

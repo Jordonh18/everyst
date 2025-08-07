@@ -36,6 +36,9 @@ from .views.ssh_keys import SSHKeyViewSet, SSHSessionViewSet
 from .views.auth_token import TokenObtainPairView, TokenRefreshView
 from .views.logout import LogoutView, LogoutAllView
 
+# Import system logs views
+from .views import system_logs as system_logs_views
+
 router = DefaultRouter()
 router.register(r'metrics', SystemMetricsViewSet)
 router.register(r'alerts', AlertViewSet)
@@ -43,9 +46,6 @@ router.register(r'security', SecurityStatusViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'roles', UserRoleViewSet)
 router.register(r'notifications', NotificationViewSet, basename='notification')
-
-# Activity logs routes
-router.register(r'activity-logs', ApplicationLogViewSet, basename='activity-logs')
 
 # Network routes
 router.register(r'network/devices', NetworkDeviceViewSet)
@@ -67,6 +67,18 @@ urlpatterns = [
     path('auth/logout-all/', LogoutAllView.as_view(), name='logout-all'),
     path('auth/check-users/', check_users_exist, name='check-users-exist'),
     path('auth/first-run/', first_run_check, name='first-run-check'),
+    
+    # Activity logs endpoint
+    path('activity-logs/', ApplicationLogViewSet.as_view({'get': 'list'}), name='activity-logs'),
+    path('activity-logs/purge/', ApplicationLogViewSet.as_view({'post': 'purge'}), name='activity-logs-purge'),
+    
+    # System logs endpoints
+    path('system-logs/', include([
+        path('', system_logs_views.list_system_logs, name='system-logs-list'),
+        path('dashboard/', system_logs_views.system_logs_dashboard, name='system-logs-dashboard'),
+        path('<str:log_name>/', system_logs_views.read_system_log, name='system-log-read'),
+        path('<str:log_name>/stats/', system_logs_views.system_log_statistics, name='system-log-stats'),
+    ])),
     
     # Network topology endpoint
     path('network/topology/', network_topology, name='network-topology'),
