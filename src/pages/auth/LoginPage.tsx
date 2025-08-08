@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Lock} from 'lucide-react';
+import { User, Lock, ArrowRight, Sparkles } from 'lucide-react';
 import { AuthNotification } from '../../components/auth/AuthNotification';
 import { Button, Input } from '../../components/ui';
+import { motion } from 'framer-motion';
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -51,85 +52,170 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="max-w-md w-full px-6 py-8 bg-card shadow-xl rounded-lg border border-border">
-        <div className="flex flex-col items-center mb-6">
-          <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 mb-4" />
-          <h1 className="text-3xl font-bold text-foreground">Login to everyst</h1>
-          <p className="text-muted-foreground font-medium">Enter your credentials</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex">
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5" />
+        <div className="relative z-10 flex flex-col justify-center px-16 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
+          >
+            <div className="flex items-center space-x-4">
+              <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16" />
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">everyst</h1>
+                <p className="text-muted-foreground">Server Monitoring & Security Platform</p>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <h2 className="text-4xl font-bold text-foreground leading-tight">
+                Welcome back to your
+                <span className="text-primary block">security command center</span>
+              </h2>
+              
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Monitor, manage, and secure your server infrastructure with powerful tools 
+                designed for modern security operations.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-primary/60" />
+                  <span className="text-foreground">Real-time server monitoring</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-primary/60" />
+                  <span className="text-foreground">Advanced security tools</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-primary/60" />
+                  <span className="text-foreground">Comprehensive user management</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
-
-        {error && (
-          <AuthNotification 
-            type="error"
-            message={error}
-          />
-        )}
         
-        {usersExist === false && (
-          <AuthNotification 
-            type="info"
-            message="No users exist. Redirecting to registration page..."
-            onDismiss={() => navigate('/register', { replace: true })}
-          />
-        )}
+        {/* Decorative elements */}
+        <div className="absolute top-20 right-20 opacity-20">
+          <Sparkles className="h-16 w-16 text-primary" />
+        </div>
+        <div className="absolute bottom-32 right-32 opacity-10">
+          <Sparkles className="h-32 w-32 text-primary" />
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium text-foreground mb-2 block">
-              Username
-            </label>
-            <div className="relative mt-1.5">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User size={16} className="text-muted-foreground" />
-              </div>
-              <Input
-                id="username"
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pl-10"
-                placeholder="Enter username"
+      {/* Right Side - Login Form */}
+      <div className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="w-full max-w-sm mx-auto"
+        >
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex flex-col items-center mb-8">
+            <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16 mb-4" />
+            <h1 className="text-2xl font-bold text-foreground">everyst</h1>
+            <p className="text-muted-foreground text-sm">Server Monitoring & Security Platform</p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
+              <p className="text-muted-foreground">
+                Sign in to access your dashboard
+              </p>
+            </div>
+
+            {error && (
+              <AuthNotification 
+                type="error"
+                message={error}
               />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between mb-2">
-              <label htmlFor="password" className="text-sm font-medium text-foreground">
-                Password
-              </label>
-            </div>
-            <div className="relative mt-1.5">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock size={16} className="text-muted-foreground" />
-              </div>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10" 
-                placeholder="Enter password"
+            )}
+            
+            {usersExist === false && (
+              <AuthNotification 
+                type="info"
+                message="No users exist. Redirecting to registration page..."
+                onDismiss={() => navigate('/register', { replace: true })}
               />
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="username" className="text-sm font-medium text-foreground">
+                  Username
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User size={18} className="text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="username"
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="pl-10 h-12 text-base"
+                    placeholder="Enter your username"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-foreground">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock size={18} className="text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 h-12 text-base" 
+                    placeholder="Enter your password"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-medium"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-4 h-4 border-2 border-background border-t-transparent rounded-full mr-2"
+                    />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            <div className="text-center text-sm text-muted-foreground">
+              Secure access to your network infrastructure
             </div>
           </div>
-
-          <div>
-            <Button
-              type="submit"
-              variant="default"
-              className="w-full"
-              disabled={submitting}
-            >
-              {submitting ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </div>
-        </form>
-
-        {/* Register link only shows if no users exist in system, which is handled by route protection */}
+        </motion.div>
       </div>
     </div>
   );
