@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '../../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, Badge, Button } from '../../components/ui';
 import { Skeleton } from '../../components/skeletons/Skeleton';
 import { 
   RefreshCw, Cpu, Server, HardDrive, Activity, Wifi, Shield, 
-  AlertTriangle, Globe, Network, Terminal, Info, 
-  Clock, Monitor
+  AlertTriangle, Network, Settings, Users, Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWebSocket } from '../../context/WebSocketContext';
 import { socketService } from '../../utils/socket';
+import { useAuth } from '../../context/AuthContext';
 import {
   ChartContainer,
   ChartTooltip,
@@ -58,6 +58,39 @@ interface RawMetricsData {
     serverId: string;
     severity: 'warning' | 'error';
   }[];
+}
+
+// Additional data types for new dashboard features
+interface PortInfo {
+  port: number;
+  protocol: string;
+  service: string;
+  status: 'listening' | 'closed';
+  process?: string;
+}
+
+interface ServiceInfo {
+  name: string;
+  status: 'running' | 'stopped' | 'error';
+  pid?: number;
+  uptime?: string;
+  description: string;
+}
+
+interface SessionInfo {
+  user: string;
+  type: 'ssh' | 'web' | 'api';
+  ip: string;
+  started: string;
+  duration?: string;
+}
+
+interface ApiResponseTime {
+  endpoint: string;
+  method: string;
+  responseTime: number;
+  status: number;
+  timestamp: string;
 }
 
 // Historical data point for charts
@@ -122,9 +155,16 @@ interface SystemMetrics {
     kernel: string;
   };
   historicalData: MetricPoint[];
+  // New dashboard features
+  ports: PortInfo[];
+  services: ServiceInfo[];
+  sessions: SessionInfo[];
+  apiResponseTimes: ApiResponseTime[];
 }
 
 export const DashboardPage: React.FC = () => {
+  const { getAccessToken } = useAuth();
+  
   // State to hold our system metrics data
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu: null,
@@ -136,7 +176,11 @@ export const DashboardPage: React.FC = () => {
     alerts: [],
     uptime: null,
     server_info: undefined,
-    historicalData: []
+    historicalData: [],
+    ports: [],
+    services: [],
+    sessions: [],
+    apiResponseTimes: []
   });
   
   // Loading state
@@ -160,10 +204,76 @@ export const DashboardPage: React.FC = () => {
     return duration;
   };
 
-  // Add new data point to historical data
+  // Function to fetch additional dashboard data
+  const fetchDashboardData = React.useCallback(async () => {
+    if (!getAccessToken()) return;
+
+    try {
+      const token = getAccessToken();
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // Fetch port information using dedicated endpoint
+      const portsResponse = await fetch('/api/system/ports/', {
+        method: 'GET',
+        headers,
+      });
+
+      // Fetch running services
+      const servicesResponse = await fetch('/api/system/services/', {
+        method: 'GET',
+        headers,
+      });
+
+      // Fetch active sessions
+      const sessionsResponse = await fetch('/api/system/sessions/', {
+        method: 'GET',
+        headers,
+      });
+
+      // Fetch API response times
+      const apiTimesResponse = await fetch('/api/system/api-times/', {
+        method: 'GET',
+        headers,
+      });
+
+      // Process port data
+      if (portsResponse.ok) {
+        const portsData = await portsResponse.json();
+        setMetrics(prev => ({ ...prev, ports: portsData || [] }));
+      }
+
+      // Process services data
+      if (servicesResponse.ok) {
+        const servicesData = await servicesResponse.json();
+        setMetrics(prev => ({ ...prev, services: servicesData || [] }));
+      }
+
+      // Process sessions data  
+      if (sessionsResponse.ok) {
+        const sessionsData = await sessionsResponse.json();
+        setMetrics(prev => ({ ...prev, sessions: sessionsData || [] }));
+      }
+
+      // Process API response times
+      if (apiTimesResponse.ok) {
+        const apiTimesData = await apiTimesResponse.json();
+        setMetrics(prev => ({ ...prev, apiResponseTimes: apiTimesData || [] }));
+      }
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  }, [getAccessToken]);
+
+  // Add new data point to historical data with proper management
   const addToHistoricalData = (newData: RawMetricsData) => {
-    const timestamp = new Date().toLocaleTimeString('en-US', { 
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString('en-US', { 
       hour12: false, 
+      hour: '2-digit',
       minute: '2-digit', 
       second: '2-digit' 
     });
@@ -176,10 +286,22 @@ export const DashboardPage: React.FC = () => {
       network: Math.min(100, ((newData.network_tx + newData.network_rx) / (1024 * 1024)) / 125 * 100) // Network utilization as percentage
     };
 
-    setMetrics(prev => ({
-      ...prev,
-      historicalData: [...prev.historicalData.slice(-19), newPoint] // Keep last 20 points
-    }));
+    setMetrics(prev => {
+      // Keep only the last 20 points and ensure no duplicates
+      const existingData = prev.historicalData;
+      const lastPoint = existingData[existingData.length - 1];
+      
+      // Only add if timestamp is different from last point
+      if (!lastPoint || lastPoint.timestamp !== timestamp) {
+        const newData = [...existingData, newPoint].slice(-20);
+        return {
+          ...prev,
+          historicalData: newData
+        };
+      }
+      
+      return prev;
+    });
   };
   
   // Process metrics data from socket
@@ -235,6 +357,7 @@ export const DashboardPage: React.FC = () => {
   // Function to refresh metrics
   const refreshMetrics = () => {
     setIsMetricsLoading(true);
+    fetchDashboardData(); // Fetch additional data
     
     setTimeout(() => {
       setIsMetricsLoading(false);
@@ -277,10 +400,24 @@ export const DashboardPage: React.FC = () => {
     socket.on('metrics_update', handleMetricsUpdate);
     setError(null);
     
+    // Fetch initial dashboard data
+    fetchDashboardData();
+    
     return () => {
       socket.off('metrics_update', handleMetricsUpdate);
     };
-  }, [isConnected, processMetricsData]);
+  }, [isConnected, processMetricsData, fetchDashboardData]);
+
+  // Fetch additional dashboard data periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isConnected && !isMetricsLoading) {
+        fetchDashboardData();
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isConnected, isMetricsLoading, fetchDashboardData]);
 
   // Update error state when connection status changes
   useEffect(() => {
@@ -317,6 +454,7 @@ export const DashboardPage: React.FC = () => {
         
         {/* Header */}
         <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -333,7 +471,7 @@ export const DashboardPage: React.FC = () => {
             </Badge>
           </div>
         </div>
-
+        
         {/* System Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* CPU Card */}
@@ -528,25 +666,47 @@ export const DashboardPage: React.FC = () => {
 
         {/* Performance Trends Chart */}
         <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              System Performance Trends
+            </CardTitle>
+            <CardDescription>
+              Real-time monitoring of CPU, Memory, Disk, and Network utilization over the last 20 data points
+            </CardDescription>
+          </CardHeader>
           <CardContent className="p-6">
             {metrics.historicalData.length > 0 ? (
               <ChartContainer config={chartConfig} className="w-full h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={metrics.historicalData}>
+                  <LineChart data={metrics.historicalData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis 
                       dataKey="timestamp" 
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
                       domain={[0, 100]} 
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
+                      label={{ value: 'Usage (%)', angle: -90, position: 'insideLeft' }}
                     />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip 
+                      content={<ChartTooltipContent 
+                        formatter={(value, name) => [
+                          `${Number(value).toFixed(1)}%`,
+                          name
+                        ]}
+                        labelFormatter={(label) => `Time: ${label}`}
+                      />} 
+                    />
                     <Line 
                       type="monotone" 
                       dataKey="cpu" 
@@ -554,6 +714,7 @@ export const DashboardPage: React.FC = () => {
                       strokeWidth={2}
                       dot={false}
                       name="CPU"
+                      connectNulls={false}
                     />
                     <Line 
                       type="monotone" 
@@ -562,6 +723,7 @@ export const DashboardPage: React.FC = () => {
                       strokeWidth={2}
                       dot={false}
                       name="Memory"
+                      connectNulls={false}
                     />
                     <Line 
                       type="monotone" 
@@ -570,6 +732,7 @@ export const DashboardPage: React.FC = () => {
                       strokeWidth={2}
                       dot={false}
                       name="Disk"
+                      connectNulls={false}
                     />
                     <Line 
                       type="monotone" 
@@ -578,6 +741,7 @@ export const DashboardPage: React.FC = () => {
                       strokeWidth={2}
                       dot={false}
                       name="Network"
+                      connectNulls={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -593,59 +757,168 @@ export const DashboardPage: React.FC = () => {
           </CardContent>
         </Card>
         
-        {/* Server Information */}
+        {/* New Dashboard Features Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Port Information */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Network size={16} />
+                Open Ports
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {metrics.ports.length > 0 ? (
+                metrics.ports.slice(0, 5).map((port, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span className="font-mono">{port.port}/{port.protocol}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {port.service}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Running Services */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Settings size={16} />
+                Services
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {metrics.services.length > 0 ? (
+                metrics.services.slice(0, 5).map((service, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span className="truncate">{service.name}</span>
+                    <Badge variant={service.status === 'running' ? 'default' : 'destructive'} className="text-xs">
+                      {service.status}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Active Sessions */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Users size={16} />
+                Active Sessions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {metrics.sessions.length > 0 ? (
+                metrics.sessions.slice(0, 5).map((session, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span className="truncate">{session.user}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {session.type}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* API Response Times */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Zap size={16} />
+                API Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {metrics.apiResponseTimes.length > 0 ? (
+                metrics.apiResponseTimes.slice(0, 5).map((api, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span className="truncate">{api.endpoint}</span>
+                    <Badge variant={api.responseTime > 500 ? 'destructive' : 'default'} className="text-xs">
+                      {api.responseTime}ms
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Compact Server Information */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Server size={20} />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Server size={18} />
                 System Details
               </CardTitle>
             </CardHeader>
             <CardContent>
               {metrics.server_info ? (
-                <div className="space-y-6">
-                  <div className="flex items-center">
-                    <Terminal className="mr-4 text-primary" size={24} />
-                    <div>
-                      <div className="font-medium text-lg">{metrics.server_info.hostname}</div>
-                      <div className="text-sm text-muted-foreground">Hostname</div>
-                    </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Hostname</div>
+                    <div className="font-medium">{metrics.server_info.hostname}</div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <Monitor className="mr-4 text-primary" size={24} />
-                    <div>
-                      <div className="font-medium text-lg">{metrics.server_info.os}</div>
-                      <div className="text-sm text-muted-foreground">Operating System</div>
-                    </div>
+                  <div>
+                    <div className="text-muted-foreground">OS</div>
+                    <div className="font-medium">{metrics.server_info.os}</div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <Info className="mr-4 text-primary" size={24} />
-                    <div>
-                      <div className="font-medium text-lg">{metrics.server_info.architecture}</div>
-                      <div className="text-sm text-muted-foreground">Architecture</div>
-                    </div>
+                  <div>
+                    <div className="text-muted-foreground">Architecture</div>
+                    <div className="font-medium">{metrics.server_info.architecture}</div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <Terminal className="mr-4 text-primary" size={24} />
-                    <div>
-                      <div className="font-medium text-lg">{metrics.server_info.kernel}</div>
-                      <div className="text-sm text-muted-foreground">Kernel Version</div>
-                    </div>
+                  <div>
+                    <div className="text-muted-foreground">Kernel</div>
+                    <div className="font-medium">{metrics.server_info.kernel}</div>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {[...Array(4)].map((_, j) => (
-                    <div key={j} className="flex items-center">
-                      <Skeleton className="h-6 w-6 mr-4" />
-                      <div className="w-full">
-                        <Skeleton className="h-5 w-2/3 mb-1" />
-                        <Skeleton className="h-4 w-1/3" />
-                      </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i}>
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-4 w-24" />
                     </div>
                   ))}
                 </div>
@@ -654,65 +927,53 @@ export const DashboardPage: React.FC = () => {
           </Card>
           
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Network size={20} />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Network size={18} />
                 Network & Uptime
               </CardTitle>
             </CardHeader>
             <CardContent>
               {metrics.server_info ? (
-                <div className="space-y-6">
-                  <div className="flex items-center">
-                    <Network className="mr-4 text-primary" size={24} />
-                    <div>
-                      <div className="font-medium text-lg font-mono">{metrics.server_info.private_ip}</div>
-                      <div className="text-sm text-muted-foreground">Private IP Address</div>
-                    </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Private IP</div>
+                    <div className="font-medium font-mono">{metrics.server_info.private_ip}</div>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <Globe className="mr-4 text-primary" size={24} />
-                    <div>
-                      <div className="font-medium text-lg font-mono">{metrics.server_info.public_ip}</div>
-                      <div className="text-sm text-muted-foreground">Public IP Address</div>
-                    </div>
+                  <div>
+                    <div className="text-muted-foreground">Public IP</div>
+                    <div className="font-medium font-mono">{metrics.server_info.public_ip}</div>
                   </div>
-
                   {metrics.uptime && (
-                    <div className="flex items-center">
-                      <Clock className="mr-4 text-primary" size={24} />
-                      <div>
-                        <div className="font-medium text-lg">{formatUptime(metrics.uptime.duration)}</div>
-                        <div className="text-sm text-muted-foreground">System Uptime</div>
-                      </div>
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground">System Uptime</div>
+                      <div className="font-medium">{formatUptime(metrics.uptime.duration)}</div>
                     </div>
                   )}
-
                   {metrics.security && (
-                    <div className="flex items-center">
-                      <Shield className="mr-4 text-primary" size={24} />
-                      <div>
-                        <div className="font-medium text-lg">
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground">Security Status</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">
                           {metrics.security.status === 'success' ? 'Secure' : 
                            metrics.security.status === 'warning' ? 'Warning' : 'Alert'}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Last scan: {metrics.security.lastScan || 'Unknown'}
-                        </div>
+                        <Badge variant={
+                          metrics.security.status === 'success' ? 'default' : 
+                          metrics.security.status === 'warning' ? 'secondary' : 'destructive'
+                        } className="text-xs">
+                          {metrics.security.status}
+                        </Badge>
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {[...Array(4)].map((_, j) => (
-                    <div key={j} className="flex items-center">
-                      <Skeleton className="h-6 w-6 mr-4" />
-                      <div className="w-full">
-                        <Skeleton className="h-5 w-2/3 mb-1" />
-                        <Skeleton className="h-4 w-1/3" />
-                      </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i}>
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-4 w-24" />
                     </div>
                   ))}
                 </div>

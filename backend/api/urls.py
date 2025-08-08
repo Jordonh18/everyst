@@ -39,6 +39,9 @@ from .views.logout import LogoutView, LogoutAllView
 # Import system logs views
 from .views import system_logs as system_logs_views
 
+# Import dashboard views
+from .views.dashboard import get_system_services, get_system_sessions, get_api_performance, get_system_ports
+
 router = DefaultRouter()
 router.register(r'metrics', SystemMetricsViewSet)
 router.register(r'alerts', AlertViewSet)
@@ -94,6 +97,10 @@ urlpatterns = [
     
     # System metrics endpoints
     path('system/metrics/current/', get_current_metrics, name='current-metrics'),
+    path('system/services/', get_system_services, name='system-services'),
+    path('system/sessions/', get_system_sessions, name='system-sessions'),
+    path('system/api-times/', get_api_performance, name='api-performance'),
+    path('system/ports/', get_system_ports, name='system-ports'),
 ]
 
 urlpatterns += router.urls
