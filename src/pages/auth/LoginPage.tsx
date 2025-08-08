@@ -54,35 +54,63 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex">
-      {/* Left Side - Branding */}
+      {/* Left Side - Welcome */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5" />
-        <div className="relative z-10 flex flex-col justify-center px-16 py-12">
+        <div className="relative z-10 flex flex-col h-full px-12 py-8">
+          {/* Logo and Title - Top Left */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-8"
+            className="flex items-center space-x-3"
           >
-            <div className="flex items-center space-x-4">
-              <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16" />
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">everyst</h1>
-                <p className="text-muted-foreground">Server Monitoring & Security Platform</p>
-              </div>
-            </div>
-            
-            <div className="space-y-6">
-              <h2 className="text-4xl font-bold text-foreground leading-tight">
-                <span className="text-primary block">Security Command Center</span>
-              </h2>
-              
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Monitor, manage, and secure your server infrastructure with powerful tools 
-                designed for modern security operations.
-              </p>
-            </div>
+            <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-12 w-12" />
+            <h1 className="text-3xl font-bold text-foreground">everyst</h1>
           </motion.div>
+
+          {/* Main Content - Natural Flow */}
+          <div className="flex-1 flex flex-col justify-start pt-24">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-10 max-w-md"
+            >
+              <div className="space-y-3">
+                <h2 className="text-2xl font-semibold text-foreground">
+                  Welcome back
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  Continue monitoring your infrastructure and managing security operations.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-3 h-3 bg-primary rounded-full mt-1.5"></div>
+                  <div>
+                    <h3 className="font-medium text-foreground text-sm">Real-time Monitoring</h3>
+                    <p className="text-muted-foreground text-sm">Track server performance and uptime</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="w-3 h-3 bg-primary rounded-full mt-1.5"></div>
+                  <div>
+                    <h3 className="font-medium text-foreground text-sm">Security Analysis</h3>
+                    <p className="text-muted-foreground text-sm">Advanced threat detection and alerts</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-4">
+                  <div className="w-3 h-3 bg-primary rounded-full mt-1.5"></div>
+                  <div>
+                    <h3 className="font-medium text-foreground text-sm">Network Tools</h3>
+                    <p className="text-muted-foreground text-sm">Diagnostic and management utilities</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
         
         {/* Decorative elements */}
@@ -197,7 +225,7 @@ export const LoginPage: React.FC = () => {
             </form>
 
             <div className="text-center text-sm text-muted-foreground">
-              Secure access to your network infrastructure
+              Secure access to your server infrastructure
             </div>
           </div>
         </motion.div>
