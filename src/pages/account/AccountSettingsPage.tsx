@@ -580,36 +580,36 @@ const AccountSettingsPage: React.FC = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
                       <div className="space-y-0.5">
                         <Label className="text-base">Two-Factor Authentication</Label>
                         <p className="text-sm text-muted-foreground">
-                          Add an extra layer of security to your account
+                          Add an extra layer of security to your account (Coming Soon)
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" disabled>
                         Enable
                       </Button>
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
                       <div className="space-y-0.5">
                         <Label className="text-base">Login Notifications</Label>
                         <p className="text-sm text-muted-foreground">
-                          Get notified of new sign-ins to your account
+                          Get notified of new sign-ins to your account (Coming Soon)
                         </p>
                       </div>
-                      <Checkbox defaultChecked />
+                      <Checkbox defaultChecked disabled />
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
                       <div className="space-y-0.5">
                         <Label className="text-base">Session Timeout</Label>
                         <p className="text-sm text-muted-foreground">
-                          Automatically sign out after period of inactivity
+                          Automatically sign out after period of inactivity (Coming Soon)
                         </p>
                       </div>
-                      <Select defaultValue="30m">
+                      <Select defaultValue="30m" disabled>
                         <SelectTrigger className="w-[120px]">
                           <SelectValue />
                         </SelectTrigger>

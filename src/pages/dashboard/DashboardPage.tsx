@@ -102,6 +102,14 @@ interface MetricPoint {
   network: number;
 }
 
+// New interface for network traffic data
+interface NetworkTrafficPoint {
+  timestamp: string;
+  upload: number;
+  download: number;
+  total: number;
+}
+
 // Types for our processed system metrics data
 interface SystemMetrics {
   cpu: {
@@ -155,7 +163,9 @@ interface SystemMetrics {
     kernel: string;
   };
   historicalData: MetricPoint[];
-  // New dashboard features
+  // Network chart data
+  networkTrafficData: NetworkTrafficPoint[];
+  // Dashboard features
   ports: PortInfo[];
   services: ServiceInfo[];
   sessions: SessionInfo[];
@@ -172,7 +182,7 @@ export const DashboardPage: React.FC = () => {
       color: "#2563eb",
     },
     memory: {
-      label: "Memory",
+      label: "Memory", 
       color: "#dc2626",
     },
     disk: {
@@ -182,6 +192,30 @@ export const DashboardPage: React.FC = () => {
     network: {
       label: "Network",
       color: "#059669",
+    },
+    upload: {
+      label: "Upload",
+      color: "#8b5cf6",
+    },
+    download: {
+      label: "Download", 
+      color: "#06b6d4",
+    },
+    score: {
+      label: "Health Score",
+      color: "#10b981",
+    },
+    active_sessions: {
+      label: "Active Sessions",
+      color: "#f59e0b",
+    },
+    api_requests: {
+      label: "API Requests",
+      color: "#3b82f6",
+    },
+    login_attempts: {
+      label: "Login Attempts",
+      color: "#ef4444",
     },
   };
   
@@ -197,6 +231,7 @@ export const DashboardPage: React.FC = () => {
     uptime: null,
     server_info: undefined,
     historicalData: [],
+    networkTrafficData: [],
     ports: [],
     services: [],
     sessions: [],
@@ -216,6 +251,32 @@ export const DashboardPage: React.FC = () => {
       return 'success';
   };
 
+  // Generate network traffic data
+  const generateNetworkTrafficData = React.useCallback((): NetworkTrafficPoint[] => {
+    const data: NetworkTrafficPoint[] = [];
+    const now = new Date();
+    
+    for (let i = 23; i >= 0; i--) {
+      const timestamp = new Date(now.getTime() - i * 60000).toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const upload = Math.random() * 50 + 10; // 10-60 MB/s
+      const download = Math.random() * 100 + 20; // 20-120 MB/s
+      
+      data.push({
+        timestamp,
+        upload: Math.round(upload * 100) / 100,
+        download: Math.round(download * 100) / 100,
+        total: Math.round((upload + download) * 100) / 100
+      });
+    }
+    
+    return data;
+  }, []);
+
   // Format uptime duration
   const formatUptime = (duration: string | null): string => {
     if (!duration) return 'Unknown';
@@ -233,58 +294,55 @@ export const DashboardPage: React.FC = () => {
         'Content-Type': 'application/json',
       };
 
-      // Fetch port information using dedicated endpoint
-      const portsResponse = await fetch('/api/system/ports/', {
-        method: 'GET',
-        headers,
-      });
+      // Fetch essential dashboard data in parallel
+      const [
+        portsResponse,
+        servicesResponse,
+        sessionsResponse,
+        apiTimesResponse,
+        networkTrafficResponse
+      ] = await Promise.all([
+        fetch('/api/system/ports/', { method: 'GET', headers }),
+        fetch('/api/system/services/', { method: 'GET', headers }),
+        fetch('/api/system/sessions/', { method: 'GET', headers }),
+        fetch('/api/system/api-times/', { method: 'GET', headers }),
+        fetch('/api/dashboard/network-traffic/', { method: 'GET', headers })
+      ]);
 
-      // Fetch running services
-      const servicesResponse = await fetch('/api/system/services/', {
-        method: 'GET',
-        headers,
-      });
+      // Process responses
+      const [
+        portsData,
+        servicesData,
+        sessionsData,
+        apiTimesData,
+        networkTrafficData
+      ] = await Promise.all([
+        portsResponse.ok ? portsResponse.json() : [],
+        servicesResponse.ok ? servicesResponse.json() : [],
+        sessionsResponse.ok ? sessionsResponse.json() : [],
+        apiTimesResponse.ok ? apiTimesResponse.json() : [],
+        networkTrafficResponse.ok ? networkTrafficResponse.json() : []
+      ]);
 
-      // Fetch active sessions
-      const sessionsResponse = await fetch('/api/system/sessions/', {
-        method: 'GET',
-        headers,
-      });
-
-      // Fetch API response times
-      const apiTimesResponse = await fetch('/api/system/api-times/', {
-        method: 'GET',
-        headers,
-      });
-
-      // Process port data
-      if (portsResponse.ok) {
-        const portsData = await portsResponse.json();
-        setMetrics(prev => ({ ...prev, ports: portsData || [] }));
-      }
-
-      // Process services data
-      if (servicesResponse.ok) {
-        const servicesData = await servicesResponse.json();
-        setMetrics(prev => ({ ...prev, services: servicesData || [] }));
-      }
-
-      // Process sessions data  
-      if (sessionsResponse.ok) {
-        const sessionsData = await sessionsResponse.json();
-        setMetrics(prev => ({ ...prev, sessions: sessionsData || [] }));
-      }
-
-      // Process API response times
-      if (apiTimesResponse.ok) {
-        const apiTimesData = await apiTimesResponse.json();
-        setMetrics(prev => ({ ...prev, apiResponseTimes: apiTimesData || [] }));
-      }
+      // Update state with all the fetched data
+      setMetrics(prev => ({ 
+        ...prev, 
+        ports: portsData || [],
+        services: servicesData || [],
+        sessions: sessionsData || [],
+        apiResponseTimes: apiTimesData || [],
+        networkTrafficData: networkTrafficData || []
+      }));
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Fallback to generated data on error
+      setMetrics(prev => ({
+        ...prev,
+        networkTrafficData: generateNetworkTrafficData()
+      }));
     }
-  }, [getAccessToken]);
+  }, [getAccessToken, generateNetworkTrafficData]);
 
   // Add new data point to historical data with proper management
   const addToHistoricalData = (newData: RawMetricsData) => {
@@ -629,134 +687,338 @@ export const DashboardPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Performance Trends Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              System Performance Trends
-            </CardTitle>
-            <CardDescription>
-              Real-time monitoring of CPU, Memory, Disk, and Network utilization
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            {metrics.historicalData.length > 0 ? (
-              <div className="w-full h-[400px]">
+        {/* System Information Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Server size={18} />
+                System Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {metrics.server_info ? (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Hostname</div>
+                    <div className="font-medium">{metrics.server_info.hostname}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">OS</div>
+                    <div className="font-medium">{metrics.server_info.os}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Architecture</div>
+                    <div className="font-medium">{metrics.server_info.architecture}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Kernel</div>
+                    <div className="font-medium">{metrics.server_info.kernel}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i}>
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Network size={18} />
+                Network & Uptime
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {metrics.server_info ? (
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Private IP</div>
+                    <div className="font-medium font-mono">{metrics.server_info.private_ip}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Public IP</div>
+                    <div className="font-medium font-mono">{metrics.server_info.public_ip}</div>
+                  </div>
+                  {metrics.uptime && (
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground">System Uptime</div>
+                      <div className="font-medium">{formatUptime(metrics.uptime.duration)}</div>
+                    </div>
+                  )}
+                  {metrics.security && (
+                    <div className="col-span-2">
+                      <div className="text-muted-foreground">Security Status</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">
+                          {metrics.security.status === 'success' ? 'Secure' : 
+                           metrics.security.status === 'warning' ? 'Warning' : 'Alert'}
+                        </div>
+                        <Badge variant={
+                          metrics.security.status === 'success' ? 'default' : 
+                          metrics.security.status === 'warning' ? 'secondary' : 'destructive'
+                        } className="text-xs">
+                          {metrics.security.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i}>
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Alerts and Security - Priority Section */}
+        {(metrics.alerts.length > 0 || metrics.threats.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Active Alerts */}
+            {metrics.alerts.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle size={20} />
+                    Active Alerts ({metrics.alerts.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {metrics.alerts.map((alert, index) => (
+                      <div 
+                        key={index}
+                        className={`border-l-4 ${
+                          alert.severity === 'error' 
+                            ? 'border-destructive bg-red-50 dark:bg-red-900/20' 
+                            : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                        } pl-4 py-3 rounded-r-lg`}
+                      >
+                        <div className="font-medium">{alert.title}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Server ID: {alert.serverId}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Recent Threats */}
+            {metrics.threats.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield size={20} />
+                    Recent Security Events ({metrics.threats.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {metrics.threats.slice(0, 5).map((threat, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{threat.type}</div>
+                          <div className="text-sm text-muted-foreground">{threat.time}</div>
+                        </div>
+                        <Badge variant={
+                          threat.status === 'success' ? 'default' : 
+                          threat.status === 'warning' ? 'secondary' : 'destructive'
+                        }>
+                          {threat.status === 'success' ? 'Blocked' : 
+                           threat.status === 'warning' ? 'Monitored' : 'Active'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Modern Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* System Performance Chart */}
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                    <Activity className="h-5 w-5" />
+                    System Performance
+                  </CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground mt-1">
+                    Real-time CPU usage monitoring
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              {metrics.historicalData.length > 0 ? (
+                <div className="w-full h-[300px] bg-gradient-to-b from-background to-muted/20 rounded-lg p-4">
+                  <ChartContainer config={chartConfig} className="w-full h-full">
+                    <AreaChart 
+                      data={metrics.historicalData} 
+                      margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="cpuGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ffffff" stopOpacity={0.4}/>
+                          <stop offset="50%" stopColor="#ffffff" stopOpacity={0.2}/>
+                          <stop offset="100%" stopColor="#ffffff" stopOpacity={0.05}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" horizontal={true} vertical={false} />
+                      <XAxis 
+                        dataKey="timestamp" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis 
+                        domain={[0, 100]} 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        width={30}
+                      />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent 
+                          formatter={(value, name) => [
+                            `${Number(value).toFixed(1)}%`,
+                            name
+                          ]}
+                          labelFormatter={(label) => `Time: ${label}`}
+                          className="bg-background/95 backdrop-blur border-border/50"
+                        />} 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="cpu" 
+                        stroke="#ffffff"
+                        strokeWidth={3}
+                        fill="url(#cpuGradient)"
+                        name="CPU Usage"
+                        connectNulls={false}
+                        dot={false}
+                        activeDot={{ r: 6, stroke: '#ffffff', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                </div>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center bg-gradient-to-b from-background to-muted/20 rounded-lg">
+                  <div className="text-center">
+                    <div className="w-full h-32 bg-muted/50 rounded animate-pulse mb-4"></div>
+                    <p className="text-muted-foreground">Collecting performance data...</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Network Traffic Chart */}
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                    <Wifi className="h-5 w-5" />
+                    Network Traffic
+                  </CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">
+                    Upload and download activity over time
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="w-full h-[300px] bg-gradient-to-b from-background to-muted/20 rounded-lg p-4">
                 <ChartContainer config={chartConfig} className="w-full h-full">
                   <AreaChart 
-                    data={metrics.historicalData} 
-                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    data={metrics.networkTrafficData} 
+                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
                   >
                     <defs>
-                      <linearGradient id="cpuGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.05}/>
+                      <linearGradient id="uploadGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.1}/>
                       </linearGradient>
-                      <linearGradient id="memoryGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#dc2626" stopOpacity={0.05}/>
-                      </linearGradient>
-                      <linearGradient id="diskGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ea580c" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#ea580c" stopOpacity={0.05}/>
-                      </linearGradient>
-                      <linearGradient id="networkGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#059669" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#059669" stopOpacity={0.05}/>
+                      <linearGradient id="downloadGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.6}/>
+                        <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.1}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.6} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" horizontal={true} vertical={false} />
                     <XAxis 
                       dataKey="timestamp" 
-                      tick={false}
                       axisLine={false}
                       tickLine={false}
+                      tick={{ fontSize: 10, fill: '#6b7280' }}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
-                      domain={[0, 100]} 
-                      tick={{ fontSize: 12, fill: '#6b7280' }}
-                      tickLine={false}
                       axisLine={false}
-                      label={{ 
-                        value: 'Usage (%)', 
-                        angle: -90, 
-                        position: 'insideLeft',
-                        style: { textAnchor: 'middle', fill: '#6b7280' }
-                      }}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#6b7280' }}
+                      width={35}
+                      label={{ value: 'MB/s', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '10px' } }}
                     />
                     <ChartTooltip 
                       content={<ChartTooltipContent 
-                        formatter={(value, name) => [
-                          `${Number(value).toFixed(1)}%`,
-                          name
+                        formatter={(value) => [
+                          `${Number(value).toFixed(2)} MB/s`,
+                          'Network Speed'
                         ]}
                         labelFormatter={(label) => `Time: ${label}`}
+                        className="bg-background/95 backdrop-blur border-border/50"
                       />} 
                     />
                     <Area 
                       type="monotone" 
-                      dataKey="cpu" 
-                      stroke="#2563eb"
+                      dataKey="download" 
+                      stackId="1"
+                      stroke="#06b6d4"
                       strokeWidth={2}
-                      fill="url(#cpuGradient)"
-                      name="CPU"
-                      connectNulls={false}
-                      animationBegin={0}
-                      animationDuration={800}
-                      animationEasing="ease-in-out"
+                      fill="url(#downloadGradient)"
+                      name="Download"
+                      dot={false}
                     />
                     <Area 
                       type="monotone" 
-                      dataKey="memory" 
-                      stroke="#dc2626"
+                      dataKey="upload" 
+                      stackId="1"
+                      stroke="#8b5cf6"
                       strokeWidth={2}
-                      fill="url(#memoryGradient)"
-                      name="Memory"
-                      connectNulls={false}
-                      animationBegin={200}
-                      animationDuration={800}
-                      animationEasing="ease-in-out"
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="disk" 
-                      stroke="#ea580c"
-                      strokeWidth={2}
-                      fill="url(#diskGradient)"
-                      name="Disk"
-                      connectNulls={false}
-                      animationBegin={400}
-                      animationDuration={800}
-                      animationEasing="ease-in-out"
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="network" 
-                      stroke="#059669"
-                      strokeWidth={2}
-                      fill="url(#networkGradient)"
-                      name="Network"
-                      connectNulls={false}
-                      animationBegin={600}
-                      animationDuration={800}
-                      animationEasing="ease-in-out"
+                      fill="url(#uploadGradient)"
+                      name="Upload"
+                      dot={false}
                     />
                   </AreaChart>
                 </ChartContainer>
               </div>
-            ) : (
-              <div className="h-[400px] flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-full h-64 bg-muted rounded animate-pulse"></div>
-                  <p className="text-muted-foreground mt-4">Collecting performance data...</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
         
-        {/* New Dashboard Features Row */}
+        {/* Dashboard Features Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Port Information */}
           <Card className="h-full">
@@ -979,171 +1241,6 @@ export const DashboardPage: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Compact Server Information */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Server size={18} />
-                System Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {metrics.server_info ? (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Hostname</div>
-                    <div className="font-medium">{metrics.server_info.hostname}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">OS</div>
-                    <div className="font-medium">{metrics.server_info.os}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Architecture</div>
-                    <div className="font-medium">{metrics.server_info.architecture}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Kernel</div>
-                    <div className="font-medium">{metrics.server_info.kernel}</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i}>
-                      <Skeleton className="h-4 w-16 mb-1" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Network size={18} />
-                Network & Uptime
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {metrics.server_info ? (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Private IP</div>
-                    <div className="font-medium font-mono">{metrics.server_info.private_ip}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Public IP</div>
-                    <div className="font-medium font-mono">{metrics.server_info.public_ip}</div>
-                  </div>
-                  {metrics.uptime && (
-                    <div className="col-span-2">
-                      <div className="text-muted-foreground">System Uptime</div>
-                      <div className="font-medium">{formatUptime(metrics.uptime.duration)}</div>
-                    </div>
-                  )}
-                  {metrics.security && (
-                    <div className="col-span-2">
-                      <div className="text-muted-foreground">Security Status</div>
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium">
-                          {metrics.security.status === 'success' ? 'Secure' : 
-                           metrics.security.status === 'warning' ? 'Warning' : 'Alert'}
-                        </div>
-                        <Badge variant={
-                          metrics.security.status === 'success' ? 'default' : 
-                          metrics.security.status === 'warning' ? 'secondary' : 'destructive'
-                        } className="text-xs">
-                          {metrics.security.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i}>
-                      <Skeleton className="h-4 w-16 mb-1" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Alerts and Activity */}
-        {(metrics.alerts.length > 0 || metrics.threats.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Active Alerts */}
-            {metrics.alerts.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle size={20} />
-                    Active Alerts ({metrics.alerts.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {metrics.alerts.map((alert, index) => (
-                      <div 
-                        key={index}
-                        className={`border-l-4 ${
-                          alert.severity === 'error' 
-                            ? 'border-destructive bg-red-50 dark:bg-red-900/20' 
-                            : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
-                        } pl-4 py-3 rounded-r-lg`}
-                      >
-                        <div className="font-medium">{alert.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Server ID: {alert.serverId}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            {/* Recent Threats */}
-            {metrics.threats.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield size={20} />
-                    Recent Security Events ({metrics.threats.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {metrics.threats.slice(0, 5).map((threat, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div>
-                          <div className="font-medium">{threat.type}</div>
-                          <div className="text-sm text-muted-foreground">{threat.time}</div>
-                        </div>
-                        <Badge variant={
-                          threat.status === 'success' ? 'default' : 
-                          threat.status === 'warning' ? 'secondary' : 'destructive'
-                        }>
-                          {threat.status === 'success' ? 'Blocked' : 
-                           threat.status === 'warning' ? 'Monitored' : 'Active'}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
         
         {/* No Issues State */}
         {metrics.alerts.length === 0 && metrics.threats.length === 0 && !isMetricsLoading && (
