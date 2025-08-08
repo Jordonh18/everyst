@@ -296,8 +296,11 @@ class SystemLogManager:
                 if search_term and search_term.lower() not in line.lower():
                     continue
                 
-                if log_level and parsed_line.get('level', '').upper() != log_level.upper():
-                    continue
+                # Only filter by log level if a specific level is requested (not 'all' or empty)
+                if log_level and log_level.lower() != 'all':
+                    parsed_level = parsed_line.get('level', '').upper()
+                    if parsed_level != log_level.upper():
+                        continue
                 
                 if start_date or end_date:
                     line_date = parsed_line.get('timestamp')
@@ -341,7 +344,7 @@ class SystemLogManager:
             'raw': line,
             'timestamp': None,
             'level': None,
-            'message': line,
+            'message': line,  # Default to the whole line as message
             'source': None,
             'process': None
         }

@@ -84,7 +84,17 @@ def read_system_log(request, log_name):
             end_date=end_date
         )
         
-        return Response(log_data, status=status.HTTP_200_OK)
+        # Transform the response to match frontend expectations
+        response_data = {
+            'log_name': log_data.get('log_name'),
+            'log_info': log_data.get('log_info'),
+            'entries': log_data.get('lines', []),  # Frontend expects 'entries', backend returns 'lines'
+            'total_lines': log_data.get('total_lines'),
+            'file_size': log_data.get('file_size'),
+            'last_modified': log_data.get('last_modified')
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
     
     except ValueError as e:
         return Response(
