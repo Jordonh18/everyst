@@ -85,8 +85,8 @@ export const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // If user is authenticated and trying to access login/register, redirect to dashboard
   if (isAuthenticated && (location.pathname === '/login' || location.pathname === '/register')) {
-    // Redirect to the page the user was trying to access or summit dashboard
-    const from = (location.state as any)?.from?.pathname || '/summit';
+    // Redirect to the page the user was trying to access or dashboard
+    const from = (location.state as any)?.from?.pathname || '/dashboard';
     return <Navigate to={from} replace />;
   }
 

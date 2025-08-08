@@ -89,8 +89,8 @@ export const RegisterPage: React.FC = () => {
     try {
       const success = await register(username, email, password, firstName, lastName);
       if (success) {
-        // Redirect to summit dashboard after successful registration
-        navigate('/summit', { replace: true });
+        // Redirect to dashboard after successful registration
+        navigate('/dashboard', { replace: true });
       }
     } finally {
       setSubmitting(false);

@@ -16,14 +16,14 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
   
   // Get the page that the user was trying to access
-  // Always go to summit dashboard on successful login as default
+  // Always go to dashboard on successful login as default
   interface LocationState {
     from?: {
       pathname?: string;
     };
   }
 
-  const from = (location.state as LocationState)?.from?.pathname || '/summit';
+  const from = (location.state as LocationState)?.from?.pathname || '/dashboard';
   
   // Check if users exist on component mount
   useEffect(() => {
