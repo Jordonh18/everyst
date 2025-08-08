@@ -432,19 +432,19 @@ export const DashboardPage: React.FC = () => {
   const chartConfig = {
     cpu: {
       label: "CPU",
-      color: "hsl(var(--chart-1))",
+      color: "#3b82f6",
     },
     memory: {
-      label: "Memory",
-      color: "hsl(var(--chart-2))",
+      label: "Memory", 
+      color: "#ef4444",
     },
     disk: {
       label: "Disk",
-      color: "hsl(var(--chart-3))",
+      color: "#f59e0b",
     },
     network: {
       label: "Network",
-      color: "hsl(var(--chart-4))",
+      color: "#10b981",
     },
   };
 
@@ -686,9 +686,8 @@ export const DashboardPage: React.FC = () => {
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
+                      height={20}
+                      tick={false}
                       interval="preserveStartEnd"
                     />
                     <YAxis 
@@ -710,7 +709,7 @@ export const DashboardPage: React.FC = () => {
                     <Line 
                       type="monotone" 
                       dataKey="cpu" 
-                      stroke="var(--color-cpu)"
+                      stroke="#3b82f6"
                       strokeWidth={2}
                       dot={false}
                       name="CPU"
@@ -719,7 +718,7 @@ export const DashboardPage: React.FC = () => {
                     <Line 
                       type="monotone" 
                       dataKey="memory" 
-                      stroke="var(--color-memory)"
+                      stroke="#ef4444"
                       strokeWidth={2}
                       dot={false}
                       name="Memory"
@@ -728,7 +727,7 @@ export const DashboardPage: React.FC = () => {
                     <Line 
                       type="monotone" 
                       dataKey="disk" 
-                      stroke="var(--color-disk)"
+                      stroke="#f59e0b"
                       strokeWidth={2}
                       dot={false}
                       name="Disk"
@@ -737,7 +736,7 @@ export const DashboardPage: React.FC = () => {
                     <Line 
                       type="monotone" 
                       dataKey="network" 
-                      stroke="var(--color-network)"
+                      stroke="#10b981"
                       strokeWidth={2}
                       dot={false}
                       name="Network"
@@ -758,126 +757,223 @@ export const DashboardPage: React.FC = () => {
         </Card>
         
         {/* New Dashboard Features Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Port Information */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Network size={16} />
-                Open Ports
+          <Card className="h-full">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Network size={18} className="text-blue-500" />
+                  <span className="text-base font-semibold">Open Ports</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.ports.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {metrics.ports.length > 0 ? (
-                metrics.ports.slice(0, 5).map((port, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
-                    <span className="font-mono">{port.port}/{port.protocol}</span>
-                    <Badge variant="outline" className="text-xs">
+                metrics.ports.slice(0, 6).map((port, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                    <div className="flex flex-col">
+                      <span className="font-mono font-semibold text-sm">{port.port}/{port.protocol}</span>
+                      <span className="text-xs text-muted-foreground">{port.process || 'Unknown'}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs shrink-0">
                       {port.service}
                     </Badge>
                   </div>
                 ))
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-12" />
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex flex-col space-y-1">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <Skeleton className="h-5 w-12" />
                     </div>
                   ))}
+                </div>
+              )}
+              {metrics.ports.length > 6 && (
+                <div className="text-center pt-2">
+                  <span className="text-xs text-muted-foreground">
+                    +{metrics.ports.length - 6} more ports
+                  </span>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Running Services */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Settings size={16} />
-                Services
+          <Card className="h-full">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings size={18} className="text-green-500" />
+                  <span className="text-base font-semibold">Services</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.services.filter(s => s.status === 'running').length}/{metrics.services.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {metrics.services.length > 0 ? (
-                metrics.services.slice(0, 5).map((service, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
-                    <span className="truncate">{service.name}</span>
-                    <Badge variant={service.status === 'running' ? 'default' : 'destructive'} className="text-xs">
+                metrics.services.slice(0, 6).map((service, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="font-medium text-sm truncate">{service.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {service.pid ? `PID: ${service.pid}` : 'No PID'} 
+                        {service.uptime && ` • ${service.uptime}`}
+                      </span>
+                    </div>
+                    <Badge 
+                      variant={service.status === 'running' ? 'default' : service.status === 'stopped' ? 'secondary' : 'destructive'} 
+                      className="text-xs shrink-0 ml-2"
+                    >
                       {service.status}
                     </Badge>
                   </div>
                 ))
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-16" />
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex flex-col space-y-1">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                      <Skeleton className="h-5 w-16" />
                     </div>
                   ))}
+                </div>
+              )}
+              {metrics.services.length > 6 && (
+                <div className="text-center pt-2">
+                  <span className="text-xs text-muted-foreground">
+                    +{metrics.services.length - 6} more services
+                  </span>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Active Sessions */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Users size={16} />
-                Active Sessions
+          <Card className="h-full">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users size={18} className="text-purple-500" />
+                  <span className="text-base font-semibold">Active Sessions</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.sessions.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {metrics.sessions.length > 0 ? (
-                metrics.sessions.slice(0, 5).map((session, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
-                    <span className="truncate">{session.user}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {session.type}
-                    </Badge>
+                metrics.sessions.slice(0, 6).map((session, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="font-medium text-sm truncate">{session.user}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{session.ip}</span>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0 ml-2">
+                      <Badge variant="outline" className="text-xs mb-1">
+                        {session.type.toUpperCase()}
+                      </Badge>
+                      {session.duration && (
+                        <span className="text-xs text-muted-foreground">{session.duration}</span>
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-12" />
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex flex-col space-y-1">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <div className="flex flex-col items-end space-y-1">
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
                     </div>
                   ))}
+                </div>
+              )}
+              {metrics.sessions.length > 6 && (
+                <div className="text-center pt-2">
+                  <span className="text-xs text-muted-foreground">
+                    +{metrics.sessions.length - 6} more sessions
+                  </span>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* API Response Times */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                <Zap size={16} />
-                API Performance
+          <Card className="h-full">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap size={18} className="text-yellow-500" />
+                  <span className="text-base font-semibold">API Performance</span>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.apiResponseTimes.length}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {metrics.apiResponseTimes.length > 0 ? (
-                metrics.apiResponseTimes.slice(0, 5).map((api, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
-                    <span className="truncate">{api.endpoint}</span>
-                    <Badge variant={api.responseTime > 500 ? 'destructive' : 'default'} className="text-xs">
-                      {api.responseTime}ms
-                    </Badge>
+                metrics.apiResponseTimes.slice(0, 6).map((api, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="font-medium text-sm truncate">{api.endpoint}</span>
+                      <span className="text-xs text-muted-foreground">{api.method} • Status {api.status}</span>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0 ml-2">
+                      <Badge 
+                        variant={api.responseTime > 1000 ? 'destructive' : api.responseTime > 500 ? 'secondary' : 'default'} 
+                        className="text-xs"
+                      >
+                        {api.responseTime}ms
+                      </Badge>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        {new Date(api.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
                 ))
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-12" />
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex flex-col space-y-1">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                      <div className="flex flex-col items-end space-y-1">
+                        <Skeleton className="h-4 w-12" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
                     </div>
                   ))}
+                </div>
+              )}
+              {metrics.apiResponseTimes.length > 6 && (
+                <div className="text-center pt-2">
+                  <span className="text-xs text-muted-foreground">
+                    +{metrics.apiResponseTimes.length - 6} more endpoints
+                  </span>
                 </div>
               )}
             </CardContent>

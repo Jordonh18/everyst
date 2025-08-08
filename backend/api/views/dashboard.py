@@ -2,6 +2,7 @@
 System dashboard API views for the everyst API.
 Provides additional dashboard data like services, sessions, ports, and API performance.
 """
+import logging
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -13,6 +14,8 @@ from api.utils.services import (
     get_api_response_times,
     get_system_ports
 )
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
@@ -73,6 +76,7 @@ def get_system_ports(request):
         ports = get_system_ports()
         return Response(ports, status=status.HTTP_200_OK)
     except Exception as e:
+        logger.error(f"Failed to get system ports: {str(e)}")
         return Response(
             {'error': f'Failed to get system ports: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
