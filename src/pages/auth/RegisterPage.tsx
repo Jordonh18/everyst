@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, User, CheckCircle, XCircle, UserPlus, ArrowRight, Sparkles, Network } from 'lucide-react';
+import { Mail, Lock, User, CheckCircle, XCircle, UserPlus, ArrowRight } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
 import { AuthNotification } from '../../components/auth/AuthNotification';
 import { Button, Input } from '../../components/ui';
+import { AnimatedServerRack, AnimatedShield } from '../../components/ui/AnimatedSVGs';
 import { motion } from 'framer-motion';
 
 export const RegisterPage: React.FC = () => {
@@ -161,11 +162,11 @@ export const RegisterPage: React.FC = () => {
         </div>
         
         {/* Decorative elements */}
-        <div className="absolute top-20 right-20 opacity-20">
-          <Network className="h-16 w-16 text-primary" />
+        <div className="absolute top-20 right-20 opacity-30">
+          <AnimatedServerRack className="h-20 w-20 text-primary" />
         </div>
-        <div className="absolute bottom-32 right-32 opacity-10">
-          <Sparkles className="h-32 w-32 text-primary" />
+        <div className="absolute bottom-32 right-32 opacity-20">
+          <AnimatedShield className="h-32 w-32 text-primary" />
         </div>
       </div>
 

@@ -30,3 +30,4 @@ export { Notification, type NotificationType, type NotificationProps } from './N
 export * from './Panel';
 export * from './ToolCard';
 export * from './FormattedToolOutput';
+export * from './AnimatedSVGs';

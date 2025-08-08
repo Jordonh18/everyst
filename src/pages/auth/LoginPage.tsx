@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { User, Lock, ArrowRight } from 'lucide-react';
 import { AuthNotification } from '../../components/auth/AuthNotification';
 import { Button, Input } from '../../components/ui';
+import { AnimatedMonitor } from '../../components/ui/AnimatedSVGs';
 import { motion } from 'framer-motion';
 
 export const LoginPage: React.FC = () => {
@@ -56,56 +57,27 @@ export const LoginPage: React.FC = () => {
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5" />
-        <div className="relative z-10 flex flex-col justify-center px-16 py-12">
+        <div className="relative z-10 flex flex-col px-16 py-12 h-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-8"
+            className="flex flex-col h-full"
           >
-            <div className="flex items-center space-x-4">
-              <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16" />
+            {/* Logo and Title - Top Left */}
+            <div className="flex items-center space-x-4 mb-8">
+              <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-20 w-20" />
               <div>
-                <h1 className="text-3xl font-bold text-foreground">everyst</h1>
-                <p className="text-muted-foreground">Server Monitoring & Security Platform</p>
+                <h1 className="text-4xl font-bold text-foreground">everyst</h1>
+                <p className="text-lg text-muted-foreground">Server Monitoring & Security Platform</p>
               </div>
             </div>
             
-            <div className="space-y-6">
-              <h2 className="text-4xl font-bold text-foreground leading-tight">
-                Welcome back to your
-                <span className="text-primary block">security command center</span>
-              </h2>
-              
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Monitor, manage, and secure your server infrastructure with powerful tools 
-                designed for modern security operations.
-              </p>
-              
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 rounded-full bg-primary/60" />
-                  <span className="text-foreground">Real-time server monitoring</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 rounded-full bg-primary/60" />
-                  <span className="text-foreground">Advanced security tools</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 rounded-full bg-primary/60" />
-                  <span className="text-foreground">Comprehensive user management</span>
-                </div>
-              </div>
+            {/* Large Background SVG - Takes up remaining space */}
+            <div className="flex-1 flex items-center justify-center">
+              <AnimatedMonitor className="h-80 w-80 text-primary opacity-30" />
             </div>
           </motion.div>
-        </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 opacity-20">
-          <Sparkles className="h-16 w-16 text-primary" />
-        </div>
-        <div className="absolute bottom-32 right-32 opacity-10">
-          <Sparkles className="h-32 w-32 text-primary" />
         </div>
       </div>
 
@@ -126,9 +98,9 @@ export const LoginPage: React.FC = () => {
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
+              <h2 className="text-3xl font-bold text-foreground">Sign in</h2>
               <p className="text-muted-foreground">
-                Sign in to access your dashboard
+                Access your dashboard
               </p>
             </div>
 
