@@ -12,7 +12,7 @@ class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRole
         fields = ('name', 'description', 'priority', 'can_manage_users', 
-                  'can_manage_system', 'can_manage_network', 'can_view_all_data')
+                  'can_manage_system', 'can_manage_network', 'can_view_all_data', 'can_view_logs')
 
 
 class UserSerializer(serializers.ModelSerializer):

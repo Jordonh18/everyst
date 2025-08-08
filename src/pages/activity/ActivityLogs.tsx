@@ -8,13 +8,6 @@ import PermissionGate from '../../components/auth/PermissionGate';
 const ActivityLogs: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Activity Logs</h1>
-        <p className="text-muted-foreground">
-          Monitor user activities and system events with advanced filtering and real-time updates.
-        </p>
-      </div>
-
       <Tabs defaultValue="application" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
           <TabsTrigger value="application" className="flex items-center gap-2">
