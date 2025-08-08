@@ -16,11 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationsManager } from '../../hooks/state/useNotificationsManager';
-
-// Helper function to get API URL
-const getApiUrl = () => {
-  return '/api';
-};
+import { getApiUrl } from '../../utils/apiUrl';
 
 // System log entry type
 interface SystemLogEntry {
@@ -109,7 +105,7 @@ const formatDate = (dateString: string): string => {
 
 // System Logs Tab Component
 const SystemLogsTab: React.FC = () => {
-  const { user: currentUser, getAccessToken } = useAuth();
+  const { user: currentUser, getAccessToken, canViewLogs } = useAuth();
   const { sendUserNotification } = useNotificationsManager();
   
   const [dashboard, setDashboard] = useState<SystemLogsDashboard | null>(null);
@@ -140,7 +136,14 @@ const SystemLogsTab: React.FC = () => {
         });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch system logs dashboard');
+          if (response.status === 403) {
+            throw new Error('You don\'t have permission to view system logs. Admin or Owner role required.');
+          } else if (response.status === 401) {
+            throw new Error('Authentication failed. Please log in again.');
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || 'Failed to fetch system logs dashboard');
+          }
         }
         
         const data = await response.json();
@@ -199,7 +202,16 @@ const SystemLogsTab: React.FC = () => {
         });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch log entries');
+          if (response.status === 403) {
+            throw new Error('You don\'t have permission to read system logs.');
+          } else if (response.status === 401) {
+            throw new Error('Authentication failed. Please log in again.');
+          } else if (response.status === 404) {
+            throw new Error(`Log file "${selectedLog}" not found.`);
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || 'Failed to fetch log entries');
+          }
         }
         
         const data = await response.json();
@@ -232,6 +244,22 @@ const SystemLogsTab: React.FC = () => {
     });
     return Array.from(levels).sort();
   }, [logEntries]);
+
+  // Check permissions first
+  if (!canViewLogs) {
+    return (
+      <div className="text-center py-8">
+        <Shield className="h-12 w-12 mx-auto mb-4 text-destructive" />
+        <h3 className="text-lg font-medium mb-2">Access Denied</h3>
+        <p className="text-muted-foreground mb-4">
+          You don't have permission to view system logs. Please contact your administrator.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Required role: Admin or Owner
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

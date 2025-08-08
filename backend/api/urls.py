@@ -46,6 +46,7 @@ router.register(r'security', SecurityStatusViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'roles', UserRoleViewSet)
 router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'activity-logs', ApplicationLogViewSet, basename='activity-logs')
 
 # Network routes
 router.register(r'network/devices', NetworkDeviceViewSet)
@@ -67,10 +68,6 @@ urlpatterns = [
     path('auth/logout-all/', LogoutAllView.as_view(), name='logout-all'),
     path('auth/check-users/', check_users_exist, name='check-users-exist'),
     path('auth/first-run/', first_run_check, name='first-run-check'),
-    
-    # Activity logs endpoint
-    path('activity-logs/', ApplicationLogViewSet.as_view({'get': 'list'}), name='activity-logs'),
-    path('activity-logs/purge/', ApplicationLogViewSet.as_view({'post': 'purge'}), name='activity-logs-purge'),
     
     # System logs endpoints
     path('system-logs/', include([
