@@ -53,15 +53,6 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
-        // Legacy Everyst colors for compatibility
-        'primary-legacy': {
-          DEFAULT: '#38BDF8', // Ice Blue for dark mode
-          light: '#0EA5E9',   // Glacier Blue for light mode
-        },
-        'secondary-legacy': {
-          DEFAULT: '#8B5CF6', // Purple for dark mode
-          light: '#6366F1',   // Indigo for light mode
-        },
         // Status colors
         warning: {
           DEFAULT: '#F59E0B', // Dark mode
