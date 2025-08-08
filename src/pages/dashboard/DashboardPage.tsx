@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, Badge, Button } from '../../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, Badge } from '../../components/ui';
 import { Skeleton } from '../../components/skeletons/Skeleton';
 import { 
-  RefreshCw, Cpu, Server, HardDrive, Activity, Wifi, Shield, 
+  Cpu, Server, HardDrive, Activity, Wifi, Shield, 
   AlertTriangle, Network, Settings, Users, Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -10,12 +10,11 @@ import { useWebSocket } from '../../context/WebSocketContext';
 import { socketService } from '../../utils/socket';
 import { useAuth } from '../../context/AuthContext';
 import {
-  ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "../../components/ui/chart";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, 
   ResponsiveContainer
 } from 'recharts';
 
@@ -185,8 +184,6 @@ export const DashboardPage: React.FC = () => {
   
   // Loading state
   const [isMetricsLoading, setIsMetricsLoading] = useState<boolean>(true);
-  // Error state
-  const [error, setError] = useState<string | null>(null);
   
   // Get WebSocket connection status from context
   const { isConnected } = useWebSocket();
@@ -355,14 +352,7 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   // Function to refresh metrics
-  const refreshMetrics = () => {
-    setIsMetricsLoading(true);
-    fetchDashboardData(); // Fetch additional data
-    
-    setTimeout(() => {
-      setIsMetricsLoading(false);
-    }, 1000);
-  };
+  // Removed as header with refresh button was removed
   
   // Set up metrics data listener
   useEffect(() => {
@@ -375,7 +365,6 @@ export const DashboardPage: React.FC = () => {
     
     if (!socket) {
       console.error('Socket instance not available');
-      setError('Socket connection not available');
       setIsMetricsLoading(false);
       return;
     }
@@ -398,7 +387,6 @@ export const DashboardPage: React.FC = () => {
     };
     
     socket.on('metrics_update', handleMetricsUpdate);
-    setError(null);
     
     // Fetch initial dashboard data
     fetchDashboardData();
@@ -421,56 +409,12 @@ export const DashboardPage: React.FC = () => {
 
   // Update error state when connection status changes
   useEffect(() => {
-    if (!isConnected) {
-      setError('Connection lost to metrics server');
-    } else {
-      setError(null);
-    }
+    // Connection state managed by WebSocket context
   }, [isConnected]);
-
-  // Chart configuration for shadcn charts
-  const chartConfig = {
-    cpu: {
-      label: "CPU",
-      color: "#3b82f6",
-    },
-    memory: {
-      label: "Memory", 
-      color: "#ef4444",
-    },
-    disk: {
-      label: "Disk",
-      color: "#f59e0b",
-    },
-    network: {
-      label: "Network",
-      color: "#10b981",
-    },
-  };
 
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="w-full space-y-6">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={refreshMetrics}
-              disabled={isMetricsLoading}
-            >
-              <RefreshCw size={16} className={isMetricsLoading ? 'animate-spin' : ''} />
-            </Button>
-            <Badge 
-              variant={error ? 'destructive' : isConnected ? 'default' : 'secondary'}
-            >
-              {error ? 'Connection Error' : isConnected ? 'Live Metrics' : 'Connecting...'}
-            </Badge>
-          </div>
-        </div>
         
         {/* System Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -672,30 +616,53 @@ export const DashboardPage: React.FC = () => {
               System Performance Trends
             </CardTitle>
             <CardDescription>
-              Real-time monitoring of CPU, Memory, Disk, and Network utilization over the last 20 data points
+              Real-time monitoring of CPU, Memory, Disk, and Network utilization
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
             {metrics.historicalData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="w-full h-[350px]">
+              <div className="w-full h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={metrics.historicalData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <AreaChart 
+                    data={metrics.historicalData} 
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                  >
+                    <defs>
+                      <linearGradient id="cpuGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.05}/>
+                      </linearGradient>
+                      <linearGradient id="memoryGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#dc2626" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#dc2626" stopOpacity={0.05}/>
+                      </linearGradient>
+                      <linearGradient id="diskGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ea580c" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#ea580c" stopOpacity={0.05}/>
+                      </linearGradient>
+                      <linearGradient id="networkGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#059669" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#059669" stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.6} />
                     <XAxis 
                       dataKey="timestamp" 
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      height={20}
                       tick={false}
-                      interval="preserveStartEnd"
+                      axisLine={false}
+                      tickLine={false}
                     />
                     <YAxis 
                       domain={[0, 100]} 
-                      fontSize={12}
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
                       tickLine={false}
                       axisLine={false}
-                      label={{ value: 'Usage (%)', angle: -90, position: 'insideLeft' }}
+                      label={{ 
+                        value: 'Usage (%)', 
+                        angle: -90, 
+                        position: 'insideLeft',
+                        style: { textAnchor: 'middle', fill: '#6b7280' }
+                      }}
                     />
                     <ChartTooltip 
                       content={<ChartTooltipContent 
@@ -706,47 +673,59 @@ export const DashboardPage: React.FC = () => {
                         labelFormatter={(label) => `Time: ${label}`}
                       />} 
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="cpu" 
-                      stroke="#3b82f6"
+                      stroke="#2563eb"
                       strokeWidth={2}
-                      dot={false}
+                      fill="url(#cpuGradient)"
                       name="CPU"
                       connectNulls={false}
+                      animationBegin={0}
+                      animationDuration={800}
+                      animationEasing="ease-in-out"
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="memory" 
-                      stroke="#ef4444"
+                      stroke="#dc2626"
                       strokeWidth={2}
-                      dot={false}
+                      fill="url(#memoryGradient)"
                       name="Memory"
                       connectNulls={false}
+                      animationBegin={200}
+                      animationDuration={800}
+                      animationEasing="ease-in-out"
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="disk" 
-                      stroke="#f59e0b"
+                      stroke="#ea580c"
                       strokeWidth={2}
-                      dot={false}
+                      fill="url(#diskGradient)"
                       name="Disk"
                       connectNulls={false}
+                      animationBegin={400}
+                      animationDuration={800}
+                      animationEasing="ease-in-out"
                     />
-                    <Line 
+                    <Area 
                       type="monotone" 
                       dataKey="network" 
-                      stroke="#10b981"
+                      stroke="#059669"
                       strokeWidth={2}
-                      dot={false}
+                      fill="url(#networkGradient)"
                       name="Network"
                       connectNulls={false}
+                      animationBegin={600}
+                      animationDuration={800}
+                      animationEasing="ease-in-out"
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
-              </ChartContainer>
+              </div>
             ) : (
-              <div className="h-[350px] flex items-center justify-center">
+              <div className="h-[400px] flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-full h-64 bg-muted rounded animate-pulse"></div>
                   <p className="text-muted-foreground mt-4">Collecting performance data...</p>
@@ -763,7 +742,7 @@ export const DashboardPage: React.FC = () => {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Network size={18} className="text-blue-500" />
+                  <Network size={18} />
                   <span className="text-base font-semibold">Open Ports</span>
                 </div>
                 <Badge variant="secondary" className="text-xs">
@@ -812,7 +791,7 @@ export const DashboardPage: React.FC = () => {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Settings size={18} className="text-green-500" />
+                  <Settings size={18} />
                   <span className="text-base font-semibold">Services</span>
                 </div>
                 <Badge variant="secondary" className="text-xs">
@@ -867,7 +846,7 @@ export const DashboardPage: React.FC = () => {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Users size={18} className="text-purple-500" />
+                  <Users size={18} />
                   <span className="text-base font-semibold">Active Sessions</span>
                 </div>
                 <Badge variant="secondary" className="text-xs">
@@ -924,7 +903,7 @@ export const DashboardPage: React.FC = () => {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap size={18} className="text-yellow-500" />
+                  <Zap size={18} />
                   <span className="text-base font-semibold">API Performance</span>
                 </div>
                 <Badge variant="secondary" className="text-xs">
