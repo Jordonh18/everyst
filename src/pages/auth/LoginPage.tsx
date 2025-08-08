@@ -124,6 +124,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24">
+
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
