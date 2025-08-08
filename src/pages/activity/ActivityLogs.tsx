@@ -1,8 +1,8 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui';
 import { Activity, Server } from 'lucide-react';
-import ApplicationLogsTab from '../../components/logs/ApplicationLogsTab';
-import SystemLogsTab from '../../components/logs/SystemLogsTab';
+import ApplicationLogsTab from '../../components/log_page/ApplicationLogsTab';
+import SystemLogsTab from '../../components/log_page/SystemLogsTab';
 import PermissionGate from '../../components/auth/PermissionGate';
 
 const ActivityLogs: React.FC = () => {
