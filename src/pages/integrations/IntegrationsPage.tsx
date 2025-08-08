@@ -120,8 +120,9 @@ export const IntegrationsPage: React.FC = () => {
     : Object.values(predefinedServices).flat();
   
   return (
-    <div className="space-y-6">
-      {/* Filter Tabs */}
+    <div className="min-h-screen bg-background p-4">
+      <div className="w-full space-y-6">
+        {/* Filter Tabs */}
       <div className="flex flex-wrap gap-2">
         {filterButtons.map(button => (
           <Button
@@ -305,6 +306,7 @@ export const IntegrationsPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

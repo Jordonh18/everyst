@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '../../components/ui';
-import { Panel } from '../../components/ui/Panel';
 import { Skeleton } from '../../components/skeletons/Skeleton';
-import { RefreshCw, Cpu, Server, HardDrive, Activity, Wifi, Shield, Plus, AlertTriangle, Globe, Network, Terminal, Info } from 'lucide-react';
+import { 
+  RefreshCw, Cpu, Server, HardDrive, Activity, Wifi, Shield, 
+  AlertTriangle, Globe, Network, Terminal, Info, 
+  Clock, Monitor
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWebSocket } from '../../context/WebSocketContext';
 import { socketService } from '../../utils/socket';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "../../components/ui/chart";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  ResponsiveContainer
+} from 'recharts';
 
 // Types for raw metrics data received from backend
 interface RawMetricsData {
@@ -46,6 +58,15 @@ interface RawMetricsData {
     serverId: string;
     severity: 'warning' | 'error';
   }[];
+}
+
+// Historical data point for charts
+interface MetricPoint {
+  timestamp: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
 }
 
 // Types for our processed system metrics data
@@ -100,6 +121,7 @@ interface SystemMetrics {
     architecture: string;
     kernel: string;
   };
+  historicalData: MetricPoint[];
 }
 
 export const DashboardPage: React.FC = () => {
@@ -113,13 +135,12 @@ export const DashboardPage: React.FC = () => {
     threats: [],
     alerts: [],
     uptime: null,
-    server_info: undefined
+    server_info: undefined,
+    historicalData: []
   });
   
   // Loading state
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  // Specific loading states for individual cards
-  const [isAlertsLoading, setIsAlertsLoading] = useState<boolean>(false);
+  const [isMetricsLoading, setIsMetricsLoading] = useState<boolean>(true);
   // Error state
   const [error, setError] = useState<string | null>(null);
   
@@ -132,161 +153,130 @@ export const DashboardPage: React.FC = () => {
       if (usage >= 70) return 'warning';
       return 'success';
   };
+
+  // Format uptime duration
+  const formatUptime = (duration: string | null): string => {
+    if (!duration) return 'Unknown';
+    return duration;
+  };
+
+  // Add new data point to historical data
+  const addToHistoricalData = (newData: RawMetricsData) => {
+    const timestamp = new Date().toLocaleTimeString('en-US', { 
+      hour12: false, 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+
+    const newPoint: MetricPoint = {
+      timestamp,
+      cpu: newData.cpu_usage || 0,
+      memory: newData.memory_usage || 0,
+      disk: newData.disk_usage || 0,
+      network: Math.min(100, ((newData.network_tx + newData.network_rx) / (1024 * 1024)) / 125 * 100) // Network utilization as percentage
+    };
+
+    setMetrics(prev => ({
+      ...prev,
+      historicalData: [...prev.historicalData.slice(-19), newPoint] // Keep last 20 points
+    }));
+  };
   
   // Process metrics data from socket
-  const processMetricsData = React.useCallback((data: Partial<SystemMetrics>) => {
+  const processMetricsData = React.useCallback((data: RawMetricsData) => {
     if (!data) return;
 
-    const cpuStatus = getStatus(data.cpu?.usage || 0);
-    const memoryStatus = getStatus(data.memory?.percentage || 0);
-    const diskStatus = getStatus(data.disk?.percentage || 0);
+    const cpuStatus = getStatus(data.cpu_usage || 0);
+    const memoryStatus = getStatus(data.memory_usage || 0);
+    const diskStatus = getStatus(data.disk_usage || 0);
 
-    // Calculate network utilization percentage for the progress bar
-    // Assuming 1 Gbps (125 MB/s) as maximum network capacity
+    // Calculate network utilization percentage
     const MAX_NETWORK_SPEED_MBS = 125;
-    const networkSpeedMBs = ((data.network?.upload || 0) + (data.network?.download || 0)) / (1024 * 1024);
+    const networkSpeedMBs = ((data.network_tx || 0) + (data.network_rx || 0)) / (1024 * 1024);
     const networkUtilPercent = Math.min(100, (networkSpeedMBs / MAX_NETWORK_SPEED_MBS) * 100);
-
-    // Network status based on utilization
     const networkStatus = getStatus(networkUtilPercent);
 
     const processed = {
       cpu: {
-        usage: data.cpu?.usage || 0,
-        cores: data.cpu?.cores || 0,
-        speed: data.cpu?.speed || 0,
+        usage: data.cpu_usage || 0,
+        cores: data.cpu_cores || 0,
+        speed: data.cpu_speed || 0,
         status: cpuStatus,
       },
       memory: {
-        used: data.memory?.used || 0,
-        total: data.memory?.total || 0,
-        percentage: data.memory?.percentage || 0,
+        used: data.memory_used || 0,
+        total: data.memory_total || 0,
+        percentage: data.memory_usage || 0,
         status: memoryStatus,
       },
       disk: {
-        used: data.disk?.used || 0,
-        total: data.disk?.total || 0,
-        percentage: data.disk?.percentage || 0,
+        used: data.disk_used || 0,
+        total: data.disk_total || 0,
+        percentage: data.disk_usage || 0,
         status: diskStatus,
       },
       network: {
-        speed: parseFloat(networkSpeedMBs.toFixed(2)), // MB/s
-        upload: parseFloat((data.network?.upload || 0).toFixed(2)), // MB/s
-        download: parseFloat((data.network?.download || 0).toFixed(2)), // MB/s
-        utilization: networkUtilPercent, // Add utilization percentage for progress bar
+        speed: parseFloat(networkSpeedMBs.toFixed(2)),
+        upload: parseFloat(((data.network_tx || 0) / (1024 * 1024)).toFixed(2)),
+        download: parseFloat(((data.network_rx || 0) / (1024 * 1024)).toFixed(2)),
+        utilization: networkUtilPercent,
         status: networkStatus,
       },
       uptime: data.uptime || null,
-      // Add server information if available
       server_info: data.server_info || undefined,
+      security: data.security || null,
+      threats: data.threats || [],
+      alerts: data.alerts || [],
     };
 
     return processed;
   }, []);
-  
-  // Function to manually refresh connection
-  const refreshConnection = () => {
-    setIsLoading(true);
-    setError(null);
+
+  // Function to refresh metrics
+  const refreshMetrics = () => {
+    setIsMetricsLoading(true);
     
-    // The centralized WebSocket will handle reconnection automatically
-    // Just reset our local loading state
     setTimeout(() => {
-      if (!isConnected) {
-        setError('Unable to connect to metrics server');
-        setIsLoading(false);
-      }
-    }, 3000);
-  };
-  
-  // Function to refresh only the alerts data
-  const refreshAlerts = () => {
-    setIsAlertsLoading(true);
-    
-    // Simulate alerts data fetch completion
-    setTimeout(() => {
-      setIsAlertsLoading(false);
-    }, 800);
+      setIsMetricsLoading(false);
+    }, 1000);
   };
   
   // Set up metrics data listener
   useEffect(() => {
     if (!isConnected) {
-      setIsLoading(true);
+      setIsMetricsLoading(true);
       return;
     }
 
-    // Access the socket directly through socketService
     const socket = socketService.getSocket();
     
     if (!socket) {
       console.error('Socket instance not available');
       setError('Socket connection not available');
-      setIsLoading(false);
+      setIsMetricsLoading(false);
       return;
     }
     
     // Function to handle incoming metrics
     const handleMetricsUpdate = (rawData: RawMetricsData) => {
-      // Transform the raw backend data format to match our component's expected structure
-      const transformedData: Partial<SystemMetrics> = {
-        cpu: {
-          usage: rawData.cpu_usage || 0,
-          cores: rawData.cpu_cores || 0,
-          speed: rawData.cpu_speed || 0,
-          status: 'success'
-        },
-        memory: {
-          used: rawData.memory_used || 0,
-          total: rawData.memory_total || 0,
-          percentage: rawData.memory_usage || 0,
-          status: 'success'
-        },
-        disk: {
-          used: rawData.disk_used || 0,
-          total: rawData.disk_total || 0,
-          percentage: rawData.disk_usage || 0,
-          status: 'success'
-        },
-        network: {
-          upload: rawData.network_tx ? rawData.network_tx / (1024 * 1024) : 0, // Convert bytes to MB
-          download: rawData.network_rx ? rawData.network_rx / (1024 * 1024) : 0, // Convert bytes to MB
-          speed: 0, // Will be calculated in processMetricsData
-          utilization: 0, // Will be calculated in processMetricsData
-          status: 'success'
-        },
-        uptime: rawData.uptime || null,
-        server_info: rawData.server_info || undefined,
-        security: null,
-        threats: [],
-        alerts: []
-      };
-      
-      // Now process the transformed data to calculate additional fields and statuses
-      const processed = processMetricsData(transformedData);
+      const processed = processMetricsData(rawData);
       
       if (processed) {
         setMetrics((prevMetrics) => ({
           ...prevMetrics,
           ...processed,
-          security: rawData.security || null,
-          threats: rawData.threats || [],
-          alerts: rawData.alerts || [],
         }));
-        setIsLoading(false);
+        
+        // Add to historical data
+        addToHistoricalData(rawData);
+        
+        setIsMetricsLoading(false);
       }
-      
-      // Removing console log to reduce console clutter
-      // console.log('Received metrics update:', rawData);
     };
     
-    // Listen for metrics updates
     socket.on('metrics_update', handleMetricsUpdate);
-    
-    // Reset error when connected
     setError(null);
     
-    // Clean up listener on unmount
     return () => {
       socket.off('metrics_update', handleMetricsUpdate);
     };
@@ -300,45 +290,79 @@ export const DashboardPage: React.FC = () => {
       setError(null);
     }
   }, [isConnected]);
-  
+
+  // Chart configuration for shadcn charts
+  const chartConfig = {
+    cpu: {
+      label: "CPU",
+      color: "hsl(var(--chart-1))",
+    },
+    memory: {
+      label: "Memory",
+      color: "hsl(var(--chart-2))",
+    },
+    disk: {
+      label: "Disk",
+      color: "hsl(var(--chart-3))",
+    },
+    network: {
+      label: "Network",
+      color: "hsl(var(--chart-4))",
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="space-y-6">
-      <Panel 
+    <div className="min-h-screen bg-background p-4">
+      <div className="w-full space-y-6">
         
-        description="Real-time health and performance indicators"
-        actions={
-          <Badge 
-            variant={error ? 'destructive' : isConnected ? 'default' : 'secondary'}
-          >
-            {error ? 'Connection Error' : isConnected ? 'Live Metrics' : 'Connecting...'}
-          </Badge>
-        }
-      >
-        {/* All cards now have the same frost level */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={refreshMetrics}
+              disabled={isMetricsLoading}
+            >
+              <RefreshCw size={16} className={isMetricsLoading ? 'animate-spin' : ''} />
+            </Button>
+            <Badge 
+              variant={error ? 'destructive' : isConnected ? 'default' : 'secondary'}
+            >
+              {error ? 'Connection Error' : isConnected ? 'Live Metrics' : 'Connecting...'}
+            </Badge>
+          </div>
+        </div>
+
+        {/* System Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* CPU Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>CPU Usage</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Cpu size={20} />
+                CPU Usage
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {metrics.cpu ? (
                 <>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <Cpu className="mr-2 text-primary" size={24} />
-                      <div>
-                        <div className="text-2xl font-semibold">{metrics.cpu.usage}%</div>
-                        <div className="text-xs text-muted-foreground">
-                          {metrics.cpu.cores} cores @ {metrics.cpu.speed}GHz
-                        </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="text-2xl font-bold">{metrics.cpu.usage}%</div>
+                      <div className="text-xs text-muted-foreground">
+                        {metrics.cpu.cores} cores @ {metrics.cpu.speed}GHz
                       </div>
                     </div>
                     <Badge variant={
                       metrics.cpu.status === 'success' ? 'default' : 
                       metrics.cpu.status === 'warning' ? 'secondary' : 'destructive'
-                    } />
+                    }>
+                      {metrics.cpu.status === 'success' ? 'Normal' : 
+                       metrics.cpu.status === 'warning' ? 'High' : 'Critical'}
+                    </Badge>
                   </div>
+                  
                   <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
                     <motion.div 
                       className="h-full bg-primary" 
@@ -360,368 +384,365 @@ export const DashboardPage: React.FC = () => {
             </CardContent>
           </Card>
           
+          {/* Memory Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Memory</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Server size={20} />
+                Memory
+              </CardTitle>
             </CardHeader>
             <CardContent>
-            {metrics.memory ? (
-              <>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Server className="mr-2 text-primary" size={24} />
+              {metrics.memory ? (
+                <>
+                  <div className="flex justify-between items-start">
                     <div>
-                      <div className="text-2xl font-semibold">{metrics.memory.used.toFixed(1)} GB</div>
+                      <div className="text-2xl font-bold">{metrics.memory.used.toFixed(1)} GB</div>
                       <div className="text-xs text-muted-foreground">
-                        of {metrics.memory.total} GB used ({metrics.memory.percentage}%)
+                        of {metrics.memory.total} GB ({metrics.memory.percentage}%)
                       </div>
                     </div>
+                    <Badge variant={
+                      metrics.memory.status === 'success' ? 'default' : 
+                      metrics.memory.status === 'warning' ? 'secondary' : 'destructive'
+                    }>
+                      {metrics.memory.percentage}%
+                    </Badge>
                   </div>
-                  <Badge variant={
-                    metrics.memory.status === 'success' ? 'default' : 
-                    metrics.memory.status === 'warning' ? 'secondary' : 'destructive'
-                  } />
+                  
+                  <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-primary" 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${metrics.memory.percentage}%` }} 
+                      transition={{ duration: 0.5 }}
+                    ></motion.div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
                 </div>
-                <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-primary" 
-                    initial={{ width: 0 }} 
-                    animate={{ width: `${metrics.memory.percentage}%` }} 
-                    transition={{ duration: 0.5 }}
-                  ></motion.div>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-6 w-6 rounded-full" />
-                </div>
-                <Skeleton className="h-2 w-full rounded-full" />
-              </div>
-            )}
+              )}
             </CardContent>
           </Card>
           
+          {/* Storage Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Storage</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <HardDrive size={20} />
+                Storage
+              </CardTitle>
             </CardHeader>
             <CardContent>
-            {metrics.disk ? (
-              <>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <HardDrive className="mr-2 text-primary" size={24} />
+              {metrics.disk ? (
+                <>
+                  <div className="flex justify-between items-start">
                     <div>
-                      <div className="text-2xl font-semibold">{metrics.disk.used} GB</div>
+                      <div className="text-2xl font-bold">{metrics.disk.used} GB</div>
                       <div className="text-xs text-muted-foreground">
-                        of {metrics.disk.total} GB used ({metrics.disk.percentage}%)
+                        of {metrics.disk.total} GB ({metrics.disk.percentage}%)
                       </div>
                     </div>
+                    <Badge variant={
+                      metrics.disk.status === 'success' ? 'default' : 
+                      metrics.disk.status === 'warning' ? 'secondary' : 'destructive'
+                    }>
+                      {metrics.disk.percentage}%
+                    </Badge>
                   </div>
-                  <Badge variant={
-                    metrics.disk.status === 'success' ? 'default' : 
-                    metrics.disk.status === 'warning' ? 'secondary' : 'destructive'
-                  }>
-                    {metrics.disk.percentage}%
-                  </Badge>
+                  
+                  <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-primary" 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${metrics.disk.percentage}%` }} 
+                      transition={{ duration: 0.5 }}
+                    ></motion.div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
                 </div>
-                <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-primary" 
-                    initial={{ width: 0 }} 
-                    animate={{ width: `${metrics.disk.percentage}%` }} 
-                    transition={{ duration: 0.5 }}
-                  ></motion.div>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-6 w-6 rounded-full" />
-                </div>
-                <Skeleton className="h-2 w-full rounded-full" />
-              </div>
-            )}
+              )}
             </CardContent>
           </Card>
           
+          {/* Network Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Network</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <Wifi size={20} />
+                Network
+              </CardTitle>
             </CardHeader>
             <CardContent>
-            {metrics.network ? (
-              <>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Wifi className="mr-2 text-primary" size={24} />
+              {metrics.network ? (
+                <>
+                  <div className="flex justify-between items-start">
                     <div>
-                      <div className="text-2xl font-semibold">{metrics.network.speed} MB/s</div>
+                      <div className="text-2xl font-bold">{metrics.network.speed} MB/s</div>
                       <div className="text-xs text-muted-foreground">
-                        {metrics.network.upload} MB/s ↑ / {metrics.network.download} MB/s ↓
+                        ↑ {metrics.network.upload} MB/s ↓ {metrics.network.download} MB/s
                       </div>
                     </div>
+                    <Badge variant={
+                      metrics.network.status === 'success' ? 'default' : 
+                      metrics.network.status === 'warning' ? 'secondary' : 'destructive'
+                    }>
+                      {metrics.network.utilization.toFixed(1)}%
+                    </Badge>
                   </div>
-                  <Badge variant={
-                    metrics.network.status === 'success' ? 'default' : 
-                    metrics.network.status === 'warning' ? 'secondary' : 'destructive'
-                  } />
+                  
+                  <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-primary" 
+                      initial={{ width: 0 }} 
+                      animate={{ width: `${metrics.network.utilization}%` }} 
+                      transition={{ duration: 0.5 }}
+                    ></motion.div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full" />
                 </div>
-                <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-primary" 
-                    initial={{ width: 0 }} 
-                    animate={{ width: `${metrics.network.utilization}%` }} 
-                    transition={{ duration: 0.5 }}
-                  ></motion.div>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-6 w-6 rounded-full" />
-                </div>
-                <Skeleton className="h-2 w-full rounded-full" />
-              </div>
-            )}
+              )}
             </CardContent>
           </Card>
         </div>
-      </Panel>
-      
-      {/* Server Information Panel */}
-      <Panel description="Detailed server specifications and network information">
-        {metrics.server_info ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <Server className="mt-0.5 mr-3 text-primary" size={20} />
-                  <div>
-                    <div className="font-medium">Hostname</div>
-                    <div className="text-muted-foreground">{metrics.server_info.hostname}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <Terminal className="mt-0.5 mr-3 text-primary" size={20} />
-                  <div>
-                    <div className="font-medium">Operating System</div>
-                    <div className="text-muted-foreground">{metrics.server_info.os}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <Info className="mt-0.5 mr-3 text-primary" size={20} />
-                  <div>
-                    <div className="font-medium">Architecture</div>
-                    <div className="text-muted-foreground">{metrics.server_info.architecture}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <Terminal className="mt-0.5 mr-3 text-primary" size={20} />
-                  <div>
-                    <div className="font-medium">Kernel Version</div>
-                    <div className="text-muted-foreground">{metrics.server_info.kernel}</div>
-                  </div>
-                </div>
-              </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <Network className="mt-0.5 mr-3 text-primary" size={20} />
-                  <div>
-                    <div className="font-medium">Private IP Address</div>
-                    <div className="text-muted-foreground">{metrics.server_info.private_ip}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <Globe className="mt-0.5 mr-3 text-primary" size={20} />
-                  <div>
-                    <div className="font-medium">Public IP Address</div>
-                    <div className="text-muted-foreground">{metrics.server_info.public_ip}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center mt-6">
-                  <Button 
-                    variant="default"
-                  >
-                    <RefreshCw size={16} className="mr-2" />
-                    Refresh Network Information
-                  </Button>
-                </div>
-              </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardContent>
-              <div className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-start">
-                    <Skeleton className="h-5 w-5 mr-3" />
-                    <div className="w-full">
-                      <Skeleton className="h-4 w-1/3 mb-1" />
-                      <Skeleton className="h-4 w-2/3" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent>
-              <div className="space-y-4">
-                {[...Array(2)].map((_, i) => (
-                  <div key={i} className="flex items-start">
-                    <Skeleton className="h-5 w-5 mr-3" />
-                    <div className="w-full">
-                      <Skeleton className="h-4 w-1/3 mb-1" />
-                      <Skeleton className="h-4 w-2/3" />
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center justify-center mt-6">
-                  <Skeleton className="h-10 w-48 rounded-md" />
-                </div>
-              </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </Panel>
-      
-      {/* Middle row with two panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Panel description="Security status report">
-          <Card className="mb-4">
-            <CardContent>
-            {metrics.security ? (
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <Shield className="mr-3 text-primary" size={32} />
-                  <div>
-                    <div className="text-lg font-medium">
-                      {metrics.security.status === 'success' ? 'Secure' : 
-                       metrics.security.status === 'warning' ? 'Warning' : 'Alert'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Last scan: {metrics.security.lastScan || 'Unknown'}
-                    </div>
-                  </div>
-                </div>
-                <Badge 
-                  variant={
-                    metrics.security.status === 'success' ? 'default' : 
-                    metrics.security.status === 'warning' ? 'secondary' : 'destructive'
-                  }
-                >
-                  {metrics.security.status === 'success' ? 'Protected' : 
-                   metrics.security.status === 'warning' ? 'Caution' : 'At Risk'}
-                </Badge>
-              </div>
+
+        {/* Performance Trends Chart */}
+        <Card>
+          <CardContent className="p-6">
+            {metrics.historicalData.length > 0 ? (
+              <ChartContainer config={chartConfig} className="w-full h-[350px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={metrics.historicalData}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis 
+                      dataKey="timestamp" 
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line 
+                      type="monotone" 
+                      dataKey="cpu" 
+                      stroke="var(--color-cpu)"
+                      strokeWidth={2}
+                      dot={false}
+                      name="CPU"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="memory" 
+                      stroke="var(--color-memory)"
+                      strokeWidth={2}
+                      dot={false}
+                      name="Memory"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="disk" 
+                      stroke="var(--color-disk)"
+                      strokeWidth={2}
+                      dot={false}
+                      name="Disk"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="network" 
+                      stroke="var(--color-network)"
+                      strokeWidth={2}
+                      dot={false}
+                      name="Network"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
             ) : (
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <Skeleton className="h-8 w-8 mr-3 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-4 w-40" />
-                  </div>
+              <div className="h-[350px] flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-full h-64 bg-muted rounded animate-pulse"></div>
+                  <p className="text-muted-foreground mt-4">Collecting performance data...</p>
                 </div>
-                <Skeleton className="h-6 w-20 rounded-full" />
               </div>
             )}
+          </CardContent>
+        </Card>
+        
+        {/* Server Information */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server size={20} />
+                System Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {metrics.server_info ? (
+                <div className="space-y-6">
+                  <div className="flex items-center">
+                    <Terminal className="mr-4 text-primary" size={24} />
+                    <div>
+                      <div className="font-medium text-lg">{metrics.server_info.hostname}</div>
+                      <div className="text-sm text-muted-foreground">Hostname</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Monitor className="mr-4 text-primary" size={24} />
+                    <div>
+                      <div className="font-medium text-lg">{metrics.server_info.os}</div>
+                      <div className="text-sm text-muted-foreground">Operating System</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Info className="mr-4 text-primary" size={24} />
+                    <div>
+                      <div className="font-medium text-lg">{metrics.server_info.architecture}</div>
+                      <div className="text-sm text-muted-foreground">Architecture</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Terminal className="mr-4 text-primary" size={24} />
+                    <div>
+                      <div className="font-medium text-lg">{metrics.server_info.kernel}</div>
+                      <div className="text-sm text-muted-foreground">Kernel Version</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {[...Array(4)].map((_, j) => (
+                    <div key={j} className="flex items-center">
+                      <Skeleton className="h-6 w-6 mr-4" />
+                      <div className="w-full">
+                        <Skeleton className="h-5 w-2/3 mb-1" />
+                        <Skeleton className="h-4 w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
           
           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Network size={20} />
+                Network & Uptime
+              </CardTitle>
+            </CardHeader>
             <CardContent>
-            {metrics.threats && metrics.threats.length > 0 ? (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-muted-foreground">
-                    <th className="pb-2">Type</th>
-                    <th className="pb-2">Time</th>
-                    <th className="pb-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {metrics.threats.map((threat, index) => (
-                    <tr key={index} className="border-t border-border">
-                      <td className="py-2">{threat.type}</td>
-                      <td className="py-2">{threat.time}</td>
-                      <td className="py-2">
-                        <Badge variant={
-                          threat.status === 'success' ? 'default' : 
-                          threat.status === 'warning' ? 'secondary' : 'destructive'
-                        } />
-                      </td>
-                    </tr>
+              {metrics.server_info ? (
+                <div className="space-y-6">
+                  <div className="flex items-center">
+                    <Network className="mr-4 text-primary" size={24} />
+                    <div>
+                      <div className="font-medium text-lg font-mono">{metrics.server_info.private_ip}</div>
+                      <div className="text-sm text-muted-foreground">Private IP Address</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <Globe className="mr-4 text-primary" size={24} />
+                    <div>
+                      <div className="font-medium text-lg font-mono">{metrics.server_info.public_ip}</div>
+                      <div className="text-sm text-muted-foreground">Public IP Address</div>
+                    </div>
+                  </div>
+
+                  {metrics.uptime && (
+                    <div className="flex items-center">
+                      <Clock className="mr-4 text-primary" size={24} />
+                      <div>
+                        <div className="font-medium text-lg">{formatUptime(metrics.uptime.duration)}</div>
+                        <div className="text-sm text-muted-foreground">System Uptime</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {metrics.security && (
+                    <div className="flex items-center">
+                      <Shield className="mr-4 text-primary" size={24} />
+                      <div>
+                        <div className="font-medium text-lg">
+                          {metrics.security.status === 'success' ? 'Secure' : 
+                           metrics.security.status === 'warning' ? 'Warning' : 'Alert'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Last scan: {metrics.security.lastScan || 'Unknown'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {[...Array(4)].map((_, j) => (
+                    <div key={j} className="flex items-center">
+                      <Skeleton className="h-6 w-6 mr-4" />
+                      <div className="w-full">
+                        <Skeleton className="h-5 w-2/3 mb-1" />
+                        <Skeleton className="h-4 w-1/3" />
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            ) : metrics.threats && metrics.threats.length === 0 ? (
-              <div className="py-4 text-center text-muted-foreground">
-                No recent threats detected
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            )}
+                </div>
+              )}
             </CardContent>
           </Card>
-        </Panel>
+        </div>
         
-        <Panel description="Active alerts and notifications">
-          <Card className="mb-4">
-            <CardContent>
-            {metrics.alerts ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <AlertTriangle className="text-primary mr-2" size={20} />
-                    <span>{metrics.alerts.length} active alerts require attention</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={refreshAlerts}
-                    disabled={isAlertsLoading}
-                  >
-                    <RefreshCw size={16} className="mr-2" />
-                    Refresh
-                  </Button>
-                </div>
-                
-                {metrics.alerts.length > 0 ? (
-                  <div className="mt-3 space-y-2">
+        {/* Alerts and Activity */}
+        {(metrics.alerts.length > 0 || metrics.threats.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Active Alerts */}
+            {metrics.alerts.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle size={20} />
+                    Active Alerts ({metrics.alerts.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
                     {metrics.alerts.map((alert, index) => (
                       <div 
                         key={index}
                         className={`border-l-4 ${
                           alert.severity === 'error' 
-                            ? 'border-destructive' 
-                            : 'border-yellow-500'
-                        } pl-3 py-2`}
+                            ? 'border-destructive bg-red-50 dark:bg-red-900/20' 
+                            : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                        } pl-4 py-3 rounded-r-lg`}
                       >
                         <div className="font-medium">{alert.title}</div>
                         <div className="text-sm text-muted-foreground">
@@ -730,128 +751,55 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="mt-3 py-4 text-center text-muted-foreground">
-                    No active alerts
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-8 w-8 rounded" />
-                </div>
-                <Skeleton className="h-20 w-full" />
-              </div>
+                </CardContent>
+              </Card>
             )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent>
-            {metrics.uptime ? (
-              <>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <Activity className="mr-3 text-primary" size={24} />
-                    <div>
-                      <div className="text-lg font-medium">{metrics.uptime.percentage}% SLA</div>
-                      <div className="text-sm text-muted-foreground">
-                        {metrics.uptime.duration ? `Current session: ${metrics.uptime.duration}` : 'Uptime data unavailable'}
+            
+            {/* Recent Threats */}
+            {metrics.threats.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield size={20} />
+                    Recent Security Events ({metrics.threats.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {metrics.threats.slice(0, 5).map((threat, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div>
+                          <div className="font-medium">{threat.type}</div>
+                          <div className="text-sm text-muted-foreground">{threat.time}</div>
+                        </div>
+                        <Badge variant={
+                          threat.status === 'success' ? 'default' : 
+                          threat.status === 'warning' ? 'secondary' : 'destructive'
+                        }>
+                          {threat.status === 'success' ? 'Blocked' : 
+                           threat.status === 'warning' ? 'Monitored' : 'Active'}
+                        </Badge>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                  <Badge 
-                    variant={
-                      metrics.uptime.percentage >= 99.9 ? 'default' : 
-                      metrics.uptime.percentage >= 99.0 ? 'secondary' : 'destructive'
-                    }
-                  >
-                    {metrics.uptime.percentage}%
-                  </Badge>
-                </div>
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>Annual uptime target: 99.9%</span>
-                    <span>Actual: {metrics.uptime.percentage}%</span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <motion.div 
-                      className={`h-full ${
-                        metrics.uptime.percentage >= 99.9 
-                          ? 'bg-green-500' 
-                          : metrics.uptime.percentage >= 99.0 
-                            ? 'bg-yellow-500' 
-                            : 'bg-red-500'
-                      }`}
-                      initial={{ width: 0 }} 
-                      animate={{ width: `${Math.min(100, metrics.uptime.percentage)}%` }} 
-                      transition={{ duration: 0.5 }}
-                    ></motion.div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Skeleton className="h-6 w-6 mr-3 rounded" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-6 w-20" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-6 w-12 rounded-full" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                  <Skeleton className="h-2 w-full rounded-full" />
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )}
-            </CardContent>
-          </Card>
-        </Panel>
-      </div>
-      
-      {/* Bottom row */}
-      <Panel defaultExpanded={false}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          </div>
+        )}
+        
+        {/* No Issues State */}
+        {metrics.alerts.length === 0 && metrics.threats.length === 0 && !isMetricsLoading && (
           <Card>
-            <CardContent>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                <a href="#" className="text-primary hover:underline">everyst User Guide</a>
-              </li>
-              <li className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                <a href="#" className="text-primary hover:underline">API Documentation</a>
-              </li>
-              <li className="flex items-center">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                <a href="#" className="text-primary hover:underline">Troubleshooting</a>
-              </li>
-            </ul>
+            <CardContent className="py-8">
+              <div className="text-center">
+                <Activity className="mx-auto mb-3 text-green-500" size={48} />
+                <h3 className="text-lg font-medium">All Systems Operational</h3>
+                <p className="text-muted-foreground">No active alerts or security threats detected</p>
+              </div>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardContent>
-            <div className="py-4 text-center text-muted-foreground">
-              <p className="mb-4">Need help with everyst?</p>
-              <Button variant="default">
-                Submit an issue
-              </Button>
-            </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Panel>
+        )}
       </div>
     </div>
   );

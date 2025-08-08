@@ -917,8 +917,9 @@ const UsersManagementPage: React.FC<UsersPageProps> = () => {
   };
   
   return (
-    <div className="space-y-6">
-      <PermissionGate 
+    <div className="min-h-screen bg-background p-4">
+      <div className="w-full space-y-6">
+        <PermissionGate 
         permission="canManageUsers"
         fallback={
           <Panel className="bg-[rgb(var(--color-warning-bg))] border-[rgb(var(--color-warning-border))]">
@@ -1352,6 +1353,7 @@ const UsersManagementPage: React.FC<UsersPageProps> = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 };

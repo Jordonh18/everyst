@@ -694,8 +694,9 @@ export const ToolsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* SSH Terminal Section */}
+    <div className="min-h-screen bg-background p-4">
+      <div className="w-full space-y-6">
+        {/* SSH Terminal Section */}
       <div className="space-y-4">
         <div className="h-[400px]">
           <SSHTerminal />
@@ -812,6 +813,7 @@ export const ToolsPage: React.FC = () => {
             />
           </ModernToolCard>
         </div>
+      </div>
       </div>
     </div>
   );

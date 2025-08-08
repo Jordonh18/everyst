@@ -781,7 +781,8 @@ const NetworkMapPageInner: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full space-y-4" style={{ height: '100%', minHeight: '100vh' }}>
+    <div className="min-h-screen bg-background p-4">
+      <div className="w-full flex flex-col h-full space-y-4" style={{ height: '100%', minHeight: '100vh' }}>
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
         <div>
@@ -1008,6 +1009,7 @@ const NetworkMapPageInner: React.FC = () => {
         onAdd={handleAddDevice} 
         onCancel={() => setShowAddDeviceModal(false)} 
       />
+      </div>
     </div>
   );
 };
