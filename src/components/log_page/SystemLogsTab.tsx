@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Card, CardHeader, CardTitle, CardContent } from '../ui';
+import { Button, Input, Table, TableBody, TableRow, TableCell, TableHeader, TableHead, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
 import { 
   Search, 
   RefreshCw,
@@ -105,34 +105,6 @@ const SeverityBadge: React.FC<{ severity: string }> = ({ severity }) => {
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
-};
-
-// Format file size
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
-
-// Format category name
-const formatCategory = (category: string): string => {
-  const categoryMap: Record<string, string> = {
-    'system': 'System',
-    'security': 'Security',
-    'webserver': 'Web Server',
-    'database': 'Database',
-    'services': 'Services',
-    'kernel': 'Kernel',
-    'network': 'Network'
-  };
-  
-  return categoryMap[category] || category
-    .replace(/_/g, ' ')
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
 };
 
 // System Logs Tab Component
@@ -264,18 +236,12 @@ const SystemLogsTab: React.FC = () => {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 w-24 bg-muted rounded"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 w-16 bg-muted rounded mb-2"></div>
-                <div className="h-4 w-32 bg-muted rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-pulse text-center">
+            <div className="h-8 w-8 bg-muted rounded-full mx-auto mb-4"></div>
+            <div className="h-4 w-48 bg-muted rounded mb-2"></div>
+            <div className="h-4 w-32 bg-muted rounded"></div>
+          </div>
         </div>
       </div>
     );
@@ -306,49 +272,20 @@ const SystemLogsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* System Info Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Monitor size={20} />
-            System Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Distribution</p>
-              <p className="text-lg font-semibold">{dashboard.distribution.NAME}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Version</p>
-              <p className="text-lg font-semibold">{dashboard.distribution.VERSION_ID}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Available Logs</p>
-              <p className="text-lg font-semibold">{dashboard.summary.total_logs}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Log Categories Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {Object.entries(dashboard.summary.categories).map(([category, count]) => (
-          <Card key={category}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                {getCategoryIcon(category)}
-                <span className="text-sm font-medium">{formatCategory(category)}</span>
-              </div>
-              <p className="text-2xl font-bold">{count}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Log Selection and Controls */}
+      {/* Controls Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Search */}
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search log entries..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
         <div className="flex flex-wrap md:flex-nowrap items-center gap-2">
           {/* Log Selection */}
           <Select value={selectedLog} onValueChange={setSelectedLog}>
@@ -394,65 +331,19 @@ const SystemLogsTab: React.FC = () => {
               <SelectItem value="1000">1000 lines</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Search */}
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search log entries..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
 
           {/* Refresh Button */}
           <Button 
             variant="outline" 
-            onClick={() => window.location.reload()}
+            aria-label="Refresh logs"
+            title="Refresh logs"
             className="p-2"
+            onClick={() => window.location.reload()}
           >
             <RefreshCw size={16} />
           </Button>
         </div>
       </div>
-
-      {/* Selected Log Info */}
-      {selectedLog && dashboard.logs[selectedLog] && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {getCategoryIcon(dashboard.logs[selectedLog].info.category)}
-              {selectedLog}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Description</p>
-                <p className="text-sm">{dashboard.logs[selectedLog].info.description}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">File Size</p>
-                <p className="text-sm font-mono">{formatFileSize(dashboard.logs[selectedLog].info.size)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Last Modified</p>
-                <p className="text-sm font-mono">{formatDate(dashboard.logs[selectedLog].info.last_modified)}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Recent Entries</p>
-                <p className="text-sm">
-                  {dashboard.logs[selectedLog].stats?.total_recent_entries || 0} (last 24h)
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Log Entries Table */}
       <Table>
