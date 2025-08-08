@@ -40,7 +40,7 @@ from .views.logout import LogoutView, LogoutAllView
 from .views import system_logs as system_logs_views
 
 # Import dashboard views
-from .views.dashboard import get_system_services, get_system_sessions, get_api_performance, get_system_ports
+from .views.dashboard import get_system_services, get_system_sessions, get_api_performance, system_ports_view
 
 router = DefaultRouter()
 router.register(r'metrics', SystemMetricsViewSet)
@@ -100,7 +100,7 @@ urlpatterns = [
     path('system/services/', get_system_services, name='system-services'),
     path('system/sessions/', get_system_sessions, name='system-sessions'),
     path('system/api-times/', get_api_performance, name='api-performance'),
-    path('system/ports/', get_system_ports, name='system-ports'),
+    path('system/ports/', system_ports_view, name='system-ports'),
 ]
 
 urlpatterns += router.urls

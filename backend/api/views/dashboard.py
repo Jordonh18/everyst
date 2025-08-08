@@ -12,7 +12,7 @@ from api.utils.services import (
     get_running_services,
     get_active_sessions,
     get_api_response_times,
-    get_system_ports
+    get_system_ports as get_system_ports_data
 )
 
 logger = logging.getLogger(__name__)
@@ -68,12 +68,12 @@ def get_api_performance(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_system_ports(request):
+def system_ports_view(request):
     """
     Get information about open/listening ports
     """
     try:
-        ports = get_system_ports()
+        ports = get_system_ports_data()
         return Response(ports, status=status.HTTP_200_OK)
     except Exception as e:
         logger.error(f"Failed to get system ports: {str(e)}")

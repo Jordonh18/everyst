@@ -10,12 +10,13 @@ import { useWebSocket } from '../../context/WebSocketContext';
 import { socketService } from '../../utils/socket';
 import { useAuth } from '../../context/AuthContext';
 import {
+  ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  type ChartConfig,
 } from "../../components/ui/chart";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, 
-  ResponsiveContainer
+  AreaChart, Area, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 
 // Types for raw metrics data received from backend
@@ -163,6 +164,26 @@ interface SystemMetrics {
 
 export const DashboardPage: React.FC = () => {
   const { getAccessToken } = useAuth();
+
+  // Chart configuration
+  const chartConfig: ChartConfig = {
+    cpu: {
+      label: "CPU",
+      color: "#2563eb",
+    },
+    memory: {
+      label: "Memory",
+      color: "#dc2626",
+    },
+    disk: {
+      label: "Disk",
+      color: "#ea580c",
+    },
+    network: {
+      label: "Network",
+      color: "#059669",
+    },
+  };
   
   // State to hold our system metrics data
   const [metrics, setMetrics] = useState<SystemMetrics>({
@@ -622,7 +643,7 @@ export const DashboardPage: React.FC = () => {
           <CardContent className="p-6">
             {metrics.historicalData.length > 0 ? (
               <div className="w-full h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
+                <ChartContainer config={chartConfig} className="w-full h-full">
                   <AreaChart 
                     data={metrics.historicalData} 
                     margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
@@ -722,7 +743,7 @@ export const DashboardPage: React.FC = () => {
                       animationEasing="ease-in-out"
                     />
                   </AreaChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </div>
             ) : (
               <div className="h-[400px] flex items-center justify-center">
