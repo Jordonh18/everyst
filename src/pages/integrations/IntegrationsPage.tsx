@@ -55,7 +55,7 @@ const predefinedServices = {
     { id: 'discord', name: 'Discord', provider: 'Discord', icon: <MessageSquare size={24} />, description: 'Voice and text chat', comingSoon: true }
   ],
   notification: [
-    { id: 'email', name: 'Email Notifications', provider: 'SMTP', icon: <Bell size={24} />, description: 'Email alerts and notifications', comingSoon: false },
+    { id: 'email', name: 'Email Notifications', provider: 'SMTP', icon: <Bell size={24} />, description: 'Email alerts and notifications', comingSoon: true },
     { id: 'sms', name: 'SMS', provider: 'Twilio', icon: <Bell size={24} />, description: 'Text message alerts', comingSoon: true },
     { id: 'push', name: 'Push Notifications', provider: 'Web Push', icon: <Bell size={24} />, description: 'Browser and mobile notifications', comingSoon: true }
   ],

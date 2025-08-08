@@ -22,7 +22,6 @@ interface RawMetricsData {
   network_rx: number;
   network_tx: number;
   uptime?: {
-    percentage: number;
     duration: string;
   };
   server_info?: {
@@ -91,7 +90,6 @@ interface SystemMetrics {
     severity: 'warning' | 'error';
   }[];
   uptime: {
-    percentage: number;
     duration: string | null;
   } | null;
   server_info?: {
