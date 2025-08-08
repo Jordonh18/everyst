@@ -10,7 +10,6 @@ from django.conf import settings
 import logging
 
 from api.services.system_logs import SystemLogManager
-from api.models.activity import ApplicationLog
 from api.permissions import CanViewLogs
 
 logger = logging.getLogger(__name__)
@@ -31,23 +30,6 @@ def list_system_logs(request):
         
         log_manager = SystemLogManager()
         available_logs = log_manager.get_available_logs()
-        
-        # Log the system log access
-        ApplicationLog.log_activity(
-            user=request.user,
-            action='system_log_list',
-            category='admin',
-            severity='info',
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            object_type='system_logs',
-            object_name='list_available',
-            details={
-                'message': f'User {request.user.username} accessed system logs list',
-                'log_count': len(available_logs.get('logs', {})),
-                'distribution': available_logs.get('distribution', {}).get('NAME', 'Unknown')
-            }
-        )
         
         return Response(available_logs, status=status.HTTP_200_OK)
     
@@ -102,25 +84,6 @@ def read_system_log(request, log_name):
             end_date=end_date
         )
         
-        # Log the system log access
-        ApplicationLog.log_activity(
-            user=request.user,
-            action='system_log_read',
-            category='admin',
-            severity='info',
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            object_type='system_log',
-            object_name=log_name,
-            details={
-                'message': f'User {request.user.username} accessed system log: {log_name}',
-                'lines_requested': lines,
-                'search_term': search_term,
-                'log_level_filter': log_level,
-                'lines_returned': log_data.get('total_lines', 0)
-            }
-        )
-        
         return Response(log_data, status=status.HTTP_200_OK)
     
     except ValueError as e:
@@ -160,23 +123,6 @@ def system_log_statistics(request, log_name):
         
         log_manager = SystemLogManager()
         statistics = log_manager.get_log_statistics(log_name, hours)
-        
-        # Log the statistics access
-        ApplicationLog.log_activity(
-            user=request.user,
-            action='system_log_stats',
-            category='admin',
-            severity='info',
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            object_type='system_log',
-            object_name=log_name,
-            details={
-                'message': f'User {request.user.username} accessed statistics for system log: {log_name}',
-                'period_hours': hours,
-                'total_entries': statistics.get('total_recent_entries', 0)
-            }
-        )
         
         return Response(statistics, status=status.HTTP_200_OK)
     
@@ -241,23 +187,6 @@ def system_logs_dashboard(request):
                 }
         
         dashboard_data['summary']['categories'] = category_counts
-        
-        # Log the dashboard access
-        ApplicationLog.log_activity(
-            user=request.user,
-            action='system_logs_dashboard',
-            category='admin',
-            severity='info',
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            object_type='system_logs',
-            object_name='dashboard',
-            details={
-                'message': f'User {request.user.username} accessed system logs dashboard',
-                'total_logs': dashboard_data['summary']['total_logs'],
-                'categories': list(category_counts.keys())
-            }
-        )
         
         return Response(dashboard_data, status=status.HTTP_200_OK)
     
