@@ -76,7 +76,7 @@ urlpatterns = [
     path('system-logs/', include([
         path('', system_logs_views.list_system_logs, name='system-logs-list'),
         path('dashboard/', system_logs_views.system_logs_dashboard, name='system-logs-dashboard'),
-        path('<str:log_name>/', system_logs_views.read_system_log, name='system-log-read'),
+        path('<str:log_name>/read/', system_logs_views.read_system_log, name='system-log-read'),
         path('<str:log_name>/stats/', system_logs_views.system_log_statistics, name='system-log-stats'),
     ])),
     
