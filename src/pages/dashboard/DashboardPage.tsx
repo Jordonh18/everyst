@@ -251,32 +251,6 @@ export const DashboardPage: React.FC = () => {
       return 'success';
   };
 
-  // Generate network traffic data
-  const generateNetworkTrafficData = React.useCallback((): NetworkTrafficPoint[] => {
-    const data: NetworkTrafficPoint[] = [];
-    const now = new Date();
-    
-    for (let i = 23; i >= 0; i--) {
-      const timestamp = new Date(now.getTime() - i * 60000).toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-      
-      const upload = Math.random() * 50 + 10; // 10-60 MB/s
-      const download = Math.random() * 100 + 20; // 20-120 MB/s
-      
-      data.push({
-        timestamp,
-        upload: Math.round(upload * 100) / 100,
-        download: Math.round(download * 100) / 100,
-        total: Math.round((upload + download) * 100) / 100
-      });
-    }
-    
-    return data;
-  }, []);
-
   // Format uptime duration
   const formatUptime = (duration: string | null): string => {
     if (!duration) return 'Unknown';
@@ -299,14 +273,12 @@ export const DashboardPage: React.FC = () => {
         portsResponse,
         servicesResponse,
         sessionsResponse,
-        apiTimesResponse,
-        networkTrafficResponse
+        apiTimesResponse
       ] = await Promise.all([
         fetch('/api/system/ports/', { method: 'GET', headers }),
         fetch('/api/system/services/', { method: 'GET', headers }),
         fetch('/api/system/sessions/', { method: 'GET', headers }),
-        fetch('/api/system/api-times/', { method: 'GET', headers }),
-        fetch('/api/dashboard/network-traffic/', { method: 'GET', headers })
+        fetch('/api/system/api-times/', { method: 'GET', headers })
       ]);
 
       // Process responses
@@ -314,14 +286,12 @@ export const DashboardPage: React.FC = () => {
         portsData,
         servicesData,
         sessionsData,
-        apiTimesData,
-        networkTrafficData
+        apiTimesData
       ] = await Promise.all([
         portsResponse.ok ? portsResponse.json() : [],
         servicesResponse.ok ? servicesResponse.json() : [],
         sessionsResponse.ok ? sessionsResponse.json() : [],
-        apiTimesResponse.ok ? apiTimesResponse.json() : [],
-        networkTrafficResponse.ok ? networkTrafficResponse.json() : []
+        apiTimesResponse.ok ? apiTimesResponse.json() : []
       ]);
 
       // Update state with all the fetched data
@@ -330,19 +300,13 @@ export const DashboardPage: React.FC = () => {
         ports: portsData || [],
         services: servicesData || [],
         sessions: sessionsData || [],
-        apiResponseTimes: apiTimesData || [],
-        networkTrafficData: networkTrafficData || []
+        apiResponseTimes: apiTimesData || []
       }));
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      // Fallback to generated data on error
-      setMetrics(prev => ({
-        ...prev,
-        networkTrafficData: generateNetworkTrafficData()
-      }));
     }
-  }, [getAccessToken, generateNetworkTrafficData]);
+  }, [getAccessToken]);
 
   // Add new data point to historical data with proper management
   const addToHistoricalData = (newData: RawMetricsData) => {
@@ -362,21 +326,35 @@ export const DashboardPage: React.FC = () => {
       network: Math.min(100, ((newData.network_tx + newData.network_rx) / (1024 * 1024)) / 125 * 100) // Network utilization as percentage
     };
 
+    // Also add network traffic data point
+    const networkTrafficPoint: NetworkTrafficPoint = {
+      timestamp: now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      upload: parseFloat(((newData.network_tx || 0) / (1024 * 1024)).toFixed(2)), // Convert bytes/s to MB/s
+      download: parseFloat(((newData.network_rx || 0) / (1024 * 1024)).toFixed(2)), // Convert bytes/s to MB/s
+      total: parseFloat((((newData.network_tx || 0) + (newData.network_rx || 0)) / (1024 * 1024)).toFixed(2))
+    };
+
     setMetrics(prev => {
       // Keep only the last 20 points and ensure no duplicates
       const existingData = prev.historicalData;
       const lastPoint = existingData[existingData.length - 1];
       
-      // Only add if timestamp is different from last point
-      if (!lastPoint || lastPoint.timestamp !== timestamp) {
-        const newData = [...existingData, newPoint].slice(-20);
-        return {
-          ...prev,
-          historicalData: newData
-        };
-      }
+      const existingNetworkData = prev.networkTrafficData;
+      const lastNetworkPoint = existingNetworkData[existingNetworkData.length - 1];
       
-      return prev;
+      // Only add if timestamp is different from last point
+      const shouldAddHistorical = !lastPoint || lastPoint.timestamp !== timestamp;
+      const shouldAddNetwork = !lastNetworkPoint || lastNetworkPoint.timestamp !== networkTrafficPoint.timestamp;
+      
+      return {
+        ...prev,
+        historicalData: shouldAddHistorical ? [...existingData, newPoint].slice(-20) : existingData,
+        networkTrafficData: shouldAddNetwork ? [...existingNetworkData, networkTrafficPoint].slice(-24) : existingNetworkData // Keep 24 points for network
+      };
     });
   };
   
