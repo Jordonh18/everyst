@@ -40,10 +40,24 @@ class NetworkScanAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'first_name', 'last_name', 'is_active', 'is_staff', 'date_joined')
-    list_filter = ('is_active', 'is_staff')
-    search_fields = ('email', 'first_name', 'last_name')
-    readonly_fields = ('date_joined',)
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'date_joined')
+    list_filter = ('is_active', 'is_staff', 'role')
+    search_fields = ('username', 'email', 'first_name', 'last_name')
+    readonly_fields = ('date_joined', 'last_login')
+    
+    def get_search_results(self, request, queryset, search_term):
+        """
+        Custom search that supports case-insensitive username and email searches
+        """
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        if search_term:
+            # Add case-insensitive search for username and email
+            from django.db.models import Q
+            queryset |= self.model.objects.filter(
+                Q(username__icontains=search_term) |
+                Q(email__icontains=search_term)
+            )
+        return queryset, use_distinct
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

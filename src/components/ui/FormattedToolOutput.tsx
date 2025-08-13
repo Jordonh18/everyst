@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Code, Eye, AlertTriangle, CheckCircle, Clock, Network, Globe, Database, Server, Copy, Download, Trash2 } from 'lucide-react';
-import { useToasts } from '../../context/NotificationContext';
+import { toast } from 'sonner';
 
 export interface FormattedToolOutputProps {
   toolName: string;
@@ -30,7 +30,6 @@ export const FormattedToolOutput: React.FC<FormattedToolOutputProps> = ({
   onClear
 }) => {
   const [showRaw, setShowRaw] = useState(false);
-  const toasts = useToasts();
   
   // Safe clipboard copy function
   const copyToClipboard = (text: string) => {
@@ -47,10 +46,10 @@ export const FormattedToolOutput: React.FC<FormattedToolOutputProps> = ({
       document.body.removeChild(textarea);
       
       // Use notification system
-      toasts.success('Copied to clipboard', 'The command output was copied successfully');
+      toast.success('Copied to clipboard');
     } catch (err) {
       console.error('Failed to copy: ', err);
-      toasts.error('Copy failed', 'Unable to copy to clipboard');
+      toast.error('Failed to copy to clipboard');
     }
   };
   
@@ -68,10 +67,10 @@ export const FormattedToolOutput: React.FC<FormattedToolOutputProps> = ({
       URL.revokeObjectURL(url);
       
       // Use notification system
-      toasts.success('Download successful', 'The output file was downloaded successfully');
+      toast.success('Downloaded successfully');
     } catch (err) {
       console.error('Failed to download: ', err);
-      toasts.error('Download failed', 'Unable to download the file');
+      toast.error('Failed to download file');
     }
   };
   

@@ -2,18 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { User, Lock, ArrowRight } from 'lucide-react';
-import { AuthNotification } from '../../components/auth/AuthNotification';
 import { Button, Input } from '../../components/ui';
 import { AnimatedMonitor, AnimatedNetwork } from '../../components/ui/AnimatedSVGs';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const { login, error, usersExist, checkUsersExist } = useAuth();
-  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const location = useLocation();
+  const navigate = useNavigate();
+  const { login, usersExist, checkUsersExist } = useAuth();
   
   // Get the page that the user was trying to access
   // Always go to dashboard on successful login as default
@@ -39,16 +40,25 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    setIsSubmitting(true);
     
     try {
       const success = await login(username, password);
       if (success) {
         // Redirect to the page the user was trying to access
         navigate(from, { replace: true });
+      } else {
+        // Login failed - show professional toast
+        toast.error('Login Failed', {
+          description: 'Invalid username/email or password. Please try again.'
+        });
       }
+    } catch {
+      toast.error('Login Error', {
+        description: 'An unexpected error occurred. Please try again.'
+      });
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -129,7 +139,7 @@ export const LoginPage: React.FC = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="w-full max-w-sm mx-auto"
+          className="w-full max-w-sm mx-auto relative"
         >
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
@@ -146,25 +156,18 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
 
-            {error && (
-              <AuthNotification 
-                type="error"
-                message={error}
-              />
-            )}
-            
             {usersExist === false && (
-              <AuthNotification 
-                type="info"
-                message="No users exist. Redirecting to registration page..."
-                onDismiss={() => navigate('/register', { replace: true })}
-              />
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-blue-800 dark:text-blue-200 text-sm">
+                  No users exist. Redirecting to registration page...
+                </p>
+              </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <label htmlFor="username" className="text-sm font-medium text-foreground">
-                  Username
+                  Username or Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -177,7 +180,7 @@ export const LoginPage: React.FC = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="pl-10 h-12 text-base"
-                    placeholder="Enter your username"
+                    placeholder="Enter your username or email"
                   />
                 </div>
               </div>
@@ -205,9 +208,9 @@ export const LoginPage: React.FC = () => {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-medium"
-                disabled={submitting}
+                disabled={isSubmitting}
               >
-                {submitting ? (
+                {isSubmitting ? (
                   <>
                     <motion.div
                       animate={{ rotate: 360 }}

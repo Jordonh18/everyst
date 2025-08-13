@@ -26,7 +26,6 @@ export * from './separator';
 
 // Custom components that remain
 export * from './IconButton';
-export { Notification, type NotificationType, type NotificationProps } from './Notification';
 export * from './Panel';
 export * from './ToolCard';
 export * from './FormattedToolOutput';

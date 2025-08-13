@@ -15,6 +15,7 @@ import UsersManagementPage from './pages/users/UsersManagementPage';
 import ActivityLogs from './pages/activity/ActivityLogs';
 import PermissionGate from './components/auth/PermissionGate';
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 import './App.css';
 
 // Create a client for React Query
@@ -59,6 +60,7 @@ function App() {
                     <Route path="*" element={<div className="p-4">Page not found</div>} />
                   </Route>
                 </Routes>
+                <Toaster />
               </Router>
             </NotificationProvider>
           </AuthProvider>

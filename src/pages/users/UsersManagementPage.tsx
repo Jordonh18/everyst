@@ -546,7 +546,9 @@ const EditUserForm: React.FC<{
           disabled
           className="bg-muted/50 text-muted-foreground"
         />
-        <p className="mt-1 text-xs text-muted-foreground">Username cannot be changed</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Username cannot be changed. Users can log in using either their username or email address (case-insensitive).
+        </p>
       </div>
 
       <div>
@@ -559,7 +561,9 @@ const EditUserForm: React.FC<{
           disabled
           className="bg-muted/50 text-muted-foreground"
         />
-        <p className="mt-1 text-xs text-muted-foreground">Email address cannot be changed</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Email address cannot be changed. Can also be used for login.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -688,7 +692,7 @@ const UsersManagementPage: React.FC<UsersPageProps> = () => {
   const userTableColumns = [
     { key: 'id', label: 'ID', className: 'w-12' },
     { key: 'user', label: 'User' },
-    { key: 'email', label: 'Email' },
+    { key: 'contact', label: 'Contact Info' },
     { key: 'role', label: 'Role' },
     { key: 'status', label: 'Status' },
     { key: 'joined', label: 'Joined' },
@@ -1089,7 +1093,14 @@ const UsersManagementPage: React.FC<UsersPageProps> = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm">{user.email}</TableCell>
+                      <TableCell className="text-sm">
+                        <div className="space-y-1">
+                          <div className="text-[rgb(var(--color-text))]">{user.email}</div>
+                          <div className="text-xs text-[rgb(var(--color-text-secondary))]">
+                            Login: username or email
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <RoleBadge role={user.role || 'user'} />
                       </TableCell>

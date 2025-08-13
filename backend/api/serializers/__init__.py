@@ -28,6 +28,9 @@ from .notification import NotificationSerializer
 # Activity log-related serializers
 from .activity import ApplicationLogSerializer
 
+# JWT-related serializers
+from .jwt_serializers import CustomTokenObtainPairSerializer
+
 # Define what's exported when doing 'from api.serializers import *'
 __all__ = [
     # User-related serializers
@@ -50,5 +53,8 @@ __all__ = [
     'NotificationSerializer',
 
     # Activity log-related serializers
-    'ApplicationLogSerializer'
+    'ApplicationLogSerializer',
+
+    # JWT-related serializers
+    'CustomTokenObtainPairSerializer'
 ]

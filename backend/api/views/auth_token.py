@@ -15,6 +15,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from api.models.auth_security import LoginAttempt
 from api.models.activity import ApplicationLog
 from api.utils.auth import should_change_password
+from api.serializers.jwt_serializers import CustomTokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -24,15 +25,18 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
     - Account lockout after too many failed attempts
     - Login attempt logging
     - IP tracking
+    - Support for username/email login (case-insensitive)
     """
+    # Use our custom serializer that supports email/username login
+    serializer_class = CustomTokenObtainPairSerializer
     def post(self, request, *args, **kwargs):
-        # Extract username and IP address
-        username = request.data.get('username', '')
+        # Extract username/email and IP address
+        username_or_email = request.data.get('username', '')
         ip_address = self._get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')
         
         # Check if the account is locked
-        is_locked, unlock_time = LoginAttempt.is_account_locked(username, ip_address)
+        is_locked, unlock_time = LoginAttempt.is_account_locked(username_or_email, ip_address)
         if is_locked:
             # Log the locked account attempt
             ApplicationLog.log_activity(
@@ -43,12 +47,12 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 ip_address=ip_address,
                 user_agent=user_agent,
                 object_type='user_account',
-                object_name=username,
+                object_name=username_or_email,
                 details={
-                    'message': f'Login attempt blocked for user {username} - account temporarily locked',
+                    'message': f'Login attempt blocked for {username_or_email} - account temporarily locked',
                     'reason': 'Account temporarily locked due to multiple failed attempts',
                     'unlock_time': unlock_time.isoformat(),
-                    'attempted_username': username
+                    'attempted_credential': username_or_email
                 }
             )
             
@@ -68,16 +72,18 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
         try:
             serializer.is_valid(raise_exception=True)
             
+            # Get the authenticated user from our custom serializer
+            user = getattr(serializer, 'user', None)
+            
             # Record successful login
             LoginAttempt.record_attempt(
-                username=username,
+                username=username_or_email,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 was_successful=True
             )
             
             # Log successful login to ApplicationLog
-            user = User.objects.filter(username=username).first()
             if user:
                 ApplicationLog.log_activity(
                     user=user,
@@ -87,11 +93,13 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                     ip_address=ip_address,
                     user_agent=user_agent,
                     object_type='user_session',
-                    object_name=username,
+                    object_name=user.username,
                     details={
-                        'message': f'User {username} logged in successfully',
+                        'message': f'User {user.username} logged in successfully',
                         'login_method': 'JWT',
                         'user_id': str(user.id),
+                        'attempted_credential': username_or_email,
+                        'login_type': 'email' if '@' in username_or_email else 'username',
                         'timestamp': timezone.now().isoformat()
                     }
                 )
@@ -118,7 +126,7 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
         except (InvalidToken, TokenError) as e:
             # Record failed login attempt
             LoginAttempt.record_attempt(
-                username=username,
+                username=username_or_email,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 was_successful=False
@@ -133,12 +141,13 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 ip_address=ip_address,
                 user_agent=user_agent,
                 object_type='user_session',
-                object_name=username,
+                object_name=username_or_email,
                 details={
-                    'message': f'Failed login attempt for user {username} - invalid credentials',
+                    'message': f'Failed login attempt for {username_or_email} - invalid credentials',
                     'error': str(e),
-                    'attempted_username': username,
-                    'reason': 'Invalid username or password'
+                    'attempted_credential': username_or_email,
+                    'login_type': 'email' if '@' in username_or_email else 'username',
+                    'reason': 'Invalid username/email or password'
                 }
             )
             
@@ -147,7 +156,7 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
         except Exception as e:
             # Handle validation errors
             LoginAttempt.record_attempt(
-                username=username,
+                username=username_or_email,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 was_successful=False
@@ -162,11 +171,12 @@ class TokenObtainPairView(OriginalTokenObtainPairView):
                 ip_address=ip_address,
                 user_agent=user_agent,
                 object_type='user_session',
-                object_name=username,
+                object_name=username_or_email,
                 details={
-                    'message': f'System error during login attempt for user {username}',
+                    'message': f'System error during login attempt for {username_or_email}',
                     'error': str(e),
-                    'attempted_username': username,
+                    'attempted_credential': username_or_email,
+                    'login_type': 'email' if '@' in username_or_email else 'username',
                     'reason': 'System validation error'
                 }
             )

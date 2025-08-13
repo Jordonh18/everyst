@@ -206,6 +206,19 @@ Pull requests are evaluated based on:
 4. Documentation: Are the changes documented?
 5. Fit: Does it align with project goals and architecture?
 
+## Recent Updates
+
+### Authentication System Enhancement
+
+The authentication system has been enhanced to support flexible login options:
+
+- **Username/Email Login**: Users can now log in using either their username or email address
+- **Case-Insensitive**: Both username and email matching are case-insensitive
+- **Enhanced UI**: Username is now more visible in user interfaces
+- **Backward Compatible**: All existing functionality is preserved
+
+For detailed information, see [Authentication Updates Documentation](authentication-updates.md).
+
 ## Licensing
 
 By contributing to Everyst, you agree that your contributions will be licensed under the project's [GPL-3.0 License](../LICENSE).

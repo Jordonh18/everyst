@@ -118,6 +118,12 @@ ASGI_APPLICATION = 'everyst_api.asgi.application'
 # Use our custom user model
 AUTH_USER_MODEL = 'api.User'
 
+# Authentication backends - support username/email login
+AUTHENTICATION_BACKENDS = [
+    'api.backends.EmailOrUsernameBackend',  # Our custom backend for flexible login
+    'django.contrib.auth.backends.ModelBackend',  # Default backend as fallback
+]
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
