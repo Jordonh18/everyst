@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, User, CheckCircle, XCircle, UserPlus, ArrowRight } from 'lucide-react';
 import zxcvbn from 'zxcvbn';
-import { AuthNotification } from '../../components/auth/AuthNotification';
 import { Button, Input } from '../../components/ui';
 import { AnimatedServerRack, AnimatedShield } from '../../components/ui/AnimatedSVGs';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export const RegisterPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -17,8 +17,7 @@ export const RegisterPage: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const { register, error, usersExist, checkUsersExist } = useAuth();
+  const { register, usersExist, checkUsersExist } = useAuth();
   const navigate = useNavigate();
 
   // Check if users exist on component mount
@@ -69,21 +68,26 @@ export const RegisterPage: React.FC = () => {
     
     // Form validation
     if (!username) {
-      setFormError("Username is required");
+      toast.error("Username Required", {
+        description: "Username is required"
+      });
       return;
     }
     
     if (password !== confirmPassword) {
-      setFormError("Passwords don't match");
+      toast.error("Password Mismatch", {
+        description: "Passwords don't match"
+      });
       return;
     }
     
     if (password.length < 8) {
-      setFormError('Password must be at least 8 characters long');
+      toast.error('Password Too Short', {
+        description: 'Password must be at least 8 characters long'
+      });
       return;
     }
     
-    setFormError(null);
     setSubmitting(true);
     
     try {
@@ -91,7 +95,15 @@ export const RegisterPage: React.FC = () => {
       if (success) {
         // Redirect to dashboard after successful registration
         navigate('/dashboard', { replace: true });
+      } else {
+        toast.error('Registration Failed', {
+          description: 'Please check your information and try again.'
+        });
       }
+    } catch {
+      toast.error('Registration Error', {
+        description: 'An unexpected error occurred. Please try again.'
+      });
     } finally {
       setSubmitting(false);
     }
@@ -176,7 +188,7 @@ export const RegisterPage: React.FC = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="w-full max-w-md mx-auto"
+          className="w-full max-w-md mx-auto relative"
         >
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
@@ -192,14 +204,6 @@ export const RegisterPage: React.FC = () => {
                 Set up your administrator account
               </p>
             </div>
-
-            {(error || formError) && (
-              <AuthNotification 
-                type="error"
-                message={formError || error || ''}
-                onDismiss={() => setFormError(null)}
-              />
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">

@@ -260,7 +260,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Login function
   const login = async (username: string, password: string): Promise<boolean> => {
-    setLoading(true);
+    // Don't set global loading state to avoid loading screen
     setError(null);
     
     try {
@@ -276,7 +276,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!response.ok) {
         setError(data.detail || 'Login failed. Please check your credentials.');
-        setLoading(false);
         return false;
       }
       
@@ -286,34 +285,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('authToken', data.access); // For backward compatibility
       
       // Fetch user data
-      const userData = await fetchCurrentUser(data.access);        if (userData) {
-          setIsAuthenticated(true);
-          setUser(userData);
-          
-          // Update role-based permissions
-          updatePermissions(userData);
-          
-          // Connect to WebSocket with token (combined connection+authentication)
-          console.log('Login successful, establishing secure WebSocket connection');
-          const connected = await connect(data.access);
-          if (!connected) {
-            console.warn('Could not establish WebSocket connection after login');
-            // Continue with app functionality even if WebSocket fails
-          }
-          
-          setLoading(false);
-          return true;
+      const userData = await fetchCurrentUser(data.access);
+      if (userData) {
+        setIsAuthenticated(true);
+        setUser(userData);
+        
+        // Update role-based permissions
+        updatePermissions(userData);
+        
+        // Connect to WebSocket with token (combined connection+authentication)
+        console.log('Login successful, establishing secure WebSocket connection');
+        const connected = await connect(data.access);
+        if (!connected) {
+          console.warn('Could not establish WebSocket connection after login');
+          // Continue with app functionality even if WebSocket fails
+        }
+        
+        return true;
       } else {
         clearAuthState();
         setError('Could not retrieve user data');
-        setLoading(false);
         return false;
       }
     } catch (err) {
       console.error('Login error:', err);
       setError('An error occurred during login. Please try again.');
       clearAuthState();
-      setLoading(false);
       return false;
     }
   };
@@ -331,7 +328,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     firstName?: string, 
     lastName?: string
   ): Promise<boolean> => {
-    setLoading(true);
+    // Don't set global loading state to avoid loading screen
     setError(null);
     
     try {
@@ -360,7 +357,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setError(data.detail || 'Registration failed.');
         }
-        setLoading(false);
         return false;
       }
       
@@ -390,19 +386,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Continue with app functionality even if WebSocket fails
         }
         
-        setLoading(false);
         return true;
       } else {
         clearAuthState();
         setError('Could not retrieve user data');
-        setLoading(false);
         return false;
       }
     } catch (err) {
       console.error('Registration error:', err);
       setError('An error occurred during registration. Please try again.');
       clearAuthState();
-      setLoading(false);
       return false;
     }
   };

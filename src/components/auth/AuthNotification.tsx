@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from 'lucide-react';
 
 type NotificationType = 'error' | 'success' | 'info' | 'warning';
@@ -7,9 +7,26 @@ interface AuthNotificationProps {
   type: NotificationType;
   message: string;
   onDismiss?: () => void;
+  autoDismiss?: boolean;
+  autoDismissDelay?: number;
 }
 
-export const AuthNotification: React.FC<AuthNotificationProps> = ({ type, message, onDismiss }) => {
+export const AuthNotification: React.FC<AuthNotificationProps> = ({ 
+  type, 
+  message, 
+  onDismiss,
+  autoDismiss = false,
+  autoDismissDelay = 5000
+}) => {
+  useEffect(() => {
+    if (autoDismiss && onDismiss) {
+      const timer = setTimeout(() => {
+        onDismiss();
+      }, autoDismissDelay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoDismiss, onDismiss, autoDismissDelay]);
   const getStyles = () => {
     switch (type) {
       case 'error':
@@ -43,18 +60,18 @@ export const AuthNotification: React.FC<AuthNotificationProps> = ({ type, messag
   const styles = getStyles();
 
   return (
-    <div className={`${styles.bg} border-l-4 ${styles.border} rounded-md p-4 mb-5 shadow-md flex items-start justify-between animate-fadeIn backdrop-blur-sm`}>
+    <div className={`${styles.bg} border ${styles.border} rounded-lg p-3 mb-4 shadow-sm flex items-start justify-between transition-all duration-200 ease-in-out`}>
       <div className="flex items-start">
         {styles.icon}
-        <span className="text-[rgb(var(--color-text))]">{message}</span>
+        <span className="text-[rgb(var(--color-text))] text-sm leading-relaxed">{message}</span>
       </div>
       {onDismiss && (
         <button 
           onClick={onDismiss} 
-          className="ml-4 p-1 hover:bg-[rgba(var(--color-text),0.1)] rounded-full transition-colors"
+          className="ml-3 p-1 hover:bg-[rgba(var(--color-text),0.1)] rounded-full transition-colors shrink-0"
           aria-label="Dismiss"
         >
-          <X size={16} className="text-[rgb(var(--color-text-secondary))]" />
+          <X size={14} className="text-[rgb(var(--color-text-secondary))]" />
         </button>
       )}
     </div>
