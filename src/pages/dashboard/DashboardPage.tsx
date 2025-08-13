@@ -311,6 +311,8 @@ export const DashboardPage: React.FC = () => {
   // Add new data point to historical data with proper management
   const addToHistoricalData = (newData: RawMetricsData) => {
     const now = new Date();
+    
+    // Use seconds precision for both charts to get continuous flow
     const timestamp = now.toLocaleTimeString('en-US', { 
       hour12: false, 
       hour: '2-digit',
@@ -318,42 +320,38 @@ export const DashboardPage: React.FC = () => {
       second: '2-digit' 
     });
 
+    // Always create new data points for continuous streaming effect
     const newPoint: MetricPoint = {
       timestamp,
       cpu: newData.cpu_usage || 0,
       memory: newData.memory_usage || 0,
       disk: newData.disk_usage || 0,
-      network: Math.min(100, ((newData.network_tx + newData.network_rx) / (1024 * 1024)) / 125 * 100) // Network utilization as percentage
+      network: Math.min(100, ((newData.network_tx + newData.network_rx) / (1024 * 1024)) / 125 * 100)
     };
 
-    // Also add network traffic data point
     const networkTrafficPoint: NetworkTrafficPoint = {
-      timestamp: now.toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      upload: parseFloat(((newData.network_tx || 0) / (1024 * 1024)).toFixed(2)), // Convert bytes/s to MB/s
-      download: parseFloat(((newData.network_rx || 0) / (1024 * 1024)).toFixed(2)), // Convert bytes/s to MB/s
+      timestamp,
+      upload: parseFloat(((newData.network_tx || 0) / (1024 * 1024)).toFixed(2)),
+      download: parseFloat(((newData.network_rx || 0) / (1024 * 1024)).toFixed(2)),
       total: parseFloat((((newData.network_tx || 0) + (newData.network_rx || 0)) / (1024 * 1024)).toFixed(2))
     };
 
     setMetrics(prev => {
-      // Keep only the last 20 points and ensure no duplicates
-      const existingData = prev.historicalData;
-      const lastPoint = existingData[existingData.length - 1];
+      // Always add new data points for continuous flow (no duplicate checking)
+      const newHistoricalData = [...prev.historicalData, newPoint];
+      const newNetworkData = [...prev.networkTrafficData, networkTrafficPoint];
       
-      const existingNetworkData = prev.networkTrafficData;
-      const lastNetworkPoint = existingNetworkData[existingNetworkData.length - 1];
+      // Keep a reasonable number of points and trim old data
+      const maxCpuPoints = 30; // Same as network for consistency
+      const maxNetworkPoints = 30;
       
-      // Only add if timestamp is different from last point
-      const shouldAddHistorical = !lastPoint || lastPoint.timestamp !== timestamp;
-      const shouldAddNetwork = !lastNetworkPoint || lastNetworkPoint.timestamp !== networkTrafficPoint.timestamp;
+      const trimmedHistoricalData = newHistoricalData.slice(-maxCpuPoints);
+      const trimmedNetworkData = newNetworkData.slice(-maxNetworkPoints);
       
       return {
         ...prev,
-        historicalData: shouldAddHistorical ? [...existingData, newPoint].slice(-20) : existingData,
-        networkTrafficData: shouldAddNetwork ? [...existingNetworkData, networkTrafficPoint].slice(-24) : existingNetworkData // Keep 24 points for network
+        historicalData: trimmedHistoricalData,
+        networkTrafficData: trimmedNetworkData
       };
     });
   };
@@ -869,6 +867,7 @@ export const DashboardPage: React.FC = () => {
                         tickLine={false}
                         tick={{ fontSize: 12, fill: '#6b7280' }}
                         interval="preserveStartEnd"
+                        domain={['dataMin', 'dataMax']}
                       />
                       <YAxis 
                         domain={[0, 100]} 
@@ -897,6 +896,9 @@ export const DashboardPage: React.FC = () => {
                         connectNulls={false}
                         dot={false}
                         activeDot={{ r: 6, stroke: '#ffffff', strokeWidth: 2 }}
+                        animationDuration={200}
+                        animationEasing="linear"
+                        isAnimationActive={true}
                       />
                     </AreaChart>
                   </ChartContainer>
@@ -951,6 +953,7 @@ export const DashboardPage: React.FC = () => {
                       tickLine={false}
                       tick={{ fontSize: 10, fill: '#6b7280' }}
                       interval="preserveStartEnd"
+                      domain={['dataMin', 'dataMax']}
                     />
                     <YAxis 
                       axisLine={false}
@@ -978,6 +981,9 @@ export const DashboardPage: React.FC = () => {
                       fill="url(#downloadGradient)"
                       name="Download"
                       dot={false}
+                      animationDuration={200}
+                      animationEasing="linear"
+                      isAnimationActive={true}
                     />
                     <Area 
                       type="monotone" 
@@ -988,6 +994,9 @@ export const DashboardPage: React.FC = () => {
                       fill="url(#uploadGradient)"
                       name="Upload"
                       dot={false}
+                      animationDuration={200}
+                      animationEasing="linear"
+                      isAnimationActive={true}
                     />
                   </AreaChart>
                 </ChartContainer>
