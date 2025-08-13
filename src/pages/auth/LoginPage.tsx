@@ -164,7 +164,7 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <label htmlFor="username" className="text-sm font-medium text-foreground">
-                  Username
+                  Username or Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -177,7 +177,7 @@ export const LoginPage: React.FC = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="pl-10 h-12 text-base"
-                    placeholder="Enter your username"
+                    placeholder="Enter your username or email"
                   />
                 </div>
               </div>

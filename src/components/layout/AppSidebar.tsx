@@ -263,7 +263,10 @@ export const AppSidebar: React.FC = () => {
                         {getDisplayName()}
                       </span>
                       <span className="truncate text-xs">
-                        {user?.email || 'user@everyst.com'}
+                        {user?.first_name && user?.last_name 
+                          ? `@${user.username} • ${user.email}` 
+                          : user?.email || 'user@everyst.com'
+                        }
                       </span>
                     </div>
                     <ChevronUp className="ml-auto size-4" />

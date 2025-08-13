@@ -36,6 +36,7 @@ const AccountSettingsPage: React.FC = () => {
     firstName: user?.first_name || '',
     lastName: user?.last_name || '',
     email: user?.email || '',
+    username: user?.username || '',
     bio: '',
   });
   
@@ -369,6 +370,21 @@ const AccountSettingsPage: React.FC = () => {
                           onChange={handleUserDataChange}
                           placeholder="Enter your email address"
                         />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          name="username"
+                          value={userData.username}
+                          disabled
+                          className="bg-muted/50 cursor-not-allowed"
+                          placeholder="Your unique username"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Your username is used for login and cannot be changed. You can also log in using your email address.
+                        </p>
                       </div>
                       
                       <div className="space-y-2">
