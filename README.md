@@ -1,158 +1,233 @@
-# Everyst - Server Management Dashboard
+# Everyst - Server Monitoring & Security Platform
 
-![Everyst Logo](./public/images/everyst-logo.svg)
+![Everyst Logo](/public/Logo-white-no-text.svg)
 
-## Hey there, welcome to Everyst
+## Overview
 
-Everyst is a server monitoring and security management platform built with React, TypeScript, and Django. It aims to provide a modern, responsive interface for monitoring system metrics and security.
+Everyst is a comprehensive server monitoring and security management platform designed for modern infrastructure needs. Built with React, TypeScript, and Django, it provides a clean, responsive interface for real-time system monitoring, security analysis, and network management.
 
-![Summit Dashboard Example](./public/images/everyst-example.jpg)
+** Development Status:** Everyst is currently in **Alpha** development. While functional, it is not recommended for production environments. Use at your own discretion.
 
-**Important note:** This project is currently in **Alpha 1** stage. It's very much a work in progress, and I'm sharing it early to gather feedback and collaborate with others interested in this space.
+## Features
 
-## Why Everyst Exists
+### Real-time Monitoring
 
-I’m building Everyst a server management dashboard that’s simple, fast, and secure. I wasn’t happy with existing options like Webmin or Cockpit (they felt slow or outdated) so I decided to make something better.
+- Live server performance metrics
+- Resource utilization tracking
+- System uptime monitoring
+- Interactive dashboards with real-time updates
 
-Everyst uses React, TypeScript, and Django to give a clean and responsive interface for monitoring system metrics and managing security. It’s still early days (Alpha stage), but the goal is to have a reliable tool that works well for my homelab and anyone else who wants something lightweight and modern.
+### Security Management
 
-## Technical Foundation
+- Advanced threat detection
+- Security event analysis
+- Automated security alerts
+- Vulnerability assessment tools
 
-Everyst is built on:
+### Network Diagnostics
 
-### Frontend
+- Network performance analysis
+- Connectivity testing tools
+- Traffic monitoring
+- Infrastructure mapping
 
-React + TypeScript + Vite with Tailwind CSS for responsive design
+### User Management
 
-### Backend
+- Role-based access control
+- Multi-user support
+- Secure authentication
+- Activity logging
 
-Django + Socket.IO for API endpoints and real-time updates
+## Architecture
 
-## Getting Started
+Everyst follows a modern full-stack architecture designed for scalability and maintainability:
 
-Want to play around with the project? Here's how:
+### Frontend Stack
+
+- **React 18** with TypeScript for type-safe development
+- **Vite** for fast build tooling and development server
+- **Tailwind CSS** for responsive, utility-first styling
+- **Framer Motion** for smooth animations and transitions
+- **Real-time WebSocket** integration for live updates
+
+### Backend Stack
+
+- **Django** REST framework for robust API development
+- **WebSocket support** for real-time communication
+- **SQLite** database (development) with PostgreSQL support
+- **Secure authentication** with JWT tokens
+- **RESTful API** design with comprehensive documentation
+
+### Security Features
+
+- HTTPS-only communication with TLS 1.3
+- Secure WebSocket connections (WSS)
+- CSRF protection and security headers
+- Input validation and sanitization
+- Rate limiting and DDoS protection
+
+## Project Goals
+
+Everyst aims to address the limitations of existing server management solutions by providing:
+
+1. **Modern Interface**: Clean, intuitive UI that works seamlessly across devices
+2. **Performance**: Fast, responsive experience with real-time updates
+3. **Security-First**: Built with security best practices from the ground up
+4. **Extensibility**: Modular architecture for easy feature additions
+5. **Reliability**: Robust error handling and graceful degradation
+
+## Installation & Setup
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- Python 3.10+
-- Virtual environment tool (venv recommended)
-- curl
+Before installing Everyst, ensure your system meets the following requirements:
 
-### Installation
+- **Node.js** 18+ with npm
+- **Python** 3.10+
+- **Virtual environment** support (venv recommended)
+- **curl** for dependency management
+- **sudo** privileges for system configuration
 
-We provide two scripts to help you get Everyst up and running: one for a production-like server setup and one for local development if you wish to contribute or modify the code.
+### Quick Start
 
-#### Production Installation (Not Recommended)
+Everyst provides automated installation scripts for both development and production-like environments.
 
-WARNING: This isn't really ready, I wouldn't recommend installing yet. NOT stable. Please use the development setup instructions below instead.
+#### Development Setup (Recommended)
 
-This script prepares Everyst for a production-like environment. It creates a dedicated system user (`Everyst`), builds the frontend for production, and sets stricter file permissions.
+For development, testing, or local deployment:
 
-1. Clone the repository:
+1. **Clone the repository:**
 
    ```bash
    git clone https://github.com/Jordonh18/Everyst.git
    cd Everyst
    ```
 
-2. Run the production installation script with sudo privileges:
-
-   ```bash
-   sudo ./install.sh
-   ```
-
-   The script will:
-   - Perform prerequisite checks.
-   - Create a system user named `Everyst`.
-   - Set up the Python virtual environment.
-   - Install backend and frontend dependencies.
-   - Run database migrations.
-   - **Build the frontend for production (`npm run build`)**.
-   - Set file ownership and permissions for the `Everyst` user (this user will own the application files, database, etc.).
-   - Optionally, create a systemd service file to manage the Everyst application.
-
-   Follow the on-screen prompts and messages for further instructions, especially regarding the systemd service and production Django settings.
-
-#### Development Setup (For contributing or local modification)
-
-If you'd like to contribute to Everyst or set up a local development environment to modify the code, this script will help you get started. It installs necessary dependencies and configures file permissions for your user.
-
-**Note:** For deploying on a server, please use the Production Installation script above.
-
-1. Clone the repository (if not already done):
-
-   ```bash
-   git clone https://github.com/Jordonh18/Everyst.git
-   cd Everyst
-
-2. Set up your environment variables:
+2. **Configure environment variables:**
 
    ```bash
    cp .env.example .env
    ```
 
-   Then edit the `.env` file to customize your settings. See [Environment Variables Guide](docs/getting-started/environment-variables.md) for details.
-   ```
+   Edit the `.env` file to customize settings. See the [Environment Variables Guide](docs/getting-started/environment-variables.md) for detailed configuration options.
 
-3. Run the development setup script with sudo privileges:
+3. **Run the development setup:**
 
    ```bash
    sudo ./setup-dev.sh
    ```
 
-   The script will:
-   - Check for and optionally install prerequisites (Python 3.10+, Node.js 18+, npm, curl).
-   - Create a Python virtual environment (`venv`).
-   - Install backend dependencies (`requirements.txt`).
-   - Run database migrations.
-   - Install frontend dependencies (`package.json`).
-   - Set appropriate file ownership and permissions for development (e.g., your user will own the database file).
+   This script will:
+   - Verify and install prerequisites
+   - Create a Python virtual environment
+   - Install backend dependencies
+   - Run database migrations
+   - Install frontend dependencies
+   - Configure development permissions
 
-4. After the script completes, activate the virtual environment:
+4. **Activate the virtual environment:**
 
    ```bash
    source venv/bin/activate
    ```
 
-5. Start the development server:
+5. **Start the development server:**
 
    ```bash
    sudo npm run dev
    ```
 
-6. Access the application at `https://localhost:5173`
+6. **Access the application:**
 
-   Both the frontend and backend are configured to use HTTPS with the certificates in the `certs` folder. Since we're using self-signed certificates for development, you may need to accept the security warnings in your browser.
+   Navigate to `https://localhost:5173` in your browser. The application uses HTTPS with self-signed certificates for development, so you may need to accept security warnings.
 
-## Contributions Welcome
+#### Production Installation
 
-I'd love your help with this project! It's in its early days, and contributions of all kinds are welcome.
+**⚠️ Warning:** Production deployment is not recommended at this time. Everyst is in alpha development and lacks production-ready security hardening and stability features.
 
-Feel free to:
+If you still wish to proceed with a production-like setup:
 
-- Submit issues for bugs you find
-- Suggest features you'd like to see
-- Fork the repo and submit pull requests
-- Share feedback on the current implementation
+1. **Clone the repository:**
 
-No contribution is too small, and all are appreciated.
+   ```bash
+   git clone https://github.com/Jordonh18/Everyst.git
+   cd Everyst
+   ```
 
-Commenting your code clearly is essential — it saves time and ensures everyone (including me!) can understand the purpose and logic quickly.
+2. **Run the production installer:**
 
-## Credits
+   ```bash
+   sudo ./install.sh
+   ```
+
+   This script will:
+   - Create a dedicated system user (`Everyst`)
+   - Build the frontend for production
+   - Configure production file permissions
+   - Optionally create systemd service files
+
+### Post-Installation
+
+After successful installation:
+
+1. **First Run:** Follow the on-screen setup wizard to create your admin account
+2. **Security:** Review the [Security Hardening Guide](docs/security-hardening-guide.md)
+3. **Configuration:** Consult the [Configuration Documentation](docs/getting-started/configuration.md)
+4. **Troubleshooting:** See [Troubleshooting Guide](docs/troubleshooting.md) for common issues
+
+## Contributing
+
+Everyst is an open-source project that welcomes contributions from the community. Whether you're a developer, designer, or user, there are many ways to get involved:
+
+### How to Contribute
+
+- **Report Issues:** Found a bug? [Submit an issue](https://github.com/Jordonh18/Everyst/issues) with detailed reproduction steps
+- **Feature Requests:** Have an idea? Share it through our issue tracker
+- **Code Contributions:** Fork the repository and submit pull requests
+- **Documentation:** Help improve our guides and documentation
+- **Testing:** Test new features and provide feedback
+
+### Development Guidelines
+
+- Follow existing code style and conventions
+- Write clear, comprehensive comments
+- Include tests for new functionality
+- Update documentation for new features
+- Ensure all CI checks pass before submitting PRs
+
+### Community Standards
+
+We are committed to providing a welcoming and inclusive environment for all contributors.
+
+## Support & Community
+
+### Getting Help
+
+- **Documentation:** Check our comprehensive guides first
+- **Issues:** Search existing issues or create a new one
+- **Discussions:** Join community discussions on GitHub
+
+## Acknowledgments
 
 ### Logo Design
-The Everyst logo was designed by Katie McKinlay. Their creative contribution has been essential to establishing the visual identity of this project, and I'm incredibly grateful for their work.
+
+The Everyst logo was designed by Katie McKinlay. Their creative contribution has been essential to establishing the visual identity of this project.
 
 ### Contributors
-Thanks to all who have contributed to making Everyst better!
 
-## ☕ Support
+Thanks to all who have contributed to making Everyst better! See [CONTRIBUTORS.md](CONTRIBUTORS.md) for a complete list.
 
-If you find this project useful, consider [buying me a beer](https://www.buymeacoffee.com/jordonh) to support continued development.
+## Support Development
 
+If you find Everyst useful, consider supporting continued development:
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jordonh)
 
 ## License
 
-This project is licensed under the GPL-3.0 license - see the LICENSE file for details.
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Everyst** - Modern server monitoring and security management  
+Built with ❤️ for the open-source community

@@ -126,9 +126,9 @@ class APIActivityMiddleware:
         # Avoid double logging if a more specific log was already created in a view
         # This is a simple check; a more robust system might involve passing context.
         if action in ['auth_login', 'auth_logout', 'network_scan']: # Actions that might be logged here AND in views
-             # For login/logout, the middleware is the primary logger.
+             # For login/logout, the auth_token.py views are the primary loggers.
              # For network_scan, view is primary.
-             if action == 'network_scan' and status_code < 300 : # if scan started successfully, view logs it.
+             if action in ['auth_login', 'auth_logout'] or (action == 'network_scan' and status_code < 300):
                  log_this_request = False
 
 

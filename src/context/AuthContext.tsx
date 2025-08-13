@@ -102,8 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCanManageSystem(roleDetails.can_manage_system);
       setCanManageNetwork(roleDetails.can_manage_network);
       setCanViewAllData(roleDetails.can_view_all_data);
-      // For canViewLogs, use role-based permissions since it's a new addition
-      setCanViewLogs(role === 'owner' || role === 'admin');
+      setCanViewLogs(roleDetails.can_view_logs);
     } else {
       // Fallback to role-based permissions if details not available
       setCanManageUsers(role === 'owner' || role === 'admin');

@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { WebSocketProvider } from './context/WebSocketContext'; 
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, PublicRoute } from './components/auth/ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SummitDashboard } from './pages/summit/SummitDashboard';
-import { BasecampIntegrations } from './pages/basecamp/BasecampIntegrations';
-import { GearRoomTools } from './pages/gearroom/GearRoomTools';
+import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { IntegrationsPage } from './pages/integrations/IntegrationsPage';
+import { ToolsPage } from './pages/tools/ToolsPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import AccountSettingsPage from './pages/account/AccountSettingsPage';
-import GlacierNetworkMap from './pages/glacier/GlacierNetworkMap';
-import ClimbersUserManagement from './pages/climbers/ClimbersUserManagement';
+import NetworkMapPage from './pages/network/NetworkMapPage';
+import UsersManagementPage from './pages/users/UsersManagementPage';
 import ActivityLogs from './pages/activity/ActivityLogs';
 import PermissionGate from './components/auth/PermissionGate';
+import { ThemeProvider } from "@/components/theme-provider"
 import './App.css';
 
 // Create a client for React Query
@@ -29,8 +29,8 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
         <WebSocketProvider>
           <AuthProvider>
             <NotificationProvider>
@@ -42,19 +42,19 @@ function App() {
                   
                   {/* Protected Routes */}
                   <Route path="/" element={<ProtectedRoute />}>
-                    {/* Redirect from root to summit dashboard */}
-                    <Route index element={<Navigate to="/summit" replace />} />
-                    {/* Use the actual SummitDashboard component for the summit page */}
-                    <Route path="summit" element={<SummitDashboard />} />
-                    <Route path="network-map" element={<GlacierNetworkMap />} />
-                    <Route path="metrics" element={<div className="p-4">Altitude Metrics (Coming Soon)</div>} />
-                    <Route path="security" element={<div className="p-4">IceWall Security (Coming Soon)</div>} />
-                    <Route path="logs" element={<PermissionGate permission="canViewLogs" fallback={<Navigate to="/summit" replace />}><ActivityLogs /></PermissionGate>} />
-                    <Route path="alerts" element={<div className="p-4">Avalanche Alerts (Coming Soon)</div>} />
-                    <Route path="integrations" element={<BasecampIntegrations />} />
-                    <Route path="tools" element={<GearRoomTools />} />
-                    <Route path="climbers" element={<PermissionGate permission="canManageUsers" fallback={<Navigate to="/summit" replace />}><ClimbersUserManagement /></PermissionGate>} />
-                    <Route path="settings" element={<div className="p-4">ControlRoom Settings (Coming Soon)</div>} />
+                    {/* Redirect from root to dashboard */}
+                    <Route index element={<Navigate to="/dashboard" replace />} />
+                    {/* Use the actual DashboardPage component for the dashboard page */}
+                    <Route path="dashboard" element={<DashboardPage />} />
+                    <Route path="network" element={<NetworkMapPage />} />
+                    <Route path="metrics" element={<div className="p-4">Metrics (Coming Soon)</div>} />
+                    <Route path="security" element={<div className="p-4">Security (Coming Soon)</div>} />
+                    <Route path="logs" element={<PermissionGate permission="canViewLogs" fallback={<Navigate to="/dashboard" replace />}><ActivityLogs /></PermissionGate>} />
+                    <Route path="alerts" element={<div className="p-4">Alerts (Coming Soon)</div>} />
+                    <Route path="integrations" element={<IntegrationsPage />} />
+                    <Route path="tools" element={<ToolsPage />} />
+                    <Route path="users" element={<PermissionGate permission="canManageUsers" fallback={<Navigate to="/dashboard" replace />}><UsersManagementPage /></PermissionGate>} />
+                    <Route path="settings" element={<div className="p-4">Settings (Coming Soon)</div>} />
                     <Route path="account" element={<AccountSettingsPage />} />
                     <Route path="*" element={<div className="p-4">Page not found</div>} />
                   </Route>
@@ -63,8 +63,8 @@ function App() {
             </NotificationProvider>
           </AuthProvider>
         </WebSocketProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

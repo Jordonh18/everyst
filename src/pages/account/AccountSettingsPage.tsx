@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@/components/theme-provider';
 import { useLocation } from 'react-router-dom';
-import { Panel } from '../../components/ui/Panel';
-import { Button } from '../../components/ui/Button';
+import { Button, Label, Card, CardContent, CardDescription, CardHeader, CardTitle, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator, Input, Checkbox, Textarea } from '../../components/ui';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { 
   User, 
   Shield, 
@@ -13,7 +13,9 @@ import {
   Save, 
   X, 
   Upload,
-  Palette
+  Palette,
+  Monitor,
+  Trash2
 } from 'lucide-react';
 import { useNotificationsManager } from '../../hooks/state/useNotificationsManager';
 
@@ -25,7 +27,7 @@ const getApiUrl = () => {
 
 const AccountSettingsPage: React.FC = () => {
   const { user, getAccessToken, refreshToken } = useAuth();
-  const { colorMode, setColorMode, colorTheme, setColorTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const location = useLocation();
   const { sendUserNotification } = useNotificationsManager();
   
@@ -34,6 +36,7 @@ const AccountSettingsPage: React.FC = () => {
     firstName: user?.first_name || '',
     lastName: user?.last_name || '',
     email: user?.email || '',
+    bio: '',
   });
   
   // State for password change
@@ -96,7 +99,7 @@ const AccountSettingsPage: React.FC = () => {
   }, [user?.id, getAccessToken]);
   
   // Handle input changes for user data
-  const handleUserDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUserDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUserData(prev => ({
       ...prev,
@@ -251,9 +254,8 @@ const AccountSettingsPage: React.FC = () => {
                   : 'text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-hover))]'
               }`}
               variant="ghost"
-              leftIcon={<User size={20} />}
-              active={activeTab === 'profile'}
             >
+              <User size={20} className="mr-2" />
               Profile Information
             </Button>
             
@@ -265,9 +267,8 @@ const AccountSettingsPage: React.FC = () => {
                   : 'text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-hover))]'
               }`}
               variant="ghost"
-              leftIcon={<Shield size={20} />}
-              active={activeTab === 'security'}
             >
+              <Shield size={20} className="mr-2" />
               Security
             </Button>
             
@@ -279,9 +280,8 @@ const AccountSettingsPage: React.FC = () => {
                   : 'text-[rgb(var(--color-text))] hover:bg-[rgb(var(--color-hover))]'
               }`}
               variant="ghost"
-              leftIcon={<Palette size={20} />}
-              active={activeTab === 'appearance'}
             >
+              <Palette size={20} className="mr-2" />
               Theme & Appearance
             </Button>
           </nav>
@@ -291,773 +291,527 @@ const AccountSettingsPage: React.FC = () => {
         <div className="flex-1">
           {/* Profile Information Tab */}
           {activeTab === 'profile' && (
-            <Panel>
-              <h2 className="text-xl font-semibold mb-6 text-[rgb(var(--color-text))]">Profile Information</h2>
-              
-              {/* Error/Success Messages */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{error}</span>
-                  <Button
-                    onClick={() => setError(null)}
-                    variant="ghost"
-                    size="xs"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{success}</span>
-                  <Button
-                    onClick={() => setSuccess(null)}
-                    variant="ghost"
-                    size="xs"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              <form onSubmit={handleProfileUpdate}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Left column - User details */}
-                  <div>
-                    <div className="mb-4">
-                      <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={userData.firstName}
-                        onChange={handleUserDataChange}
-                        className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                      />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
+                <CardDescription>
+                  Update your personal information and profile picture
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Error/Success Messages */}
+                {error && (
+                  <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-4 flex justify-between items-center">
+                    <span>{error}</span>
+                    <Button
+                      onClick={() => setError(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-destructive/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
+                
+                {success && (
+                  <div className="bg-green-500/15 border border-green-500/20 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-4 flex justify-between items-center">
+                    <span>{success}</span>
+                    <Button
+                      onClick={() => setSuccess(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-green-500/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
+                
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left column - User details */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          value={userData.firstName}
+                          onChange={handleUserDataChange}
+                          placeholder="Enter your first name"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          value={userData.lastName}
+                          onChange={handleUserDataChange}
+                          placeholder="Enter your last name"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          name="email"
+                          value={userData.email}
+                          onChange={handleUserDataChange}
+                          placeholder="Enter your email address"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Bio</Label>
+                        <Textarea
+                          id="bio"
+                          name="bio"
+                          value={userData.bio || ''}
+                          onChange={handleUserDataChange}
+                          placeholder="Tell us about yourself..."
+                          rows={3}
+                        />
+                      </div>
                     </div>
                     
-                    <div className="mb-4">
-                      <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={userData.lastName}
-                        onChange={handleUserDataChange}
-                        className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                      />
-                    </div>
-                    
-                    <div className="mb-4">
-                      <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={userData.email}
-                        onChange={handleUserDataChange}
-                        className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                      />
+                    {/* Right column - Profile picture */}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Profile Picture</Label>
+                        <div className="flex flex-col items-center border-2 border-dashed border-border rounded-lg p-6 bg-muted/20">
+                          <Avatar className="mb-4 w-32 h-32">
+                            <AvatarImage 
+                              src={profileImage || undefined} 
+                              alt="Profile"
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-medium text-4xl">
+                              {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <label className="cursor-pointer">
+                            <Button variant="outline" asChild>
+                              <span>
+                                <Upload size={16} className="mr-2" />
+                                Upload Picture
+                              </span>
+                            </Button>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageUpload}
+                            />
+                          </label>
+                          
+                          <p className="mt-2 text-sm text-muted-foreground text-center">
+                            JPG, PNG or GIF (max 2MB)
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Notification Preferences */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-medium">Notification Preferences</Label>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="emailNotifications" />
+                            <Label htmlFor="emailNotifications" className="text-sm font-normal">
+                              Email notifications
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="pushNotifications" />
+                            <Label htmlFor="pushNotifications" className="text-sm font-normal">
+                              Push notifications
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="securityAlerts" defaultChecked />
+                            <Label htmlFor="securityAlerts" className="text-sm font-normal">
+                              Security alerts
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Right column - Profile picture */}
-                  <div>
-                    <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                      Profile Picture
-                    </label>
-                    
-                    <div className="flex flex-col items-center border border-dashed border-[rgb(var(--color-border))] bg-[rgba(var(--color-card-light),0.5)] rounded-lg p-6">
-                      <div className="mb-4 w-32 h-32 rounded-full overflow-hidden bg-[rgb(var(--color-card-light))] flex items-center justify-center">
-                        {profileImage ? (
-                          <img 
-                            src={profileImage} 
-                            alt="Profile"
-                            className="w-full h-full object-cover" 
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[rgb(var(--color-primary))] to-[rgba(var(--color-primary),0.7)] flex items-center justify-center text-white font-medium text-4xl">
-                            {user?.first_name ? user.first_name[0].toUpperCase() : 'U'}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <label className="cursor-pointer">
-                        <Button
-                          variant="primary"
-                          leftIcon={<Upload size={16} />}
-                        >
-                          Upload a picture
-                        </Button>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-                      </label>
-                      
-                      <p className="mt-2 text-sm text-[rgb(var(--color-text-secondary))]">
-                        Max size: 2MB
-                      </p>
-                    </div>
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="min-w-[120px]"
+                    >
+                      {!isLoading ? <Save size={16} className="mr-2" /> : null}
+                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    </Button>
                   </div>
-                </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={isLoading}
-                    isLoading={isLoading}
-                    leftIcon={!isLoading ? <Save size={16} /> : undefined}
-                  >
-                    Save Changes
-                  </Button>
-                </div>
-              </form>
-            </Panel>
+                </form>
+              </CardContent>
+            </Card>
           )}
           
           {/* Security Tab */}
           {activeTab === 'security' && (
-            <Panel>
-              <h2 className="text-xl font-semibold mb-6 text-[rgb(var(--color-text))]">Security Settings</h2>
-              
-              {/* Error/Success Messages */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{error}</span>
-                  <Button
-                    onClick={() => setError(null)}
-                    variant="ghost"
-                    size="xs"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-                  <span>{success}</span>
-                  <Button
-                    onClick={() => setSuccess(null)}
-                    variant="ghost"
-                    size="xs"
-                    aria-label="Dismiss"
-                    className="p-1"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              )}
-              
-              <form onSubmit={handlePasswordUpdate}>
-                <div className="mb-4">
-                  <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    name="currentPassword"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                    className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                  />
-                </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Security Settings
+                </CardTitle>
+                <CardDescription>
+                  Manage your password and security preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Error/Success Messages */}
+                {error && (
+                  <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded-lg flex justify-between items-center">
+                    <span>{error}</span>
+                    <Button
+                      onClick={() => setError(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-destructive/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
                 
-                <div className="mb-4">
-                  <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    name="newPassword"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                  />
-                </div>
+                {success && (
+                  <div className="bg-green-500/15 border border-green-500/20 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex justify-between items-center">
+                    <span>{success}</span>
+                    <Button
+                      onClick={() => setSuccess(null)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label="Dismiss"
+                      className="p-1 h-auto hover:bg-green-500/20"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                )}
                 
-                <div className="mb-4">
-                  <label className="block text-[rgb(var(--color-text))] text-sm font-medium mb-2">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    className="w-full px-3 py-2 border border-[rgb(var(--color-border))] bg-[rgb(var(--color-input-bg))] rounded-md text-[rgb(var(--color-text))]"
-                  />
+                {/* Password Change Section */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Change Password</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Update your password to keep your account secure
+                    </p>
+                  </div>
+                  
+                  <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        name="currentPassword"
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="Enter your current password"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="Enter your new password"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Password must be at least 8 characters long
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        placeholder="Confirm your new password"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end pt-2">
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        className="min-w-[140px]"
+                      >
+                        {!isLoading ? <Key size={16} className="mr-2" /> : null}
+                        {isLoading ? 'Changing...' : 'Change Password'}
+                      </Button>
+                    </div>
+                  </form>
                 </div>
-                
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={isLoading}
-                    isLoading={isLoading}
-                    leftIcon={!isLoading ? <Key size={16} /> : undefined}
-                  >
-                    Change Password
-                  </Button>
+
+                <Separator />
+
+                {/* Security Preferences */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Security Preferences</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Configure additional security settings for your account
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Two-Factor Authentication</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Add an extra layer of security to your account (Coming Soon)
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" disabled>
+                        Enable
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Login Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Get notified of new sign-ins to your account (Coming Soon)
+                        </p>
+                      </div>
+                      <Checkbox defaultChecked disabled />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">Session Timeout</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Automatically sign out after period of inactivity (Coming Soon)
+                        </p>
+                      </div>
+                      <Select defaultValue="30m" disabled>
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="15m">15 minutes</SelectItem>
+                          <SelectItem value="30m">30 minutes</SelectItem>
+                          <SelectItem value="1h">1 hour</SelectItem>
+                          <SelectItem value="4h">4 hours</SelectItem>
+                          <SelectItem value="never">Never</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </form>
-            </Panel>
+
+                <Separator />
+
+                {/* Account Actions */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Account Actions</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manage your account and data
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <Button variant="outline" className="justify-start w-full">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Export Account Data
+                    </Button>
+                    
+                    <Button variant="outline" className="justify-start w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
           
           {/* Appearance Tab */}
           {activeTab === 'appearance' && (
-            <Panel>
-              <h2 className="text-xl font-semibold mb-6 text-[rgb(var(--color-text))]">Theme & Appearance</h2>
-              
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-3 text-[rgb(var(--color-text))]">Color Mode</h3>
-                <p className="text-sm text-[rgb(var(--color-text-secondary))] mb-4">
-                  Choose between light, dark and special modes for the application.
-                </p>
-                
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
-                  <p className="text-sm">
-                    <span className="font-semibold">Special Modes:</span> High Contrast (better readability), Reduced Motion (fewer animations), and Comfort Mode (softer colors) are available for accessibility and visual comfort.
+            <Card className="border-none shadow-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Theme & Appearance
+                </CardTitle>
+                <CardDescription>
+                  Customize the look and feel of your application
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Theme Selection */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Color Theme</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choose between light, dark, or system preference
                   </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* System Mode Option */}
-                  <div 
-                    className={`border ${
-                      colorMode === 'system' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorMode !== 'system' && setColorMode('system')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="text-[rgb(var(--color-text))]" width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="font-medium text-[rgb(var(--color-text))]">System</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorMode === 'system'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorMode === 'system' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="light"
+                        name="theme"
+                        value="light"
+                        checked={theme === "light"}
+                        onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
+                        className="text-primary"
+                      />
+                      <Label htmlFor="light" className="flex items-center gap-2 cursor-pointer">
+                        <Sun className="h-4 w-4" />
+                        Light
+                      </Label>
                     </div>
-                    
-                    <div className="w-full h-16 bg-gradient-to-r from-white to-gray-800 border border-gray-200 rounded overflow-hidden">
-                      <div className="h-2 w-1/2 bg-blue-500 m-2 rounded"></div>
-                      <div className="h-2 w-3/4 bg-gray-300 m-2 rounded"></div>
-                      <div className="h-2 w-2/3 bg-gray-500 m-2 rounded"></div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="dark"
+                        name="theme"
+                        value="dark"
+                        checked={theme === "dark"}
+                        onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
+                        className="text-primary"
+                      />
+                      <Label htmlFor="dark" className="flex items-center gap-2 cursor-pointer">
+                        <Moon className="h-4 w-4" />
+                        Dark
+                      </Label>
                     </div>
-                  </div>
-                
-                  {/* Light Mode Option */}
-                  <div 
-                    className={`border ${
-                      colorMode === 'light' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorMode !== 'light' && setColorMode('light')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Sun size={18} className="text-[rgb(var(--color-text))]" />
-                        <span className="font-medium text-[rgb(var(--color-text))]">Light</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorMode === 'light'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorMode === 'light' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="w-full h-16 bg-white border border-gray-200 rounded overflow-hidden">
-                      <div className="h-2 w-1/2 bg-blue-500 m-2 rounded"></div>
-                      <div className="h-2 w-3/4 bg-gray-200 m-2 rounded"></div>
-                      <div className="h-2 w-2/3 bg-gray-200 m-2 rounded"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Dark Mode Option */}
-                  <div 
-                    className={`border ${
-                      colorMode === 'dark' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorMode !== 'dark' && setColorMode('dark')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Moon size={18} className="text-[rgb(var(--color-text))]" />
-                        <span className="font-medium text-[rgb(var(--color-text))]">Dark</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorMode === 'dark'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorMode === 'dark' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="w-full h-16 bg-gray-800 border border-gray-700 rounded overflow-hidden">
-                      <div className="h-2 w-1/2 bg-blue-500 m-2 rounded"></div>
-                      <div className="h-2 w-3/4 bg-gray-600 m-2 rounded"></div>
-                      <div className="h-2 w-2/3 bg-gray-600 m-2 rounded"></div>
-                    </div>
-                  </div>
-                  
-                  {/* High Contrast Mode Option */}
-                  <div 
-                    className={`border ${
-                      colorMode === 'high-contrast' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorMode !== 'high-contrast' && setColorMode('high-contrast')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="text-[rgb(var(--color-text))]" width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                        </svg>
-                        <span className="font-medium text-[rgb(var(--color-text))]">High Contrast</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorMode === 'high-contrast'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorMode === 'high-contrast' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="w-full h-16 bg-white border-2 border-black rounded overflow-hidden">
-                      <div className="h-2 w-1/2 bg-blue-900 m-2 rounded"></div>
-                      <div className="h-2 w-3/4 bg-black m-2 rounded"></div>
-                      <div className="h-2 w-2/3 bg-black m-2 rounded"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Reduced Motion Mode */}
-                  <div 
-                    className={`border ${
-                      colorMode === 'reduced-motion' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorMode !== 'reduced-motion' && setColorMode('reduced-motion')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="text-[rgb(var(--color-text))]" width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Reduced Motion</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorMode === 'reduced-motion'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorMode === 'reduced-motion' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="w-full h-16 bg-white border border-gray-200 rounded overflow-hidden">
-                      <div className="h-2 w-1/2 bg-blue-500 m-2 rounded"></div>
-                      <div className="h-2 w-3/4 bg-gray-200 m-2 rounded"></div>
-                      <div className="h-2 w-2/3 bg-gray-200 m-2 rounded"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Soft Mode */}
-                  <div 
-                    className={`border ${
-                      colorMode === 'soft' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorMode !== 'soft' && setColorMode('soft')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="text-[rgb(var(--color-text))]" width="18" height="18" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Comfort Mode</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorMode === 'soft'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorMode === 'soft' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="w-full h-16 bg-[#F5F5FA] border border-[#DCDCEB] rounded overflow-hidden">
-                      <div className="h-2 w-1/2 bg-blue-400 m-2 rounded"></div>
-                      <div className="h-2 w-3/4 bg-[#DCDCEB] m-2 rounded"></div>
-                      <div className="h-2 w-2/3 bg-[#DCDCEB] m-2 rounded"></div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="system"
+                        name="theme"
+                        value="system"
+                        checked={theme === "system"}
+                        onChange={(e) => setTheme(e.target.value as "light" | "dark" | "system")}
+                        className="text-primary"
+                      />
+                      <Label htmlFor="system" className="flex items-center gap-2 cursor-pointer">
+                        <Monitor className="h-4 w-4" />
+                        System
+                      </Label>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="mb-8">
-                <h3 className="text-lg font-medium mb-3 text-[rgb(var(--color-text))]">Theme Colors</h3>
-                <p className="text-sm text-[rgb(var(--color-text-secondary))] mb-4">
-                  Choose a color theme for the application.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Default Theme */}                    <div 
-                    className={`border ${
-                      colorTheme === 'default' || !colorTheme
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => setColorTheme('default')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(56,189,248)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Default</span>
+
+                <Separator />
+
+                {/* Theme Preview */}
+                <div className="space-y-3">
+                  <Label className="text-base font-medium">Preview</Label>
+                  <div className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="h-4 w-32 bg-primary rounded"></div>
+                        <div className="h-3 w-24 bg-muted rounded"></div>
                       </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'default' || !colorTheme
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {(colorTheme === 'default' || !colorTheme) && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
+                      <div className="h-8 w-8 bg-primary rounded-full"></div>
                     </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(56,189,248)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(14,165,233)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(139,92,246)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(99,102,241)]"></div>
+                    <div className="space-y-2">
+                      <div className="h-2 w-full bg-muted rounded"></div>
+                      <div className="h-2 w-4/5 bg-muted rounded"></div>
+                      <div className="h-2 w-3/5 bg-muted rounded"></div>
                     </div>
-                  </div>
-                  
-                  {/* Blue Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'blue' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'blue' && setColorTheme('blue')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(37,99,235)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Blue</span>
+                    <div className="flex gap-2">
+                      <div className="h-6 w-16 bg-primary rounded text-xs flex items-center justify-center text-primary-foreground">
+                        Button
                       </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'blue'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'blue' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
+                      <div className="h-6 w-16 bg-secondary rounded text-xs flex items-center justify-center">
+                        Cancel
                       </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(37,99,235)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(59,130,246)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(99,102,241)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(129,140,248)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Purple Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'purple' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'purple' && setColorTheme('purple')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(139,92,246)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Purple</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'purple'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'purple' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(139,92,246)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(124,58,237)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(217,70,239)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(232,121,249)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Forest Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'forest' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'forest' && setColorTheme('forest')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(20,83,45)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Forest</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'forest'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'forest' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(20,83,45)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(34,197,94)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(4,120,87)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(16,185,129)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Rose Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'rose' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'rose' && setColorTheme('rose')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(225,29,72)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Rose</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'rose'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'rose' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(225,29,72)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(244,63,94)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(251,113,133)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(253,164,175)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Ocean Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'ocean' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'ocean' && setColorTheme('ocean')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(2,132,199)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Ocean</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'ocean'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'ocean' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(2,132,199)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(14,165,233)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(56,189,248)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(125,211,252)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Slate Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'slate' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'slate' && setColorTheme('slate')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(71,85,105)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Slate</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'slate'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'slate' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(71,85,105)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(100,116,139)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(148,163,184)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(203,213,225)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Amber Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'amber' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'amber' && setColorTheme('amber')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(217,119,6)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Amber</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'amber'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'amber' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(217,119,6)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(245,158,11)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(234,88,12)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(249,115,22)]"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Teal Theme */}
-                  <div 
-                    className={`border ${
-                      colorTheme === 'teal' 
-                        ? 'border-[rgb(var(--color-primary))] bg-[rgba(var(--color-primary),0.05)]' 
-                        : 'border-[rgb(var(--color-border))]'
-                    } rounded-lg p-4 cursor-pointer transition-all duration-200`}
-                    onClick={() => colorTheme !== 'teal' && setColorTheme('teal')}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-[rgb(20,184,166)]"></div>
-                        <span className="font-medium text-[rgb(var(--color-text))]">Teal</span>
-                      </div>
-                      
-                      <div className={`w-5 h-5 rounded-full border ${
-                        colorTheme === 'teal'
-                          ? 'border-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]'
-                          : 'border-[rgb(var(--color-border))]'
-                      } flex items-center justify-center`}>
-                        {colorTheme === 'teal' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[rgb(20,184,166)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(13,148,136)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(15,118,110)]"></div>
-                      <div className="w-8 h-8 rounded-full bg-[rgb(17,94,89)]"></div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Panel>
+
+                <Separator />
+
+                {/* Accessibility Settings */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Accessibility</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="reduceMotion" className="text-sm">Reduce motion</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Minimizes animations and transitions
+                        </p>
+                      </div>
+                      <Checkbox id="reduceMotion" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="highContrast" className="text-sm">High contrast</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Increases color contrast for better visibility
+                        </p>
+                      </div>
+                      <Checkbox id="highContrast" />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Display Settings */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Display</Label>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-sm">Font size</Label>
+                      <Select defaultValue="medium">
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select font size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Small</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="large">Large</SelectItem>
+                          <SelectItem value="extra-large">Extra Large</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm">Sidebar position</Label>
+                      <Select defaultValue="left">
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select sidebar position" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="left">Left</SelectItem>
+                          <SelectItem value="right">Right</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

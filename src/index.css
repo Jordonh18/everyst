@@ -1,406 +1,119 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
 @layer base {
-  :root {
-    --color-primary: 56 189 248;     /* Ice Blue (#38BDF8) */
-    --color-primary-light: 14 165 233; /* Glacier Blue (#0EA5E9) */
-    --color-secondary: 139 92 246;
-    --color-secondary-light: 99 102 241;
-    
-    /* Other variables for theming */
-    --color-background: 249 250 251;
-    --color-card: 255 255 255;
-    --color-card-header: 248 250 252;  /* Table header background - light gray (#F8FAFC) */
-    --color-border: 229 231 235;
-    --color-text: 31 41 55;          /* Less harsh text for light mode (#1F2937) */
-    --color-text-secondary: 107 114 128; /* Less harsh secondary text (#6B7280) */
-    --color-search-bg: 243 244 246;  /* Search background for light mode (#F3F4F6) */
-    --color-progress-bg: 229 231 235; /* Progress bar background for light mode (#E5E7EB) */
-    --color-progress-bg-dark: 75 85 99; /* Progress bar background for dark mode (#4B5563) */
-    --color-skeleton: 226 232 240;   /* Skeleton background for light mode (#E2E8F0) */
-    
-    /* Role-specific colors */
-    --color-role-owner-bg: 243 232 255;       /* light purple bg */
-    --color-role-owner-text: 107 33 168;      /* dark purple text */
-    --color-role-admin-bg: 219 234 254;       /* light blue bg */
-    --color-role-admin-text: 30 58 138;       /* dark blue text */
-    --color-role-manager-bg: 209 250 229;     /* light emerald bg */
-    --color-role-manager-text: 6 95 70;       /* dark emerald text */
-    --color-role-user-bg: 243 244 246;        /* light gray bg */
-    --color-role-user-text: 31 41 55;         /* dark gray text */
-    
-    /* Error color */
-    --color-error: 220 38 38;                 /* red-600 */
-    --color-error-hover: 185 28 28;           /* red-700 */
-    
-    /* Status indicators */
-    --color-status-active-bg: 220 252 231;     /* light green bg */
-    --color-status-active-text: 22 101 52;     /* dark green text */
-    --color-status-inactive-bg: 243 244 246;   /* light gray bg */
-    --color-status-inactive-text: 31 41 55;    /* dark gray text */
-    --color-warning-text: 180 83 9;            /* amber-800 for warning text in light mode */
-    --color-warning-bg: 255 251 235;           /* amber-50 for warning bg in light mode */
-    --color-warning-border: 253 230 138;       /* amber-200 for warning border in light mode */
-    
-    /* Button colors */
-    --color-button-primary: 56 189 248;        /* Primary button bg */
-    --color-button-primary-hover: 14 165 233;  /* Primary button hover */
-    --color-button-secondary: 107 114 128;     /* Secondary/Cancel button bg */
-    --color-button-secondary-hover: 75 85 99;  /* Secondary button hover */
-    --color-button-text: 255 255 255;          /* Button text color */
-    
-    /* Form control colors */
-    --color-input-bg: 255 255 255;             /* Input background */
-    --color-input-border: 229 231 235;         /* Input border */
-    --color-input-border-focus: 56 189 248;    /* Input border when focused */
-    --color-input-text: 31 41 55;              /* Input text */
-    --color-input-placeholder: 156 163 175;    /* Input placeholder */
-    
-    /* Modal colors */
-    --color-modal-overlay: 0 0 0 / 0.7;        /* Modal overlay background */
+  * {
+    @apply border-border outline-ring/50;
   }
-
-  .dark {
-    --color-background: 18 24 38;
-    --color-card: 31 41 55;
-    --color-card-header: 24 32 48;  /* Table header background - darker gray (#182030) */
-    --color-border: 55 65 81;
-    --color-text: 229 231 235;       /* Slightly less bright white (#E5E7EB) */
-    --color-text-secondary: 156 163 175; /* Less bright secondary text (#9CA3AF) */
-    --color-skeleton: 71 85 105;     /* Skeleton background for dark mode (#475569) */
-    --color-search-bg: 55 65 81;     /* Search background for dark mode (#374151) */
-    
-    /* Role-specific colors - dark mode */
-    --color-role-owner-bg: 91 33 182 / 0.3;  /* dark purple bg with opacity */
-    --color-role-owner-text: 216 180 254;    /* light purple text */
-    --color-role-admin-bg: 30 58 138 / 0.3;  /* dark blue bg with opacity */
-    --color-role-admin-text: 191 219 254;    /* light blue text */
-    --color-role-manager-bg: 6 78 59 / 0.3;  /* dark emerald bg with opacity */
-    --color-role-manager-text: 167 243 208;  /* light emerald text */
-    --color-role-user-bg: 31 41 55;         /* dark gray bg */
-    --color-role-user-text: 209 213 219;    /* light gray text */
-    
-    /* Error color - dark mode */
-    --color-error: 248 113 113;             /* red-400 */
-    --color-error-hover: 239 68 68;         /* red-500 */
-    
-    /* Status indicators - dark mode */
-    --color-status-active-bg: 20 83 45 / 0.3;     /* dark green bg with opacity */
-    --color-status-active-text: 134 239 172;      /* light green text */
-    --color-status-inactive-bg: 31 41 55;         /* dark gray bg */
-    --color-status-inactive-text: 209 213 219;    /* light gray text */
-    --color-warning-text: 253 211 77;             /* amber-300 for warning text in dark mode */
-    --color-warning-bg: 146 64 14 / 0.2;          /* amber-900/20 for warning bg in dark mode */
-    --color-warning-border: 146 64 14;            /* amber-800 for warning border in dark mode */
-    
-    /* Button colors - dark mode */
-    --color-button-primary: 56 189 248;           /* Keep primary color consistent */
-    --color-button-primary-hover: 2 132 199;      /* Darker primary hover for dark mode */
-    --color-button-secondary: 75 85 99;           /* Darker secondary button */
-    --color-button-secondary-hover: 55 65 81;     /* Darker secondary hover */
-    --color-button-text: 255 255 255;             /* Button text color */
-    
-    /* Form control colors - dark mode */
-    --color-input-bg: 31 41 55;                  /* Input background in dark mode */
-    --color-input-border: 55 65 81;              /* Input border in dark mode */
-    --color-input-border-focus: 56 189 248;      /* Input focus border same as light */
-    --color-input-text: 229 231 235;             /* Input text in dark mode */
-    --color-input-placeholder: 156 163 175;      /* Input placeholder in dark mode */
-  }
-
-  /* Blue Theme */
-  .theme-blue {
-    --color-primary: 37 99 235;      /* Royal Blue (#2563EB) */
-    --color-primary-light: 59 130 246; /* Blue (#3B82F6) */
-    --color-secondary: 99 102 241;   /* Indigo (#6366F1) */
-    --color-secondary-light: 129 140 248; /* Light Indigo (#818CF8) */
-    --color-button: 37 99 235;       /* Royal Blue button (#2563EB) */
-    --color-button-hover: 30 64 175; /* Darker Royal Blue button hover (#1E40AF) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Purple Theme */
-  .theme-purple {
-    --color-primary: 139 92 246;     /* Purple (#8B5CF6) */
-    --color-primary-light: 124 58 237; /* Darker purple for light mode (#7C3AED) */
-    --color-secondary: 217 70 239;   /* Fuchsia (#D946EF) */
-    --color-secondary-light: 232 121 249; /* Light Fuchsia (#E879F9) */
-    --color-button: 139 92 246;      /* Purple button (#8B5CF6) */
-    --color-button-hover: 124 58 237; /* Darker purple button hover (#7C3AED) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Forest Theme */
-  .theme-forest {
-    --color-primary: 20 83 45;       /* Forest Green (#14532D) */
-    --color-primary-light: 34 197 94; /* Green (#22C55E) */
-    --color-secondary: 4 120 87;     /* Emerald (#047857) */
-    --color-secondary-light: 16 185 129; /* Light Emerald (#10B981) */
-    --color-button: 20 83 45;        /* Forest Green button (#14532D) */
-    --color-button-hover: 22 101 52; /* Darker Forest Green button hover (#166534) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Amber Theme */
-  .theme-amber {
-    --color-primary: 217 119 6;      /* Amber (#D97706) */
-    --color-primary-light: 245 158 11; /* Amber light (#F59E0B) */
-    --color-secondary: 234 88 12;    /* Orange (#EA580C) */
-    --color-secondary-light: 249 115 22; /* Orange light (#F97316) */
-    --color-button: 217 119 6;       /* Amber button (#D97706) */
-    --color-button-hover: 180 83 9;  /* Darker Amber button hover (#B45309) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Teal Theme */
-  .theme-teal {
-    --color-primary: 13 148 136;     /* Teal (#0D9488) */
-    --color-primary-light: 20 184 166; /* Teal light (#14B8A6) */
-    --color-secondary: 8 145 178;    /* Cyan (#08919B) */
-    --color-secondary-light: 6 182 212; /* Cyan light (#06B6D4) */
-    --color-button: 13 148 136;      /* Teal button (#0D9488) */
-    --color-button-hover: 15 118 110; /* Darker Teal button hover (#0F766E) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-
-  /* Rose Theme */
-  .theme-rose {
-    --color-primary: 225 29 72;      /* Rose (#E11D48) */
-    --color-primary-light: 244 63 94; /* Rose light (#F43F5E) */
-    --color-secondary: 219 39 119;   /* Pink (#DB2777) */
-    --color-secondary-light: 236 72 153; /* Pink light (#EC4899) */
-    --color-button: 225 29 72;       /* Rose button (#E11D48) */
-    --color-button-hover: 190 18 60; /* Darker Rose button hover (#BE123C) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Crimson Theme */
-  .theme-crimson {
-    --color-primary: 185 28 28;      /* Crimson (#B91C1C) */
-    --color-primary-light: 220 38 38; /* Crimson light (#DC2626) */
-    --color-secondary: 153 27 27;    /* Red (#991B1B) */
-    --color-secondary-light: 239 68 68; /* Red light (#EF4444) */
-    --color-button: 185 28 28;       /* Crimson button (#B91C1C) */
-    --color-button-hover: 127 29 29; /* Darker Crimson button hover (#7F1D1D) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Emerald Theme */
-  .theme-emerald {
-    --color-primary: 6 95 70;        /* Emerald (#065F46) */
-    --color-primary-light: 16 185 129; /* Emerald light (#10B981) */
-    --color-secondary: 5 150 105;    /* Emerald medium (#059669) */
-    --color-secondary-light: 52 211 153; /* Emerald lighter (#34D399) */
-    --color-button: 6 95 70;         /* Emerald button (#065F46) */
-    --color-button-hover: 4 120 87;  /* Darker Emerald button hover (#047857) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Indigo Theme */
-  .theme-indigo {
-    --color-primary: 67 56 202;      /* Indigo (#4338CA) */
-    --color-primary-light: 79 70 229; /* Indigo light (#4F46E5) */
-    --color-secondary: 99 102 241;   /* Indigo medium (#6366F1) */
-    --color-secondary-light: 129 140 248; /* Indigo lighter (#818CF8) */
-    --color-button: 67 56 202;       /* Indigo button (#4338CA) */
-    --color-button-hover: 55 48 163; /* Darker Indigo button hover (#3730A3) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Slate Theme */
-  .theme-slate {
-    --color-primary: 71 85 105;      /* Slate (#475569) */
-    --color-primary-light: 100 116 139; /* Slate light (#64748B) */
-    --color-secondary: 51 65 85;     /* Slate dark (#334155) */
-    --color-secondary-light: 148 163 184; /* Slate lighter (#94A3B8) */
-    --color-button: 71 85 105;       /* Slate button (#475569) */
-    --color-button-hover: 51 65 85;  /* Darker Slate button hover (#334155) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Sunset Theme */
-  .theme-sunset {
-    --color-primary: 251 146 60;     /* Orange (#FB923C) */
-    --color-primary-light: 249 115 22; /* Orange dark (#F97316) */
-    --color-secondary: 236 72 153;   /* Pink (#EC4899) */
-    --color-secondary-light: 244 114 182; /* Pink light (#F472B6) */
-    --color-button: 251 146 60;      /* Orange button (#FB923C) */
-    --color-button-hover: 234 88 12; /* Darker Orange button hover (#EA580C) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Ocean Theme */
-  .theme-ocean {
-    --color-primary: 8 145 178;      /* Cyan (#08919B) */
-    --color-primary-light: 6 182 212; /* Cyan light (#06B6D4) */
-    --color-secondary: 14 116 144;   /* Cyan dark (#0E7490) */
-    --color-secondary-light: 34 211 238; /* Cyan lighter (#22D3EE) */
-    --color-button: 8 145 178;       /* Cyan button (#08919B) */
-    --color-button-hover: 14 116 144; /* Darker Cyan button hover (#0E7490) */
-    --color-button-text: 255 255 255; /* White button text (#FFFFFF) */
-  }
-  
-  /* Special Mode: High Contrast */
-  .high-contrast {
-    --color-text: 0 0 0;             /* Pure black text (#000000) */
-    --color-background: 255 255 255; /* Pure white background (#FFFFFF) */
-    --color-border: 0 0 0;          /* Pure black borders (#000000) */
-    --color-primary: 0 0 139;        /* Dark blue (#00008B) */
-    --color-primary-light: 0 0 205;  /* Medium blue (#0000CD) */
-  }
-  
-  /* Special Mode: Reduced Motion */
-  .reduced-motion * {
-    transition: none !important;
-    animation: none !important;
-    scroll-behavior: auto !important;
-  }
-  
-  /* Special Mode: Soft/Comfort */
-  .soft {
-    --color-background: 245 245 250; /* Soft background (#F5F5FA) */
-    --color-card: 250 250 255;      /* Soft card (#FAFAFF) */
-    --color-text: 60 60 70;         /* Soft text (#3C3C46) */
-    --color-border: 220 220 235;    /* Soft borders (#DCDCEB) */
-  }
-  
-  .dark.soft {
-    --color-background: 38 38 50;    /* Soft dark background (#262632) */
-    --color-card: 50 50 65;         /* Soft dark card (#323241) */
-    --color-text: 220 220 235;      /* Soft dark text (#DCDCEB) */
-    --color-border: 75 75 90;       /* Soft dark borders (#4B4B5A) */
-  }
-
-  html {
-    @apply text-base antialiased;
-  }
-
   body {
-    @apply bg-[rgb(var(--color-background))] text-[rgb(var(--color-text))] m-0 min-h-screen;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @apply bg-background text-foreground;
   }
-
-  /* For accessibility: visible focus indicators - general rule */
-  *:focus-visible {
-    @apply outline-none ring-2 ring-[rgb(var(--color-primary))] ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
-  }
-
-  /* Default styling for form inputs */
-  input, select, textarea {
-    @apply bg-[rgb(var(--color-input-bg))] border border-[rgb(var(--color-input-border))] text-[rgb(var(--color-input-text))] placeholder-[rgb(var(--color-input-placeholder))];
-  }
-  
-  /* Special focus for form inputs - cleaner border approach */
-  input:focus-visible, select:focus-visible, textarea:focus-visible {
-    @apply outline-none ring-0 ring-offset-0 border border-[rgb(var(--color-input-border-focus))];
-  }
-  
-  /* Ensure all interactive elements have pointer cursor */
-  button, 
-  a, 
-  [role="button"],
-  .clickable,
-  input[type="submit"],
-  input[type="button"],
-  input[type="reset"],
-  select,
-  details > summary,
-  label[for],
-  [tabindex="0"],
-  [data-clickable="true"] {
-    @apply cursor-pointer;
-  }
-
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-
-  /* Better keyboard focus management for accessibility */
-  .skip-link {
-    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-white p-4;
-  }
-
-  /* For prefers-reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* Dropdown animation */
-  @keyframes dropdownFade {
-    from {
-      opacity: 0;
-      transform: translateY(-8px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-}
-
-@layer components {
-  .card {
-    @apply bg-[rgb(var(--color-card))] rounded-lg border border-[rgb(var(--color-border))] shadow-sm p-4;
-  }
-  
-  .panel {
-    @apply w-full mb-6;
-  }
-  
-  .status-pill {
-    @apply px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-  
-  .status-pill-success {
-    @apply bg-[rgba(var(--color-success),0.2)] text-[rgb(var(--color-success-light))] dark:text-[rgb(var(--color-success))];
-  }
-  
-  .status-pill-warning {
-    @apply bg-[rgba(var(--color-warning),0.2)] text-[rgb(var(--color-warning-light))] dark:text-[rgb(var(--color-warning))];
-  }
-  
-  .status-pill-error {
-    @apply bg-[rgba(var(--color-error),0.2)] text-[rgb(var(--color-error-light))] dark:text-[rgb(var(--color-error))];
-  }
-  
-  .status-pill-neutral {
-    @apply bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
-  }
-}
-
-/* Animations for modals and dropdowns */
-@keyframes modalFadeIn {
-  from { 
-    opacity: 0; 
-    transform: scale(0.95); 
-    filter: blur(4px);
-  }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
-    filter: blur(0);
-  }
-}
-
-@keyframes dropdownFade {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* Prevent scrolling when modal is open */
-body.modal-open {
-  overflow: hidden;
 }

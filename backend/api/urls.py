@@ -29,9 +29,22 @@ from .views import (
     whois_tool, ssl_check_tool, netstat_tool, ip_route_tool, tcpdump_tool
 )
 
+# SSH Key views
+from .views.ssh_keys import SSHKeyViewSet, SSHSessionViewSet
+
 # Import our custom token views
 from .views.auth_token import TokenObtainPairView, TokenRefreshView
 from .views.logout import LogoutView, LogoutAllView
+
+# Import system logs views
+from .views import system_logs as system_logs_views
+
+# Import dashboard views
+from .views.dashboard import (
+    get_system_services, get_system_sessions, get_api_performance, system_ports_view,
+    get_network_traffic_data, get_api_performance_analytics, 
+    get_system_health_data, get_user_activity_data
+)
 
 router = DefaultRouter()
 router.register(r'metrics', SystemMetricsViewSet)
@@ -40,14 +53,16 @@ router.register(r'security', SecurityStatusViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'roles', UserRoleViewSet)
 router.register(r'notifications', NotificationViewSet, basename='notification')
-
-# Activity logs routes
 router.register(r'activity-logs', ApplicationLogViewSet, basename='activity-logs')
 
 # Network routes
 router.register(r'network/devices', NetworkDeviceViewSet)
 router.register(r'network/connections', NetworkConnectionViewSet)
 router.register(r'network/scans', NetworkScanViewSet)
+
+# SSH routes
+router.register(r'ssh/keys', SSHKeyViewSet, basename='ssh-keys')
+router.register(r'ssh/sessions', SSHSessionViewSet, basename='ssh-sessions')
 
 urlpatterns = [
     path('health/', HealthCheckView.as_view(), name='health-check'),
@@ -60,6 +75,14 @@ urlpatterns = [
     path('auth/logout-all/', LogoutAllView.as_view(), name='logout-all'),
     path('auth/check-users/', check_users_exist, name='check-users-exist'),
     path('auth/first-run/', first_run_check, name='first-run-check'),
+    
+    # System logs endpoints
+    path('system-logs/', include([
+        path('', system_logs_views.list_system_logs, name='system-logs-list'),
+        path('dashboard/', system_logs_views.system_logs_dashboard, name='system-logs-dashboard'),
+        path('<str:log_name>/read/', system_logs_views.read_system_log, name='system-log-read'),
+        path('<str:log_name>/stats/', system_logs_views.system_log_statistics, name='system-log-stats'),
+    ])),
     
     # Network topology endpoint
     path('network/topology/', network_topology, name='network-topology'),
@@ -78,6 +101,16 @@ urlpatterns = [
     
     # System metrics endpoints
     path('system/metrics/current/', get_current_metrics, name='current-metrics'),
+    path('system/services/', get_system_services, name='system-services'),
+    path('system/sessions/', get_system_sessions, name='system-sessions'),
+    path('system/api-times/', get_api_performance, name='api-performance'),
+    path('system/ports/', system_ports_view, name='system-ports'),
+    
+    # Dashboard chart data endpoints
+    path('dashboard/network-traffic/', get_network_traffic_data, name='network-traffic-data'),
+    path('dashboard/api-analytics/', get_api_performance_analytics, name='api-analytics'),
+    path('dashboard/system-health/', get_system_health_data, name='system-health-data'),
+    path('dashboard/user-activity/', get_user_activity_data, name='user-activity-data'),
 ]
 
 urlpatterns += router.urls

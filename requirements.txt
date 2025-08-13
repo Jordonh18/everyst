@@ -39,3 +39,6 @@ netifaces>=0.11.0
 python-nmap>=0.7.1
 pyroute2>=0.7.3
 django-filter>=25.1
+# SSH and cryptography dependencies
+paramiko>=3.4.0
+cryptography>=41.0.0
