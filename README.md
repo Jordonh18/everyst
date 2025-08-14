@@ -1,6 +1,6 @@
 # Everyst - Server Monitoring & Security Platform
 
-![Everyst Logo](public/Logo-white-no-text.svg)
+<img src="public/Logo-white-no-text.svg" alt="Screenshot" width="400"/>
 
 ## Overview
 
