@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useWebSocket } from './WebSocketContext';
-import { getUserInfoFromToken, shouldRefreshTokenClaims } from '../utils/jwtUtils';
+import { getUserInfoFromToken, shouldRefreshTokenClaims, isTokenExpired } from '../utils/jwtUtils';
 import type { User } from '../types/users';
 
 // API URL helper
@@ -70,6 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [canManageNetwork, setCanManageNetwork] = useState<boolean>(false);
   const [canViewAllData, setCanViewAllData] = useState<boolean>(false);
   const [canViewLogs, setCanViewLogs] = useState<boolean>(false);
+  
+  // Timer for automatic token refresh
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const { connect, disconnect } = useWebSocket();
 
@@ -184,6 +187,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Update role-based permissions
           updatePermissions(userResponse);
           
+          // Setup automatic token refresh
+          setupTokenRefresh();
+          
           // Connect to WebSocket with token (combined connection+authentication)
           const connected = await connect(accessToken);
           if (!connected) {
@@ -196,6 +202,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (!refreshed) {
             // If refresh fails, clear auth state
             clearAuthState();
+          } else {
+            // If refresh succeeded, setup token refresh timer
+            setupTokenRefresh();
           }
         }
       } catch (err) {
@@ -206,12 +215,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
     
+    // Handle automatic logout events from API client
+    const handleAutoLogout = (event: CustomEvent) => {
+      console.warn('Auto logout triggered:', event.detail?.reason);
+      clearAuthState();
+    };
+
+    // Add event listener for automatic logout
+    window.addEventListener('auth:logout', handleAutoLogout as EventListener);
+    
     checkAuth();
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('auth:logout', handleAutoLogout as EventListener);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch current user data
-  const fetchCurrentUser = async (token: string): Promise<User | null> => {
+  const fetchCurrentUser = useCallback(async (token: string): Promise<User | null> => {
     try {
       // First, try to get user info from JWT token claims (faster, no API call)
       if (!shouldRefreshTokenClaims(token)) {
@@ -253,7 +276,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error fetching user data:', error);
       return null;
     }
-  };
+  }, []);
 
   // Clear authentication state
   const clearAuthState = useCallback(() => {
@@ -266,9 +289,130 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Clear role permissions
     updatePermissions(null);
     
+    // Clear refresh timer
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+    
     // Disconnect websocket
     disconnect();
   }, [disconnect, updatePermissions]);
+
+  // Refresh token function
+  const refreshToken = useCallback(async (): Promise<boolean> => {
+    const refresh = localStorage.getItem('refreshToken');
+    
+    if (!refresh) {
+      return false;
+    }
+    
+    try {
+      const response = await fetch(`${getApiUrl()}/auth/refresh/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refresh })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        clearAuthState();
+        return false;
+      }
+      
+      // Update access token
+      localStorage.setItem('accessToken', data.access);
+      localStorage.setItem('authToken', data.access); // For backward compatibility
+      
+      // Fetch user data with new token
+      const userData = await fetchCurrentUser(data.access);
+      
+      if (userData) {
+        setIsAuthenticated(true);
+        setUser(userData);
+        
+        // Update role-based permissions
+        updatePermissions(userData);
+        
+        // Update WebSocket connection with new token
+        console.log('Token refreshed, updating WebSocket connection');
+        const connected = await connect(data.access);
+        if (!connected) {
+          console.warn('Could not establish WebSocket connection after token refresh');
+          // Continue with app functionality even if WebSocket fails
+        }
+        
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      console.error('Token refresh error:', err);
+      clearAuthState();
+      return false;
+    }
+  }, [clearAuthState, fetchCurrentUser, updatePermissions, connect]);
+
+  // Setup automatic token refresh
+  const setupTokenRefresh = useCallback(() => {
+    // Clear any existing timer
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+    }
+
+    // Get user session timeout preference
+    const token = localStorage.getItem('accessToken');
+    let sessionTimeoutMinutes = 30; // Default timeout
+    
+    if (token) {
+      try {
+        const userInfo = getUserInfoFromToken(token);
+        if (userInfo && userInfo.session_timeout_minutes) {
+          sessionTimeoutMinutes = userInfo.session_timeout_minutes;
+        }
+      } catch (error) {
+        console.warn('Could not extract session timeout from token:', error);
+      }
+    }
+
+    // If session timeout is 0, disable automatic refresh (never timeout)
+    if (sessionTimeoutMinutes === 0) {
+      console.debug('Session timeout disabled (never timeout)');
+      return;
+    }
+
+    // Calculate check interval: check more frequently for shorter session timeouts
+    // For timeouts <= 30 minutes: check every 2 minutes
+    // For timeouts > 30 minutes: check every 5 minutes
+    const checkIntervalMinutes = sessionTimeoutMinutes <= 30 ? 2 : 5;
+    
+    console.debug(`Setting up token refresh with ${sessionTimeoutMinutes}min session timeout, checking every ${checkIntervalMinutes}min`);
+
+    // Check token expiration at the calculated interval
+    refreshTimerRef.current = setInterval(async () => {
+      const currentToken = localStorage.getItem('accessToken');
+      if (!currentToken) {
+        return;
+      }
+
+      try {
+        // Check if token will expire in the next 10 minutes or is already expired
+        if (isTokenExpired(currentToken) || shouldRefreshTokenClaims(currentToken)) {
+          console.debug('Token needs refresh (background check), refreshing...');
+          const refreshed = await refreshToken();
+          if (!refreshed) {
+            console.warn('Background token refresh failed');
+            clearAuthState();
+          }
+        }
+      } catch (error) {
+        console.warn('Error during background token check:', error);
+      }
+    }, checkIntervalMinutes * 60 * 1000);
+  }, [refreshToken, clearAuthState]);
 
   // Login function
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -304,6 +448,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Update role-based permissions
         updatePermissions(userData);
+        
+        // Setup automatic token refresh
+        setupTokenRefresh();
         
         // Connect to WebSocket with token (combined connection+authentication)
         console.log('Login successful, establishing secure WebSocket connection');
@@ -387,6 +534,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Update role-based permissions
         updatePermissions(userData);
         
+        // Setup automatic token refresh
+        setupTokenRefresh();
+        
         // Update users exist state after successful registration
         setUsersExist(true);
         
@@ -407,63 +557,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.error('Registration error:', err);
       setError('An error occurred during registration. Please try again.');
-      clearAuthState();
-      return false;
-    }
-  };
-
-  // Refresh token function
-  const refreshToken = async (): Promise<boolean> => {
-    const refresh = localStorage.getItem('refreshToken');
-    
-    if (!refresh) {
-      return false;
-    }
-    
-    try {
-      const response = await fetch(`${getApiUrl()}/auth/refresh/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ refresh })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        clearAuthState();
-        return false;
-      }
-      
-      // Update access token
-      localStorage.setItem('accessToken', data.access);
-      localStorage.setItem('authToken', data.access); // For backward compatibility
-      
-      // Fetch user data with new token
-      const userData = await fetchCurrentUser(data.access);
-      
-      if (userData) {
-        setIsAuthenticated(true);
-        setUser(userData);
-        
-        // Update role-based permissions
-        updatePermissions(userData);
-        
-        // Update WebSocket connection with new token
-        console.log('Token refreshed, updating WebSocket connection');
-        const connected = await connect(data.access);
-        if (!connected) {
-          console.warn('Could not establish WebSocket connection after token refresh');
-          // Continue with app functionality even if WebSocket fails
-        }
-        
-        return true;
-      }
-      
-      return false;
-    } catch (err) {
-      console.error('Token refresh error:', err);
       clearAuthState();
       return false;
     }

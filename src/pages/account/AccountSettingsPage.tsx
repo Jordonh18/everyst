@@ -40,6 +40,11 @@ const AccountSettingsPage: React.FC = () => {
     bio: '',
   });
   
+  // State for session timeout preference
+  const [sessionTimeout, setSessionTimeout] = useState<string>(
+    user?.session_timeout_minutes?.toString() || '30'
+  );
+  
   // State for password change
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -60,6 +65,8 @@ const AccountSettingsPage: React.FC = () => {
   
   // Loading and error states
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [isSessionTimeoutLoading, setIsSessionTimeoutLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
@@ -69,6 +76,13 @@ const AccountSettingsPage: React.FC = () => {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
+
+  // Update session timeout when user data changes
+  useEffect(() => {
+    if (user?.session_timeout_minutes !== undefined) {
+      setSessionTimeout(user.session_timeout_minutes.toString());
+    }
+  }, [user?.session_timeout_minutes]);
   
   // Fetch user profile image if available
   useEffect(() => {
@@ -192,14 +206,14 @@ const AccountSettingsPage: React.FC = () => {
   // Handle password change
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsPasswordLoading(true);
     setError(null);
     setSuccess(null);
     
     // Validate passwords match
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setError('New passwords do not match');
-      setIsLoading(false);
+      setIsPasswordLoading(false);
       return;
     }
     
@@ -235,7 +249,49 @@ const AccountSettingsPage: React.FC = () => {
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setIsLoading(false);
+      setIsPasswordLoading(false);
+    }
+  };
+
+  // Handle session timeout update
+  const handleSessionTimeoutUpdate = async (newTimeout: string) => {
+    setIsSessionTimeoutLoading(true);
+    
+    // Update UI immediately for better UX
+    setSessionTimeout(newTimeout);
+    
+    try {
+      const token = getAccessToken();
+      const timeoutMinutes = parseInt(newTimeout);
+      
+      const response = await fetch(`${getApiUrl()}/users/${user?.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_timeout_minutes: timeoutMinutes,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        // Revert the UI change if the API call failed
+        setSessionTimeout(user?.session_timeout_minutes?.toString() || '30');
+        throw new Error(errorData.detail || 'Failed to update session timeout');
+      }
+      
+      // Refresh user data to get new session timeout in token (in background)
+      refreshToken().catch(console.warn);
+      
+      // Show a subtle success notification
+      sendUserNotification(user?.id as string, 'Settings Updated', 'Session timeout preference saved.', 'success');
+    } catch (err) {
+      console.error('Session timeout update failed:', err);
+      // Don't show error to user for this non-critical operation, just log it
+    } finally {
+      setIsSessionTimeoutLoading(false);
     }
   };
   
@@ -574,11 +630,11 @@ const AccountSettingsPage: React.FC = () => {
                     <div className="flex justify-end pt-2">
                       <Button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isPasswordLoading}
                         className="min-w-[140px]"
                       >
-                        {!isLoading ? <Key size={16} className="mr-2" /> : null}
-                        {isLoading ? 'Changing...' : 'Change Password'}
+                        {!isPasswordLoading ? <Key size={16} className="mr-2" /> : null}
+                        {isPasswordLoading ? 'Changing...' : 'Change Password'}
                       </Button>
                     </div>
                   </form>
@@ -618,23 +674,27 @@ const AccountSettingsPage: React.FC = () => {
                       <Checkbox defaultChecked disabled />
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="space-y-0.5">
                         <Label className="text-base">Session Timeout</Label>
                         <p className="text-sm text-muted-foreground">
-                          Automatically sign out after period of inactivity (Coming Soon)
+                          Automatically sign out after period of inactivity
                         </p>
                       </div>
-                      <Select defaultValue="30m" disabled>
+                      <Select 
+                        value={sessionTimeout} 
+                        onValueChange={handleSessionTimeoutUpdate}
+                        disabled={isSessionTimeoutLoading}
+                      >
                         <SelectTrigger className="w-[120px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="15m">15 minutes</SelectItem>
-                          <SelectItem value="30m">30 minutes</SelectItem>
-                          <SelectItem value="1h">1 hour</SelectItem>
-                          <SelectItem value="4h">4 hours</SelectItem>
-                          <SelectItem value="never">Never</SelectItem>
+                          <SelectItem value="15">15 minutes</SelectItem>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="60">1 hour</SelectItem>
+                          <SelectItem value="240">4 hours</SelectItem>
+                          <SelectItem value="0">Never</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

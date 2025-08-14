@@ -51,6 +51,12 @@ class User(AbstractUser):
         related_name='users'
     )
     
+    # Session timeout preferences
+    session_timeout_minutes = models.IntegerField(
+        default=30,
+        help_text="Session timeout in minutes. 0 means never timeout."
+    )
+    
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
