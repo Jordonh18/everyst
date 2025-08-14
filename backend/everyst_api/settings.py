@@ -209,8 +209,8 @@ REST_FRAMEWORK = {
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Reduced from 1 hour to 15 minutes
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Increased from 15 minutes to 1 hour for better UX
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Increased from 1 day to 1 week for better UX
     'ROTATE_REFRESH_TOKENS': True,  # Rotate refresh tokens for better security
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,  # Temporarily disabled to test duplicate logging issue

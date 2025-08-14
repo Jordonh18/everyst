@@ -12,6 +12,7 @@ export interface JwtPayload {
   is_active?: boolean;
   is_staff?: boolean;
   is_superuser?: boolean;
+  session_timeout_minutes?: number;
   role?: string;
   role_details?: {
     name: string;
@@ -89,6 +90,7 @@ export function getUserInfoFromToken(token: string): Partial<import('../types/us
     is_active: payload.is_active ?? true,
     is_staff: payload.is_staff ?? false,
     is_superuser: payload.is_superuser ?? false,
+    session_timeout_minutes: payload.session_timeout_minutes ?? 30,
     role: payload.role || undefined,
     role_details: payload.role_details || undefined,
   };

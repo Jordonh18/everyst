@@ -79,6 +79,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_active'] = user.is_active
         token['is_staff'] = user.is_staff
         token['is_superuser'] = user.is_superuser
+        token['session_timeout_minutes'] = getattr(user, 'session_timeout_minutes', 30)
         
         # Add role information if available
         if user.role:

@@ -10,6 +10,7 @@ export interface UserRole {
   can_manage_system: boolean;
   can_manage_network: boolean;
   can_view_all_data: boolean;
+  can_view_logs: boolean;
 }
 
 export interface User {
@@ -25,6 +26,7 @@ export interface User {
   last_login?: string;
   role?: string;
   role_details?: UserRole;
+  session_timeout_minutes?: number;
 }
 
 export interface UserLoginRequest {
