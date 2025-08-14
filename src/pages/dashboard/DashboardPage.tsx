@@ -174,6 +174,10 @@ interface SystemMetrics {
   apiResponseTimes: ApiResponseTime[];
 }
 
+// Configuration constants
+const CHART_TIME_WINDOW_SECONDS = 60; // Time window for historical data in seconds
+const CHART_TIME_WINDOW_MS = CHART_TIME_WINDOW_SECONDS * 1000; // Time window in milliseconds
+
 export const DashboardPage: React.FC = () => {
   const { getAccessToken } = useAuth();
 
@@ -246,6 +250,50 @@ export const DashboardPage: React.FC = () => {
   // Get WebSocket connection status from context
   const { isConnected } = useWebSocket();
   
+  // Initialize with proper time window
+  useEffect(() => {
+    const now = Date.now();
+    const initialTime = now - CHART_TIME_WINDOW_MS;
+    
+    // Create initial placeholder data points to establish proper time domain
+    const initialData: MetricPoint[] = [
+      {
+        timestamp: initialTime.toString(),
+        cpu: 0,
+        memory: 0,
+        disk: 0,
+        network: 0,
+        displayTime: new Date(initialTime).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit',
+          minute: '2-digit', 
+          second: '2-digit' 
+        })
+      }
+    ];
+
+    const initialNetworkData: NetworkTrafficPoint[] = [
+      {
+        timestamp: initialTime.toString(),
+        upload: 0,
+        download: 0,
+        total: 0,
+        displayTime: new Date(initialTime).toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit',
+          minute: '2-digit', 
+          second: '2-digit' 
+        })
+      }
+    ];
+
+    setMetrics(prev => ({
+      ...prev,
+      historicalData: initialData,
+      networkTrafficData: initialNetworkData
+    }));
+  }, []); // Run only once on mount
+  
   // State for smooth streaming animation with value smoothing
   const [currentValues, setCurrentValues] = useState<{
     cpu: number;
@@ -314,12 +362,12 @@ export const DashboardPage: React.FC = () => {
         displayTime
       };
 
-      // Update metrics with streaming data points - keep 60 seconds of data
-      const sixtySecondsAgo = timestamp - (60 * 1000);
+      // Update metrics with streaming data points - keep data for the configured time window
+      const cutoffTime = timestamp - CHART_TIME_WINDOW_MS;
       setMetrics(prev => ({
         ...prev,
-        historicalData: [...prev.historicalData.filter(point => parseInt(point.timestamp) > sixtySecondsAgo), cpuPoint],
-        networkTrafficData: [...prev.networkTrafficData.filter(point => parseInt(point.timestamp) > sixtySecondsAgo), networkPoint]
+        historicalData: [...prev.historicalData.filter(point => parseInt(point.timestamp) > cutoffTime), cpuPoint],
+        networkTrafficData: [...prev.networkTrafficData.filter(point => parseInt(point.timestamp) > cutoffTime), networkPoint]
       }));
 
       animationFrame = requestAnimationFrame(animate);
@@ -914,7 +962,10 @@ export const DashboardPage: React.FC = () => {
                         tick={false}
                         type="number"
                         scale="time"
-                        domain={['dataMin', 'dataMax']}
+                        domain={[
+                          () => Date.now() - CHART_TIME_WINDOW_MS,
+                          () => Date.now()
+                        ]}
                       />
                       <YAxis 
                         domain={[0, 100]} 
@@ -1002,7 +1053,10 @@ export const DashboardPage: React.FC = () => {
                       tick={false}
                       type="number"
                       scale="time"
-                      domain={['dataMin', 'dataMax']}
+                      domain={[
+                        () => Date.now() - CHART_TIME_WINDOW_MS,
+                        () => Date.now()
+                      ]}
                     />
                     <YAxis 
                       axisLine={false}
