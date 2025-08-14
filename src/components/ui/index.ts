@@ -15,6 +15,7 @@ export * from './tooltip';
 export * from './progress';
 export * from './skeleton';
 export * from './alert-dialog';
+export * from './alert';
 export * from './input';
 export * from './label';
 export * from './textarea';
