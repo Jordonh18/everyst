@@ -75,7 +75,7 @@ export const LoginPage: React.FC = () => {
             transition={{ duration: 0.6 }}
             className="flex items-center space-x-3"
           >
-            <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-12 w-12" />
+            <img src="/Logo-white-no-text.svg" alt="Everyst Logo" className="h-12 w-12" />
             <h1 className="text-3xl font-bold text-foreground">everyst</h1>
           </motion.div>
 
@@ -143,7 +143,7 @@ export const LoginPage: React.FC = () => {
         >
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16 mb-4" />
+            <img src="/Logo-white-no-text.svg" alt="Everyst Logo" className="h-16 w-16 mb-4" />
             <h1 className="text-2xl font-bold text-foreground">everyst</h1>
             <p className="text-muted-foreground text-sm">Server Monitoring & Security Platform</p>
           </div>

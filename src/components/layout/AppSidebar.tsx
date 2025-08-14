@@ -137,7 +137,7 @@ export const AppSidebar: React.FC = () => {
         <SidebarHeader className="h-16 flex items-center border-b p-0 m-0">
           <div className="flex items-center gap-3 px-4 w-full h-full">
             <img 
-              src="/Logo-white-no-text .svg" 
+              src="/Logo-white-no-text.svg" 
               alt="everyst logo" 
               className="h-12 w-12 min-h-[3rem] min-w-[3rem] flex-shrink-0" 
             />

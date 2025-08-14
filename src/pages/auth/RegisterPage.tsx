@@ -122,7 +122,7 @@ export const RegisterPage: React.FC = () => {
             className="space-y-8"
           >
             <div className="flex items-center space-x-4">
-              <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16" />
+              <img src="/Logo-white-no-text.svg" alt="Everyst Logo" className="h-16 w-16" />
               <div>
                 <h1 className="text-3xl font-bold text-foreground">everyst</h1>
                 <p className="text-muted-foreground">Server Monitoring & Security Platform</p>
@@ -192,7 +192,7 @@ export const RegisterPage: React.FC = () => {
         >
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <img src="/Logo-white-no-text .svg" alt="Everyst Logo" className="h-16 w-16 mb-4" />
+            <img src="/Logo-white-no-text.svg" alt="Everyst Logo" className="h-16 w-16 mb-4" />
             <h1 className="text-2xl font-bold text-foreground">everyst</h1>
             <p className="text-muted-foreground text-sm">Server Monitoring & Security Platform</p>
           </div>
