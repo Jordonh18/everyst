@@ -134,17 +134,31 @@ export const AppSidebar: React.FC = () => {
   return (
     <>
       <Sidebar collapsible="icon">
-        <SidebarHeader className="h-16 flex items-center border-b p-0 m-0">
-          <div className="flex items-center gap-3 px-4 w-full h-full">
-            <img 
-              src="/Logo-white-no-text.svg" 
-              alt="everyst logo" 
-              className="h-12 w-12 min-h-[3rem] min-w-[3rem] flex-shrink-0" 
-            />
-            <span className="text-lg font-bold tracking-wide text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-              everyst
-            </span>
-          </div>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                asChild
+              >
+                <Link to="/dashboard">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
+                    <img 
+                      src="/Logo-white-no-text.svg" 
+                      alt="Everyst Logo" 
+                      className="size-7" 
+                    />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold text-lg">
+                      Everyst
+                    </span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
         
         <SidebarContent>
