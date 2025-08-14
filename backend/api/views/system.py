@@ -3,8 +3,10 @@ System-related views for the everyst API.
 """
 import json
 import os
+import shutil
 import subprocess
 import tempfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -19,6 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from api.models.system import SystemMetrics, Alert, SecurityStatus
 from api.serializers.system import SystemMetricsSerializer, AlertSerializer, SecurityStatusSerializer
 from api.utils import get_system_metrics
+from api.utils.github_api import github_client
 
 
 class SystemMetricsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,7 +65,7 @@ def get_current_metrics(request):
 @permission_classes([IsAuthenticated])
 def check_updates(request):
     """
-    Check for available updates from GitHub releases
+    Check for available updates from GitHub releases using ETag-based caching
     """
     try:
         # Get current version from package.json
@@ -74,14 +77,18 @@ def check_updates(request):
                 package_data = json.load(f)
                 current_version = package_data.get('version', '1.0.0')
         
-        # Fetch releases from GitHub
-        response = requests.get(
-            'https://api.github.com/repos/Jordonh18/everyst/releases',
-            timeout=10
-        )
-        response.raise_for_status()
+        # Check if force refresh is requested
+        force_refresh = request.GET.get('force', 'false').lower() == 'true'
         
-        releases = response.json()
+        # Fetch releases from GitHub with ETag caching
+        # Use shorter cache time (2 minutes) to ensure we get updates quickly
+        # but still prevent excessive API calls
+        releases, is_fresh_data = github_client.get_releases(
+            owner='Jordonh18',
+            repo='everyst',
+            force_refresh=force_refresh,
+            max_cache_age_minutes=2  # Short cache time for update checks
+        )
         
         # Filter stable releases
         stable_releases = [
@@ -94,7 +101,8 @@ def check_updates(request):
                 'current_version': current_version,
                 'latest_version': None,
                 'update_available': False,
-                'releases': []
+                'releases': releases[:10],  # Return all releases (including prereleases) for UI
+                'is_fresh_data': is_fresh_data
             })
         
         latest_release = stable_releases[0]
@@ -123,8 +131,9 @@ def check_updates(request):
             'current_version': current_version,
             'latest_version': latest_version,
             'update_available': update_available,
-            'releases': stable_releases[:5],  # Return top 5 releases
+            'releases': releases[:10],  # Return top 10 releases including prereleases
             'changelog': latest_release.get('body', ''),
+            'is_fresh_data': is_fresh_data,  # Indicates if data came from API or cache
         })
         
     except requests.RequestException as e:
@@ -193,9 +202,6 @@ def perform_update(request):
         backup_path = os.path.join(backup_dir, f'backup_{current_version}_{int(time.time())}.tar.gz')
         
         # Create backup (simplified - in production you'd want more robust backup)
-        import shutil
-        import time
-        
         project_root = os.path.join(settings.BASE_DIR, '..')
         
         # Create a tar.gz backup

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SystemMetrics, Alert, SecurityStatus, NetworkDevice, NetworkConnection, NetworkScan, Notification, User
+from .models import SystemMetrics, Alert, SecurityStatus, NetworkDevice, NetworkConnection, NetworkScan, Notification, User, GitHubAPICache
 
 @admin.register(SystemMetrics)
 class SystemMetricsAdmin(admin.ModelAdmin):
@@ -65,3 +65,15 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ('type', 'is_read', 'is_system')
     search_fields = ('title', 'message')
     readonly_fields = ('timestamp',)
+
+
+@admin.register(GitHubAPICache)
+class GitHubAPICacheAdmin(admin.ModelAdmin):
+    list_display = ('url', 'etag', 'status_code', 'cached_at')
+    list_filter = ('status_code', 'cached_at')
+    search_fields = ('url', 'etag')
+    readonly_fields = ('cached_at', 'created_at', 'updated_at')
+    
+    def has_add_permission(self, request):
+        # Prevent manual addition of cache entries
+        return False

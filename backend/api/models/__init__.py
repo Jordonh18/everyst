@@ -25,6 +25,9 @@ from .ssh_keys import SSHKey, SSHSession
 # Activity-related models
 from .activity import ApplicationLog
 
+# GitHub API cache models
+from .github_cache import GitHubAPICache
+
 # Define what's exported when doing 'from api.models import *'
 __all__ = [
     'BaseModel',
@@ -41,4 +44,5 @@ __all__ = [
     'ApplicationLog',
     'SSHKey',
     'SSHSession',
+    'GitHubAPICache',
 ]
