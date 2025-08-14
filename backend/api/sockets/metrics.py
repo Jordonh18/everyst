@@ -156,7 +156,7 @@ async def broadcast_metrics() -> None:
                         await sio.emit('notification', recovery_notification)
             
             # Wait before next update
-            await asyncio.sleep(1)  # Send updates every second
+            await asyncio.sleep(0.1)  # Send updates every 100ms for ultra-smooth streaming
         except Exception as e:
             logger.error(f"Error broadcasting metrics: {e}")
             await asyncio.sleep(5)  # Wait a bit longer if there was an error

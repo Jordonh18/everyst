@@ -100,6 +100,7 @@ interface MetricPoint {
   memory: number;
   disk: number;
   network: number;
+  displayTime?: string; // For tooltip display
 }
 
 // New interface for network traffic data
@@ -108,6 +109,7 @@ interface NetworkTrafficPoint {
   upload: number;
   download: number;
   total: number;
+  displayTime?: string; // For tooltip display
 }
 
 // Types for our processed system metrics data
@@ -244,6 +246,68 @@ export const DashboardPage: React.FC = () => {
   // Get WebSocket connection status from context
   const { isConnected } = useWebSocket();
   
+  // State for smooth streaming animation
+  const [currentValues, setCurrentValues] = useState<{
+    cpu: number;
+    network_tx: number;
+    network_rx: number;
+  }>({
+    cpu: 0,
+    network_tx: 0,
+    network_rx: 0
+  });
+
+  // Animation frame for smooth streaming
+  useEffect(() => {
+    let animationFrame: number;
+    
+    const animate = () => {
+      const now = new Date();
+      const timestamp = now.getTime().toString();
+      const displayTime = now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit',
+        minute: '2-digit', 
+        second: '2-digit' 
+      });
+
+      // Create smooth interpolated data points using current values
+      const cpuPoint: MetricPoint = {
+        timestamp,
+        cpu: currentValues.cpu,
+        memory: 0,
+        disk: 0,
+        network: 0,
+        displayTime
+      };
+
+      const networkPoint: NetworkTrafficPoint = {
+        timestamp,
+        upload: parseFloat(((currentValues.network_tx || 0) / (1024 * 1024)).toFixed(2)),
+        download: parseFloat(((currentValues.network_rx || 0) / (1024 * 1024)).toFixed(2)),
+        total: parseFloat((((currentValues.network_tx || 0) + (currentValues.network_rx || 0)) / (1024 * 1024)).toFixed(2)),
+        displayTime
+      };
+
+      // Update metrics with streaming data points
+      setMetrics(prev => ({
+        ...prev,
+        historicalData: [...prev.historicalData, cpuPoint].slice(-100),
+        networkTrafficData: [...prev.networkTrafficData, networkPoint].slice(-100)
+      }));
+
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [currentValues]);
+  
   // Calculate status based on usage percentages
   const getStatus = (usage: number): 'success' | 'warning' | 'error' => {
       if (usage >= 90) return 'error';
@@ -308,54 +372,6 @@ export const DashboardPage: React.FC = () => {
     }
   }, [getAccessToken]);
 
-  // Add new data point to historical data with proper management
-  const addToHistoricalData = (newData: RawMetricsData) => {
-    const now = new Date();
-    
-    // Use seconds precision for both charts to get continuous flow
-    const timestamp = now.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit',
-      minute: '2-digit', 
-      second: '2-digit' 
-    });
-
-    // Always create new data points for continuous streaming effect
-    const newPoint: MetricPoint = {
-      timestamp,
-      cpu: newData.cpu_usage || 0,
-      memory: newData.memory_usage || 0,
-      disk: newData.disk_usage || 0,
-      network: Math.min(100, ((newData.network_tx + newData.network_rx) / (1024 * 1024)) / 125 * 100)
-    };
-
-    const networkTrafficPoint: NetworkTrafficPoint = {
-      timestamp,
-      upload: parseFloat(((newData.network_tx || 0) / (1024 * 1024)).toFixed(2)),
-      download: parseFloat(((newData.network_rx || 0) / (1024 * 1024)).toFixed(2)),
-      total: parseFloat((((newData.network_tx || 0) + (newData.network_rx || 0)) / (1024 * 1024)).toFixed(2))
-    };
-
-    setMetrics(prev => {
-      // Always add new data points for continuous flow (no duplicate checking)
-      const newHistoricalData = [...prev.historicalData, newPoint];
-      const newNetworkData = [...prev.networkTrafficData, networkTrafficPoint];
-      
-      // Keep a reasonable number of points and trim old data
-      const maxCpuPoints = 30; // Same as network for consistency
-      const maxNetworkPoints = 30;
-      
-      const trimmedHistoricalData = newHistoricalData.slice(-maxCpuPoints);
-      const trimmedNetworkData = newNetworkData.slice(-maxNetworkPoints);
-      
-      return {
-        ...prev,
-        historicalData: trimmedHistoricalData,
-        networkTrafficData: trimmedNetworkData
-      };
-    });
-  };
-  
   // Process metrics data from socket
   const processMetricsData = React.useCallback((data: RawMetricsData) => {
     if (!data) return;
@@ -434,8 +450,12 @@ export const DashboardPage: React.FC = () => {
           ...processed,
         }));
         
-        // Add to historical data
-        addToHistoricalData(rawData);
+        // Update streaming values for smooth animation
+        setCurrentValues({
+          cpu: rawData.cpu_usage || 0,
+          network_tx: rawData.network_tx || 0,
+          network_rx: rawData.network_rx || 0
+        });
         
         setIsMetricsLoading(false);
       }
@@ -865,8 +885,7 @@ export const DashboardPage: React.FC = () => {
                         dataKey="timestamp" 
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 12, fill: '#6b7280' }}
-                        interval="preserveStartEnd"
+                        tick={false}
                         domain={['dataMin', 'dataMax']}
                       />
                       <YAxis 
@@ -882,7 +901,10 @@ export const DashboardPage: React.FC = () => {
                             `${Number(value).toFixed(1)}%`,
                             name
                           ]}
-                          labelFormatter={(label) => `Time: ${label}`}
+                          labelFormatter={(label, payload) => {
+                            const dataPoint = payload?.[0]?.payload;
+                            return dataPoint?.displayTime ? `Time: ${dataPoint.displayTime}` : `Time: ${label}`;
+                          }}
                           className="bg-background/95 backdrop-blur border-border/50"
                         />} 
                       />
@@ -896,9 +918,7 @@ export const DashboardPage: React.FC = () => {
                         connectNulls={false}
                         dot={false}
                         activeDot={{ r: 6, stroke: '#ffffff', strokeWidth: 2 }}
-                        animationDuration={200}
-                        animationEasing="linear"
-                        isAnimationActive={true}
+                        isAnimationActive={false}
                       />
                     </AreaChart>
                   </ChartContainer>
@@ -951,8 +971,7 @@ export const DashboardPage: React.FC = () => {
                       dataKey="timestamp" 
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: 10, fill: '#6b7280' }}
-                      interval="preserveStartEnd"
+                      tick={false}
                       domain={['dataMin', 'dataMax']}
                     />
                     <YAxis 
@@ -968,7 +987,10 @@ export const DashboardPage: React.FC = () => {
                           `${Number(value).toFixed(2)} MB/s`,
                           'Network Speed'
                         ]}
-                        labelFormatter={(label) => `Time: ${label}`}
+                        labelFormatter={(label, payload) => {
+                          const dataPoint = payload?.[0]?.payload;
+                          return dataPoint?.displayTime ? `Time: ${dataPoint.displayTime}` : `Time: ${label}`;
+                        }}
                         className="bg-background/95 backdrop-blur border-border/50"
                       />} 
                     />
@@ -981,9 +1003,7 @@ export const DashboardPage: React.FC = () => {
                       fill="url(#downloadGradient)"
                       name="Download"
                       dot={false}
-                      animationDuration={200}
-                      animationEasing="linear"
-                      isAnimationActive={true}
+                      isAnimationActive={false}
                     />
                     <Area 
                       type="monotone" 
@@ -994,9 +1014,7 @@ export const DashboardPage: React.FC = () => {
                       fill="url(#uploadGradient)"
                       name="Upload"
                       dot={false}
-                      animationDuration={200}
-                      animationEasing="linear"
-                      isAnimationActive={true}
+                      isAnimationActive={false}
                     />
                   </AreaChart>
                 </ChartContainer>
