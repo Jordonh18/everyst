@@ -285,8 +285,7 @@ const AccountSettingsPage: React.FC = () => {
       // Refresh user data to get new session timeout in token (in background)
       refreshToken().catch(console.warn);
       
-      // Show a subtle success notification
-      sendUserNotification(user?.id as string, 'Settings Updated', 'Session timeout preference saved.', 'success');
+      // Session timeout updated silently - no notification needed
     } catch (err) {
       console.error('Session timeout update failed:', err);
       // Don't show error to user for this non-critical operation, just log it
