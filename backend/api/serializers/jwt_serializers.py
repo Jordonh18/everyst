@@ -67,12 +67,34 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         """
         Generate token for the given user.
         
-        This method can be overridden to add custom claims to the token.
+        This method adds custom claims to reduce database calls for common user info.
         """
         token = super().get_token(user)
         
-        # Add custom claims to the token if needed
-        # token['username'] = user.username
-        # token['email'] = user.email
+        # Add custom claims to the token to reduce database calls
+        token['username'] = user.username
+        token['email'] = user.email
+        token['first_name'] = user.first_name or ''
+        token['last_name'] = user.last_name or ''
+        token['is_active'] = user.is_active
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser
+        
+        # Add role information if available
+        if user.role:
+            token['role'] = user.role.name
+            token['role_details'] = {
+                'name': user.role.name,
+                'description': user.role.description,
+                'priority': user.role.priority,
+                'can_manage_users': user.role.can_manage_users,
+                'can_manage_system': user.role.can_manage_system,
+                'can_manage_network': user.role.can_manage_network,
+                'can_view_all_data': user.role.can_view_all_data,
+                'can_view_logs': getattr(user.role, 'can_view_logs', False),
+            }
+        else:
+            token['role'] = None
+            token['role_details'] = None
         
         return token

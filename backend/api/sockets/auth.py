@@ -2,7 +2,8 @@
 Authentication module for Socket.IO connections.
 
 This module handles JWT authentication for socket connections
-and maintains user session mapping.
+and maintains user session mapping. It uses JWT claims to reduce
+database calls when possible.
 """
 
 import logging
@@ -12,6 +13,7 @@ from django.contrib.auth import get_user_model
 from django.db import close_old_connections
 from asgiref.sync import sync_to_async
 from typing import Optional, Dict, Any, Tuple, Union
+from api.utils.jwt_utils import get_user_from_token_claims
 from .server import sio, connected_clients, user_sessions, session_users
 
 # Set up logging
@@ -20,9 +22,12 @@ logger = logging.getLogger('socket_server.auth')
 User = get_user_model()
 
 
-def get_user_from_token(token_str: str) -> Optional[User]:
+def get_user_from_token(token_str: str):
     """
     Validate JWT token and return the user.
+    
+    This function first tries to get user information from JWT claims
+    to reduce database calls, falling back to database queries when needed.
     
     Args:
         token_str: The authorization token string (Bearer format)
@@ -35,6 +40,15 @@ def get_user_from_token(token_str: str) -> Optional[User]:
             return None
         
         token = token_str.split(' ')[1]
+        
+        # Try to get user from token claims first (reduces database load)
+        user = get_user_from_token_claims(token)
+        
+        if user:
+            logger.debug(f"Socket auth: User {user.username} authenticated via JWT claims")
+            return user
+        
+        # Fallback to traditional JWT validation and database lookup
         payload = jwt.decode(
             token, 
             settings.SIMPLE_JWT['SIGNING_KEY'],
@@ -48,14 +62,17 @@ def get_user_from_token(token_str: str) -> Optional[User]:
         # Close any old database connections before creating new ones
         close_old_connections()
         
-        user = User.objects.filter(id=user_id, is_active=True).first()
+        user = User.objects.select_related('role').filter(id=user_id, is_active=True).first()
+        if user:
+            logger.debug(f"Socket auth: User {user.username} authenticated via database fallback")
         return user
+        
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, User.DoesNotExist, Exception) as e:
-        logger.warning(f"Token validation failed: {str(e)}")
+        logger.warning(f"Socket token validation failed: {str(e)}")
         return None
 
 
-async def get_user_from_sid(sid: str) -> Tuple[Optional[str], Optional[User]]:
+async def get_user_from_sid(sid: str):
     """
     Get user ID and User object from a session ID.
     

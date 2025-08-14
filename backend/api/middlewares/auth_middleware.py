@@ -1,7 +1,8 @@
 """
 Authentication middleware for the everyst API.
 
-This middleware provides JWT token authentication for ASGI applications.
+This middleware provides JWT token authentication for ASGI applications
+with support for extracting user information from JWT claims to reduce database calls.
 """
 
 from channels.db import database_sync_to_async
@@ -9,6 +10,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from api.utils.jwt_utils import get_user_from_token_claims
 import jwt
 import logging
 from typing import Dict, Any, Callable, Awaitable
@@ -88,6 +90,9 @@ class TokenAuthMiddleware:
         """
         Authenticate the user based on the JWT token.
         
+        This method first tries to get user information from JWT claims
+        to reduce database calls, falling back to database queries when needed.
+        
         Args:
             token: The JWT token string
             
@@ -98,18 +103,26 @@ class TokenAuthMiddleware:
             InvalidToken: If the token is invalid
         """
         try:
-            # Validate the token
+            # First, try to get user from token claims (faster, less DB load)
+            user = get_user_from_token_claims(token)
+            
+            if user:
+                logger.debug(f"User {user.username} authenticated via JWT claims")
+                return user
+            
+            # Fallback to traditional token validation and database lookup
             validated_token = AccessToken(token)
             user_id = validated_token['user_id']
             
             # Get the user from the database
-            user = User.objects.get(id=user_id)
+            user = User.objects.select_related('role').get(id=user_id)
             
             # Check if the user is active
             if not user.is_active:
                 logger.warning(f"User {user.username} is inactive")
                 return None
             
+            logger.debug(f"User {user.username} authenticated via database fallback")
             return user
             
         except User.DoesNotExist:
@@ -118,4 +131,7 @@ class TokenAuthMiddleware:
             
         except (InvalidToken, TokenError) as e:
             logger.warning(f"Invalid token: {str(e)}")
+            return None
+        except Exception as e:
+            logger.warning(f"Authentication error: {str(e)}")
             return None

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useWebSocket } from './WebSocketContext';
+import { getUserInfoFromToken, shouldRefreshTokenClaims } from '../utils/jwtUtils';
 import type { User } from '../types/users';
 
 // API URL helper
@@ -212,6 +213,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch current user data
   const fetchCurrentUser = async (token: string): Promise<User | null> => {
     try {
+      // First, try to get user info from JWT token claims (faster, no API call)
+      if (!shouldRefreshTokenClaims(token)) {
+        const userInfo = getUserInfoFromToken(token);
+        if (userInfo && userInfo.username && userInfo.email) {
+          console.debug('User info retrieved from JWT claims');
+          return userInfo as User;
+        }
+      }
+
+      // Fallback to API call if claims are missing or might be outdated
+      console.debug('Fetching user info from API (JWT claims unavailable or outdated)');
       const response = await fetch(`${getApiUrl()}/users/me/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -229,7 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const errorData = await response.json();
             console.warn('Authentication error:', errorData);
-          } catch (e) {
+          } catch {
             console.warn(`Authentication failed with status ${response.status}`);
           }
         }
