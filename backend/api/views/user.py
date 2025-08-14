@@ -73,8 +73,30 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def me(self, request):
-        """Return the current user's profile"""
-        serializer = self.get_serializer(request.user)
+        """
+        Return the current user's profile.
+        
+        This endpoint can use JWT claims to reduce database calls when possible,
+        falling back to database queries when needed.
+        """
+        # Try to get user info from JWT token claims first
+        from api.utils.jwt_utils import get_user_info_from_token, should_refresh_token_claims
+        
+        # Extract token from Authorization header
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            
+            # Check if we should use claims or fall back to database
+            if not should_refresh_token_claims(token):
+                user_info = get_user_info_from_token(token)
+                if user_info:
+                    # Return user data from token claims (no database hit)
+                    return Response(user_info)
+        
+        # Fallback to database query with full user data
+        user = User.objects.select_related('role').get(id=request.user.id)
+        serializer = self.get_serializer(user)
         return Response(serializer.data)
         
     def create(self, request, *args, **kwargs):
