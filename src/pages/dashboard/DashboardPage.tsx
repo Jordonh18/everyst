@@ -246,7 +246,7 @@ export const DashboardPage: React.FC = () => {
   // Get WebSocket connection status from context
   const { isConnected } = useWebSocket();
   
-  // State for smooth streaming animation
+  // State for smooth streaming animation with value smoothing
   const [currentValues, setCurrentValues] = useState<{
     cpu: number;
     network_tx: number;
@@ -257,13 +257,38 @@ export const DashboardPage: React.FC = () => {
     network_rx: 0
   });
 
+  // Smoothed values for ultra-smooth animation
+  const [smoothedValues, setSmoothedValues] = useState<{
+    cpu: number;
+    network_tx: number;
+    network_rx: number;
+  }>({
+    cpu: 0,
+    network_tx: 0,
+    network_rx: 0
+  });
+
+  // Smooth value interpolation
+  useEffect(() => {
+    const smoothingFactor = 0.1; // Lower = smoother
+    const interval = setInterval(() => {
+      setSmoothedValues(prev => ({
+        cpu: prev.cpu + (currentValues.cpu - prev.cpu) * smoothingFactor,
+        network_tx: prev.network_tx + (currentValues.network_tx - prev.network_tx) * smoothingFactor,
+        network_rx: prev.network_rx + (currentValues.network_rx - prev.network_rx) * smoothingFactor
+      }));
+    }, 16); // 60fps smoothing
+
+    return () => clearInterval(interval);
+  }, [currentValues]);
+
   // Animation frame for smooth streaming
   useEffect(() => {
     let animationFrame: number;
     
     const animate = () => {
       const now = new Date();
-      const timestamp = now.getTime().toString();
+      const timestamp = now.getTime();
       const displayTime = now.toLocaleTimeString('en-US', { 
         hour12: false, 
         hour: '2-digit',
@@ -271,10 +296,10 @@ export const DashboardPage: React.FC = () => {
         second: '2-digit' 
       });
 
-      // Create smooth interpolated data points using current values
+      // Create data points using smoothed values for ultra-smooth animation
       const cpuPoint: MetricPoint = {
-        timestamp,
-        cpu: currentValues.cpu,
+        timestamp: timestamp.toString(),
+        cpu: smoothedValues.cpu,
         memory: 0,
         disk: 0,
         network: 0,
@@ -282,18 +307,19 @@ export const DashboardPage: React.FC = () => {
       };
 
       const networkPoint: NetworkTrafficPoint = {
-        timestamp,
-        upload: parseFloat(((currentValues.network_tx || 0) / (1024 * 1024)).toFixed(2)),
-        download: parseFloat(((currentValues.network_rx || 0) / (1024 * 1024)).toFixed(2)),
-        total: parseFloat((((currentValues.network_tx || 0) + (currentValues.network_rx || 0)) / (1024 * 1024)).toFixed(2)),
+        timestamp: timestamp.toString(),
+        upload: parseFloat(((smoothedValues.network_tx || 0) / (1024 * 1024)).toFixed(2)),
+        download: parseFloat(((smoothedValues.network_rx || 0) / (1024 * 1024)).toFixed(2)),
+        total: parseFloat((((smoothedValues.network_tx || 0) + (smoothedValues.network_rx || 0)) / (1024 * 1024)).toFixed(2)),
         displayTime
       };
 
-      // Update metrics with streaming data points
+      // Update metrics with streaming data points - keep 60 seconds of data
+      const sixtySecondsAgo = timestamp - (60 * 1000);
       setMetrics(prev => ({
         ...prev,
-        historicalData: [...prev.historicalData, cpuPoint].slice(-100),
-        networkTrafficData: [...prev.networkTrafficData, networkPoint].slice(-100)
+        historicalData: [...prev.historicalData.filter(point => parseInt(point.timestamp) > sixtySecondsAgo), cpuPoint],
+        networkTrafficData: [...prev.networkTrafficData.filter(point => parseInt(point.timestamp) > sixtySecondsAgo), networkPoint]
       }));
 
       animationFrame = requestAnimationFrame(animate);
@@ -306,7 +332,7 @@ export const DashboardPage: React.FC = () => {
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [currentValues]);
+  }, [smoothedValues]);
   
   // Calculate status based on usage percentages
   const getStatus = (usage: number): 'success' | 'warning' | 'error' => {
@@ -886,6 +912,8 @@ export const DashboardPage: React.FC = () => {
                         axisLine={false}
                         tickLine={false}
                         tick={false}
+                        type="number"
+                        scale="time"
                         domain={['dataMin', 'dataMax']}
                       />
                       <YAxis 
@@ -909,13 +937,13 @@ export const DashboardPage: React.FC = () => {
                         />} 
                       />
                       <Area 
-                        type="monotone" 
+                        type="basisOpen" 
                         dataKey="cpu" 
                         stroke="#ffffff"
                         strokeWidth={3}
                         fill="url(#cpuGradient)"
                         name="CPU Usage"
-                        connectNulls={false}
+                        connectNulls={true}
                         dot={false}
                         activeDot={{ r: 6, stroke: '#ffffff', strokeWidth: 2 }}
                         isAnimationActive={false}
@@ -972,6 +1000,8 @@ export const DashboardPage: React.FC = () => {
                       axisLine={false}
                       tickLine={false}
                       tick={false}
+                      type="number"
+                      scale="time"
                       domain={['dataMin', 'dataMax']}
                     />
                     <YAxis 
