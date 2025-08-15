@@ -61,17 +61,14 @@ function UpdateManager() {
   
   const [releases, setReleases] = useState<Release[]>([]);
   const [showChangelog, setShowChangelog] = useState(false);
-  const [isDataFromCache, setIsDataFromCache] = useState(false);
+  const [expandedReleases, setExpandedReleases] = useState<Set<number>>(new Set());
 
   // Check for updates
-  const checkForUpdates = useCallback(async (forceRefresh = false) => {
+  const checkForUpdates = useCallback(async () => {
     setUpdateState(prev => ({ ...prev, isChecking: true, error: null }));
     
     try {
-      const endpoint = forceRefresh 
-        ? '/system/updates/check/?force=true' 
-        : '/system/updates/check/';
-      const response = await apiClient.get(endpoint);
+      const response = await apiClient.get('/system/updates/check/');
       
       if (response.error) {
         throw new Error(response.error);
@@ -87,7 +84,6 @@ function UpdateManager() {
       };
       
       setReleases(data.releases || []);
-      setIsDataFromCache(!data.is_fresh_data);
       
       setUpdateState(prev => ({
         ...prev,
@@ -157,9 +153,8 @@ function UpdateManager() {
 
   // Check for updates on mount
   useEffect(() => {
-    checkForUpdates(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    checkForUpdates();
+  }, [checkForUpdates]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -182,6 +177,44 @@ function UpdateManager() {
   const isCurrentVersionReleased = () => {
     const currentVersionClean = updateState.currentVersion.replace(/^v/, '');
     return releases.some(release => release.tag_name.replace(/^v/, '') === currentVersionClean);
+  };
+
+  // Toggle release expansion
+  const toggleReleaseExpansion = (releaseId: number) => {
+    setExpandedReleases(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(releaseId)) {
+        newSet.delete(releaseId);
+      } else {
+        newSet.add(releaseId);
+      }
+      return newSet;
+    });
+  };
+
+  // Simple markdown-to-HTML converter for release notes
+  const renderMarkdown = (markdown: string) => {
+    if (!markdown) return '';
+    
+    return markdown
+      // Headers
+      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2 mt-4">$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3 mt-4">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4 mt-4">$1</h1>')
+      // Bold and italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">$1</a>')
+      // Code blocks
+      .replace(/```[\s\S]*?```/g, '<pre class="bg-muted p-3 rounded text-sm overflow-x-auto"><code>$&</code></pre>')
+      .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
+      // Lists
+      .replace(/^\* (.*$)/gm, '<li class="ml-4">• $1</li>')
+      .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
+      // Line breaks
+      .replace(/\n\n/g, '</p><p class="mb-2">')
+      .replace(/\n/g, '<br>');
   };
 
   const updateInfo = getUpdateTypeInfo();
@@ -226,11 +259,6 @@ function UpdateManager() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   Last checked: {updateState.lastChecked.toLocaleString()}
-                  {isDataFromCache && (
-                    <span className="text-blue-600 dark:text-blue-400" title="Data from cache">
-                      (cached)
-                    </span>
-                  )}
                 </div>
               )}
             </div>
@@ -238,21 +266,11 @@ function UpdateManager() {
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => checkForUpdates(false)}
+                onClick={() => checkForUpdates()}
                 disabled={updateState.isChecking || updateState.isUpdating}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${updateState.isChecking ? 'animate-spin' : ''}`} />
                 Check Updates
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => checkForUpdates(true)}
-                disabled={updateState.isChecking || updateState.isUpdating}
-                title="Force refresh (ignore cache)"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${updateState.isChecking ? 'animate-spin' : ''}`} />
-                Force Refresh
               </Button>
               
               {updateState.updateAvailable && !updateState.isUpdating && (
@@ -430,42 +448,69 @@ function UpdateManager() {
               {releases.slice(0, 5).map((release, index) => {
                 const isLatest = index === 0 && updateState.latestVersion === release.tag_name.replace(/^v/, '');
                 const isCurrent = updateState.currentVersion.replace(/^v/, '') === release.tag_name.replace(/^v/, '');
+                const isExpanded = expandedReleases.has(release.id);
                 
                 return (
-                  <div key={release.id} className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={release.prerelease ? "destructive" : index === 0 ? "default" : "secondary"}>
-                            {VersionManager.formatVersion(release.tag_name)}
-                          </Badge>
-                          <span className="font-medium">{release.name}</span>
-                          {isLatest && <Badge variant="outline" className="text-xs">Latest</Badge>}
-                          {isCurrent && <Badge variant="outline" className="text-xs">Current</Badge>}
-                          {release.prerelease && <Badge variant="outline" className="text-xs">Pre-release</Badge>}
+                  <div key={release.id} className="border rounded-lg hover:bg-muted/30 transition-colors">
+                    <div 
+                      className="flex flex-col gap-3 p-4 cursor-pointer"
+                      onClick={() => toggleReleaseExpansion(release.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={release.prerelease ? "destructive" : index === 0 ? "default" : "secondary"}>
+                              {VersionManager.formatVersion(release.tag_name)}
+                            </Badge>
+                            <span className="font-medium">{release.name}</span>
+                            {isLatest && <Badge variant="outline" className="text-xs">Latest</Badge>}
+                            {isCurrent && <Badge variant="outline" className="text-xs">Current</Badge>}
+                            {release.prerelease && <Badge variant="outline" className="text-xs">Pre-release</Badge>}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {release.author.login}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(release.published_at)}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {release.author.login}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(release.published_at)}
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" asChild onClick={(e) => e.stopPropagation()}>
+                            <a href={release.html_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" asChild>
-                        <a href={release.html_url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
+                      
+                      {!isExpanded && release.body && (
+                        <div className="text-sm text-muted-foreground border-l-2 border-muted pl-3">
+                          {release.body.split('\n').slice(0, 2).join('\n')}
+                          {release.body.split('\n').length > 2 && '...'}
+                        </div>
+                      )}
                     </div>
                     
-                    {release.body && (
-                      <div className="text-sm text-muted-foreground border-l-2 border-muted pl-3">
-                        {release.body.split('\n').slice(0, 3).join('\n')}
-                        {release.body.split('\n').length > 3 && '...'}
+                    {isExpanded && release.body && (
+                      <div className="border-t px-4 pb-4">
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-3">Release Notes</h4>
+                          <div 
+                            className="prose prose-sm dark:prose-invert max-w-none text-sm"
+                            dangerouslySetInnerHTML={{
+                              __html: `<p class="mb-2">${renderMarkdown(release.body)}</p>`
+                            }}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -506,7 +551,7 @@ function UpdateManager() {
                 Could not fetch release information. This may be due to network issues or API limits.
               </p>
               <div className="flex items-center justify-center gap-4">
-                <Button variant="outline" onClick={() => checkForUpdates(false)}>
+                <Button variant="outline" onClick={() => checkForUpdates()}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Retry
                 </Button>

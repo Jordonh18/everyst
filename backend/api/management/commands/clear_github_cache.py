@@ -1,3 +1,4 @@
+github.com
 """
 Management command to clear old GitHub API cache entries
 """
