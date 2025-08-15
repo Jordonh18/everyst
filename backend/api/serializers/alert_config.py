@@ -202,7 +202,7 @@ class NotificationHistoryBulkActionSerializer(serializers.Serializer):
 class AlertTestSerializer(serializers.Serializer):
     """Serializer for testing alert configurations"""
     
-    alert_configuration_id = serializers.IntegerField()
+    alert_configuration_id = serializers.UUIDField()
     test_value = serializers.FloatField(
         required=False,
         help_text="Optional test value to simulate. If not provided, uses current metric value."

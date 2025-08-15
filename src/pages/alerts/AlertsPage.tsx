@@ -72,7 +72,7 @@ interface AlertsPageState {
   alerts: AlertConfiguration[];
   metrics: AlertMetrics | null;
   filters: AlertFilters;
-  selectedAlerts: number[];
+  selectedAlerts: string[];
   isLoading: boolean;
   showCreateDialog: boolean;
   showTestDialog: boolean;
@@ -128,7 +128,7 @@ export const AlertsPage: React.FC = () => {
   };
 
   // Handle alert toggle
-  const handleToggleAlert = async (alertId: number) => {
+  const handleToggleAlert = async (alertId: string) => {
     try {
       const result = await alertsApi.configurations.toggle(alertId);
       setState(prev => ({
@@ -182,7 +182,9 @@ export const AlertsPage: React.FC = () => {
     }));
     
     try {
-      const result = await alertsApi.configurations.test(alert.id, {});
+      const result = await alertsApi.configurations.test(alert.id, {
+        // Optionally provide test_value or delivery_methods here
+      });
       setState(prev => ({ ...prev, testResult: result }));
     } catch (error) {
       console.error('Failed to test alert:', error);
@@ -191,7 +193,7 @@ export const AlertsPage: React.FC = () => {
   };
 
   // Handle alert deletion
-  const handleDeleteAlert = async (alertId: number) => {
+  const handleDeleteAlert = async (alertId: string) => {
     try {
       await alertsApi.configurations.delete(alertId);
       setState(prev => ({
@@ -237,7 +239,7 @@ export const AlertsPage: React.FC = () => {
   };
 
   // Handle individual selection
-  const handleSelectAlert = (alertId: number, checked: boolean) => {
+  const handleSelectAlert = (alertId: string, checked: boolean) => {
     setState(prev => ({
       ...prev,
       selectedAlerts: checked 
@@ -651,7 +653,7 @@ export const AlertsPage: React.FC = () => {
                 </div>
               </div>
               
-              {Object.keys(state.testResult.delivery_results).length > 0 && (
+              {state.testResult.delivery_results && Object.keys(state.testResult.delivery_results).length > 0 && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Delivery Results</label>
                   <div className="p-3 bg-muted rounded-lg">

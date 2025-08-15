@@ -15,7 +15,7 @@ export type DeliveryType = 'in_app' | 'email' | 'teams' | 'slack' | 'discord' | 
 export type ExecutionStatus = 'success' | 'failed' | 'partial' | 'throttled';
 
 export interface AlertConfiguration {
-  id: number;
+  id: string;
   name: string;
   description: string;
   enabled: boolean;
@@ -46,7 +46,7 @@ export interface AlertConfiguration {
 }
 
 export interface AlertDeliveryMethod {
-  id: number;
+  id: string;
   delivery_type: DeliveryType;
   delivery_type_display: string;
   enabled: boolean;
@@ -58,8 +58,8 @@ export interface AlertDeliveryMethod {
 }
 
 export interface AlertExecution {
-  id: number;
-  alert_configuration: number;
+  id: string;
+  alert_configuration: string;
   alert_configuration_name: string;
   executed_at: string;
   status: ExecutionStatus;
@@ -73,7 +73,7 @@ export interface AlertExecution {
 }
 
 export interface UserNotificationPreferences {
-  id: number;
+  id: string;
   user: number;
   user_username: string;
   email_notifications_enabled: boolean;
@@ -96,7 +96,7 @@ export interface UserNotificationPreferences {
 }
 
 export interface NotificationHistoryItem {
-  id: number;
+  id: string;
   user: number;
   user_username: string;
   title: string;
@@ -106,9 +106,9 @@ export interface NotificationHistoryItem {
   read: boolean;
   category?: string;
   source?: string;
-  alert_configuration?: number;
+  alert_configuration?: string;
   alert_configuration_name?: string;
-  alert_execution?: number;
+  alert_execution?: string;
   delivery_methods: string[];
   metadata: Record<string, unknown>;
   delivered_at: string;
@@ -156,7 +156,7 @@ export interface AlertMetrics {
 }
 
 export interface AlertTestRequest {
-  alert_configuration_id: number;
+  alert_configuration_id: string;
   test_value?: number;
   delivery_methods?: string[];
 }
@@ -171,13 +171,13 @@ export interface AlertTestResponse {
 }
 
 export interface BulkAlertAction {
-  alert_ids: number[];
+  alert_ids: string[];
   enable: boolean;
 }
 
 export interface NotificationBulkAction {
   action: 'mark_read' | 'mark_unread' | 'delete';
-  notification_ids: number[];
+  notification_ids: string[];
 }
 
 export interface NotificationStats {

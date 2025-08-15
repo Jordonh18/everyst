@@ -40,7 +40,7 @@ const alertConfigurationApi = {
   },
 
   // Get single alert configuration
-  get: async (id: number): Promise<AlertConfiguration> => {
+  get: async (id: string): Promise<AlertConfiguration> => {
     const response = await apiClient.get(`${BASE_URL}/alert-configurations/${id}/`);
     return response.data as AlertConfiguration;
   },
@@ -52,32 +52,36 @@ const alertConfigurationApi = {
   },
 
   // Update alert configuration
-  update: async (id: number, data: Partial<AlertConfigurationForm>): Promise<AlertConfiguration> => {
+  update: async (id: string, data: Partial<AlertConfigurationForm>): Promise<AlertConfiguration> => {
     const response = await apiClient.put(`${BASE_URL}/alert-configurations/${id}/`, data);
     return response.data as AlertConfiguration;
   },
 
   // Partially update alert configuration
-  patch: async (id: number, data: Partial<AlertConfigurationForm>): Promise<AlertConfiguration> => {
+  patch: async (id: string, data: Partial<AlertConfigurationForm>): Promise<AlertConfiguration> => {
     const response = await apiClient.patch(`${BASE_URL}/alert-configurations/${id}/`, data);
     return response.data as AlertConfiguration;
   },
 
   // Delete alert configuration
-  delete: async (id: number): Promise<void> => {
+  delete: async (id: string): Promise<void> => {
     await apiClient.delete(`${BASE_URL}/alert-configurations/${id}/`);
   },
 
   // Test alert configuration
-  test: async (id: number, testData: Omit<AlertTestRequest, 'alert_configuration_id'>): Promise<AlertTestResponse> => {
-    const response = await apiClient.post(`${BASE_URL}/alert-configurations/${id}/test/`, testData);
+  test: async (id: string, testData: Omit<AlertTestRequest, 'alert_configuration_id'>): Promise<AlertTestResponse> => {
+    const fullTestData = {
+      ...testData,
+      alert_configuration_id: id
+    };
+    const response = await apiClient.post(`${BASE_URL}/alert-configurations/${id}/test/`, fullTestData);
     return response.data as AlertTestResponse;
   },
 
   // Toggle alert configuration
-  toggle: async (id: number): Promise<{ id: number; enabled: boolean; message: string }> => {
+  toggle: async (id: string): Promise<{ id: string; enabled: boolean; message: string }> => {
     const response = await apiClient.post(`${BASE_URL}/alert-configurations/${id}/toggle/`);
-    return response.data as { id: number; enabled: boolean; message: string };
+    return response.data as { id: string; enabled: boolean; message: string };
   },
 
   // Bulk toggle alerts
@@ -103,25 +107,25 @@ const alertDeliveryMethodApi = {
   },
 
   // Get single delivery method
-  get: async (id: number): Promise<AlertDeliveryMethod> => {
+  get: async (id: string): Promise<AlertDeliveryMethod> => {
     const response = await apiClient.get(`${BASE_URL}/alert-delivery-methods/${id}/`);
     return response.data as AlertDeliveryMethod;
   },
 
   // Create delivery method
-  create: async (data: { alert_configuration: number } & Omit<AlertDeliveryMethod, 'id' | 'created_at' | 'updated_at' | 'delivery_type_display'>): Promise<AlertDeliveryMethod> => {
+  create: async (data: { alert_configuration: string } & Omit<AlertDeliveryMethod, 'id' | 'created_at' | 'updated_at' | 'delivery_type_display'>): Promise<AlertDeliveryMethod> => {
     const response = await apiClient.post(`${BASE_URL}/alert-delivery-methods/`, data);
     return response.data as AlertDeliveryMethod;
   },
 
   // Update delivery method
-  update: async (id: number, data: Partial<AlertDeliveryMethod>): Promise<AlertDeliveryMethod> => {
+  update: async (id: string, data: Partial<AlertDeliveryMethod>): Promise<AlertDeliveryMethod> => {
     const response = await apiClient.put(`${BASE_URL}/alert-delivery-methods/${id}/`, data);
     return response.data as AlertDeliveryMethod;
   },
 
   // Delete delivery method
-  delete: async (id: number): Promise<void> => {
+  delete: async (id: string): Promise<void> => {
     await apiClient.delete(`${BASE_URL}/alert-delivery-methods/${id}/`);
   }
 };
@@ -129,7 +133,7 @@ const alertDeliveryMethodApi = {
 // Alert Execution API
 const alertExecutionApi = {
   // List alert executions
-  list: async (alertConfigId?: number): Promise<AlertExecution[]> => {
+  list: async (alertConfigId?: string): Promise<AlertExecution[]> => {
     const params = alertConfigId ? `?alert_configuration=${alertConfigId}` : '';
     const response = await apiClient.get(`${BASE_URL}/alert-executions/${params}`);
     const data = response.data as { results?: AlertExecution[] } | AlertExecution[];
@@ -137,7 +141,7 @@ const alertExecutionApi = {
   },
 
   // Get single execution
-  get: async (id: number): Promise<AlertExecution> => {
+  get: async (id: string): Promise<AlertExecution> => {
     const response = await apiClient.get(`${BASE_URL}/alert-executions/${id}/`);
     return response.data as AlertExecution;
   }
@@ -174,7 +178,7 @@ const notificationHistoryApi = {
   },
 
   // Get single notification
-  get: async (id: number): Promise<NotificationHistoryItem> => {
+  get: async (id: string): Promise<NotificationHistoryItem> => {
     const response = await apiClient.get(`${BASE_URL}/notification-history/${id}/`);
     return response.data as NotificationHistoryItem;
   },
@@ -186,9 +190,9 @@ const notificationHistoryApi = {
   },
 
   // Mark notification as read
-  markRead: async (id: number): Promise<{ id: number; read: boolean; read_at: string }> => {
+  markRead: async (id: string): Promise<{ id: string; read: boolean; read_at: string }> => {
     const response = await apiClient.post(`${BASE_URL}/notification-history/${id}/mark_read/`);
-    return response.data as { id: number; read: boolean; read_at: string };
+    return response.data as { id: string; read: boolean; read_at: string };
   },
 
   // Mark all notifications as read
@@ -210,7 +214,7 @@ const notificationHistoryApi = {
   },
 
   // Delete notification
-  delete: async (id: number): Promise<void> => {
+  delete: async (id: string): Promise<void> => {
     await apiClient.delete(`${BASE_URL}/notification-history/${id}/`);
   }
 };
