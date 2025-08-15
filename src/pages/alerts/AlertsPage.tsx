@@ -246,16 +246,9 @@ export const AlertsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Alerts & Metrics</h1>
-          <p className="text-muted-foreground">
-            Configure and manage system alerts and monitoring thresholds
-          </p>
-        </div>
-        
+    <div className="space-y-6">
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
@@ -361,32 +354,32 @@ export const AlertsPage: React.FC = () => {
             </div>
             
             <Select
-              value={state.filters.enabled?.toString() || ''}
+              value={state.filters.enabled?.toString() || 'all'}
               onValueChange={(value) => updateFilters({ 
-                enabled: value === '' ? undefined : value === 'true' 
+                enabled: value === 'all' ? undefined : value === 'true' 
               })}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="true">Enabled</SelectItem>
                 <SelectItem value="false">Disabled</SelectItem>
               </SelectContent>
             </Select>
             
             <Select
-              value={state.filters.severity || ''}
+              value={state.filters.severity || 'all'}
               onValueChange={(value) => updateFilters({ 
-                severity: value === '' ? undefined : value as 'info' | 'warning' | 'error' | 'critical'
+                severity: value === 'all' ? undefined : value as 'info' | 'warning' | 'error' | 'critical'
               })}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all">All Severities</SelectItem>
                 <SelectItem value="info">Info</SelectItem>
                 <SelectItem value="warning">Warning</SelectItem>
                 <SelectItem value="error">Error</SelectItem>
@@ -395,16 +388,16 @@ export const AlertsPage: React.FC = () => {
             </Select>
             
             <Select
-              value={state.filters.metric_type || ''}
+              value={state.filters.metric_type || 'all'}
               onValueChange={(value) => updateFilters({ 
-                metric_type: value === '' ? undefined : value as 'cpu' | 'memory' | 'disk' | 'network_rx' | 'network_tx' | 'custom'
+                metric_type: value === 'all' ? undefined : value as 'cpu' | 'memory' | 'disk' | 'network_rx' | 'network_tx' | 'custom'
               })}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by metric" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Metrics</SelectItem>
+                <SelectItem value="all">All Metrics</SelectItem>
                 <SelectItem value="cpu">CPU</SelectItem>
                 <SelectItem value="memory">Memory</SelectItem>
                 <SelectItem value="disk">Disk</SelectItem>

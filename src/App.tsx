@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { IntegrationsPage } from './pages/integrations/IntegrationsPage';
 import { ToolsPage } from './pages/tools/ToolsPage';
+import { AlertsPage } from './pages/alerts/AlertsPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import AccountSettingsPage from './pages/account/AccountSettingsPage';
@@ -52,7 +53,7 @@ function App() {
                     <Route path="metrics" element={<div className="p-4">Metrics (Coming Soon)</div>} />
                     <Route path="security" element={<div className="p-4">Security (Coming Soon)</div>} />
                     <Route path="logs" element={<PermissionGate permission="canViewLogs" fallback={<Navigate to="/dashboard" replace />}><ActivityLogs /></PermissionGate>} />
-                    <Route path="alerts" element={<div className="p-4">Alerts (Coming Soon)</div>} />
+                    <Route path="alerts" element={<AlertsPage />} />
                     <Route path="integrations" element={<IntegrationsPage />} />
                     <Route path="tools" element={<ToolsPage />} />
                     <Route path="users" element={<PermissionGate permission="canManageUsers" fallback={<Navigate to="/dashboard" replace />}><UsersManagementPage /></PermissionGate>} />

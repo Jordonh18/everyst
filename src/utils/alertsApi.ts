@@ -23,7 +23,7 @@ import type {
   NotificationHistoryListResponse
 } from '../types/alerts';
 
-const BASE_URL = '/api';
+const BASE_URL = '';
 
 // Alert Configuration API
 const alertConfigurationApi = {
