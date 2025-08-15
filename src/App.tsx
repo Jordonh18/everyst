@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { IntegrationsPage } from './pages/integrations/IntegrationsPage';
 import { ToolsPage } from './pages/tools/ToolsPage';
 import { AlertsPage } from './pages/alerts/AlertsPage';
+import { NotificationHistoryPage } from './pages/notifications/NotificationHistoryPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import AccountSettingsPage from './pages/account/AccountSettingsPage';
@@ -54,6 +55,7 @@ function App() {
                     <Route path="security" element={<div className="p-4">Security (Coming Soon)</div>} />
                     <Route path="logs" element={<PermissionGate permission="canViewLogs" fallback={<Navigate to="/dashboard" replace />}><ActivityLogs /></PermissionGate>} />
                     <Route path="alerts" element={<AlertsPage />} />
+                    <Route path="notifications" element={<NotificationHistoryPage />} />
                     <Route path="integrations" element={<IntegrationsPage />} />
                     <Route path="tools" element={<ToolsPage />} />
                     <Route path="users" element={<PermissionGate permission="canManageUsers" fallback={<Navigate to="/dashboard" replace />}><UsersManagementPage /></PermissionGate>} />

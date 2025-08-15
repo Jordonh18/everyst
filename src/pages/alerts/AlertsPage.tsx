@@ -60,6 +60,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { alertsApi } from '@/utils/alertsApi';
+import { AlertWizard } from '@/components/alerts/AlertWizard';
 import type { 
   AlertConfiguration, 
   AlertMetrics, 
@@ -683,6 +684,13 @@ export const AlertsPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Alert Creation Wizard */}
+      <AlertWizard
+        open={state.showCreateDialog}
+        onOpenChange={(open) => setState(prev => ({ ...prev, showCreateDialog: open }))}
+        onAlertCreated={loadData}
+      />
     </div>
   );
 };

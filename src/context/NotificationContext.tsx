@@ -1,7 +1,8 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useContext, useCallback, useEffect, useRef } from 'react';
 import { socketService } from '../utils/socket';
 import { useWebSocket } from './WebSocketContext';
 import { useAuth } from './AuthContext';
+import { toast } from 'sonner';
 import type { NotificationItem } from '../types/notifications';
 
 interface NotificationContextType {
@@ -11,6 +12,9 @@ interface NotificationContextType {
   unreadCount: number;
   fetchNotifications: () => Promise<NotificationItem[]>;
   isLoading: boolean;
+  error: string | null;
+  clearError: () => void;
+  retry: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType>({
@@ -20,21 +24,12 @@ const NotificationContext = createContext<NotificationContextType>({
   unreadCount: 0,
   fetchNotifications: async () => [],
   isLoading: false,
+  error: null,
+  clearError: () => {},
+  retry: () => {},
 });
 
 export const useNotifications = () => useContext(NotificationContext);
-
-// interface ServerNotification {
-  //id?: string | number;
-  //title: string;
-  //message?: string;
-  //type: string;
-  //timestamp?: number;
-  //duration?: number;
-  //read?: boolean;
-  //is_system?: boolean;
-  //source?: string;
-//}
 
 export const NotificationProvider: React.FC<{
   children: React.ReactNode;
@@ -42,6 +37,9 @@ export const NotificationProvider: React.FC<{
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFetchRef = useRef<number>(0);
   
   // Use Auth context for token management
   const { getAccessToken } = useAuth();
@@ -49,23 +47,61 @@ export const NotificationProvider: React.FC<{
   // Use WebSocket context for persistent connection
   const { isConnected } = useWebSocket();
 
-    // Set up WebSocket notification handler
+  // Clear error
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  // Set up WebSocket notification handler
   useEffect(() => {
-    // Register socket notification handler
     if (isConnected) {
-      socketService.onNotification(() => {
-        // When new notifications arrive via WebSocket, they will be
-        // automatically fetched during the next poll cycle
+      socketService.onNotification((notification) => {
+        // Ensure the notification has a proper ID
+        const notificationWithId = {
+          ...notification,
+          id: notification.id || `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        } as NotificationItem;
+        
+        // Add new notification to the list
+        setNotifications(prev => [notificationWithId, ...prev]);
+        
+        // Update unread count if it's unread
+        if (!notification.read) {
+          setUnreadCount(prev => prev + 1);
+        }
+        
+        // Show toast notification with improved reliability
+        try {
+          toast[notification.type || 'info'](notification.title, {
+            description: notification.message,
+            duration: notification.duration || 5000,
+          });
+        } catch (toastError) {
+          console.warn('Failed to show toast notification:', toastError);
+          // Fallback to basic toast
+          toast(notification.title);
+        }
       });
     }
-  }, [isConnected]);
+  }, [isConnected, getAccessToken]);
 
-  // Fetch notifications from the server
-  const fetchNotifications = useCallback(async () => {
+  // Fetch notifications from the server with retry logic
+  const fetchNotifications = useCallback(async (retryCount = 0): Promise<NotificationItem[]> => {
     const token = getAccessToken();
-    if (!token || !isConnected) return [];
+    if (!token || !isConnected) {
+      return [];
+    }
+    
+    // Prevent too frequent API calls
+    const now = Date.now();
+    if (now - lastFetchRef.current < 1000) {
+      return notifications;
+    }
+    lastFetchRef.current = now;
     
     setIsLoading(true);
+    setError(null);
+    
     try {
       const fetchedNotifications = await socketService.fetchNotifications(token);
       const typedNotifications = fetchedNotifications.map(n => ({
@@ -78,14 +114,25 @@ export const NotificationProvider: React.FC<{
       return typedNotifications;
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch notifications';
+      setError(errorMessage);
+      
+      // Retry with exponential backoff
+      if (retryCount < 3) {
+        const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        retryTimeoutRef.current = setTimeout(() => {
+          fetchNotifications(retryCount + 1);
+        }, delay);
+      }
+      
       return [];
     } finally {
       setIsLoading(false);
     }
-  }, [isConnected, getAccessToken]);
+  }, [isConnected, getAccessToken, notifications]);
 
-  // Fetch unread notification count
-  const fetchUnreadCount = useCallback(async () => {
+  // Fetch unread notification count with retry logic
+  const fetchUnreadCount = useCallback(async (retryCount = 0) => {
     const token = getAccessToken();
     if (!token || !isConnected) return;
     
@@ -94,42 +141,85 @@ export const NotificationProvider: React.FC<{
       setUnreadCount(count);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
+      
+      // Retry with exponential backoff
+      if (retryCount < 2) {
+        const delay = Math.pow(2, retryCount) * 1000;
+        setTimeout(() => {
+          fetchUnreadCount(retryCount + 1);
+        }, delay);
+      }
     }
   }, [isConnected, getAccessToken]);
 
-  // Mark a notification as read
+  // Mark a notification as read with optimistic updates
   const markAsRead = useCallback(async (id: string | number) => {
     const token = getAccessToken();
     if (!token || !isConnected) return;
     
+    // Optimistic update
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
     try {
       const success = await socketService.markAsRead([id], token);
-      if (success) {
-        setNotifications(prev => 
-          prev.map(n => n.id === id ? { ...n, read: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
+      if (!success) {
+        throw new Error('Failed to mark as read');
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      
+      // Revert optimistic update
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, read: false } : n)
+      );
+      setUnreadCount(prev => prev + 1);
+      
+      toast.error('Failed to mark notification as read');
     }
   }, [isConnected, getAccessToken]);
 
-  // Mark all notifications as read
+  // Mark all notifications as read with optimistic updates
   const markAllAsRead = useCallback(async () => {
     const token = getAccessToken();
     if (!token || !isConnected) return;
     
+    // Store previous state for rollback
+    const prevNotifications = notifications;
+    const prevUnreadCount = unreadCount;
+    
+    // Optimistic update
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+    
     try {
       const success = await socketService.markAllAsRead(token);
-      if (success) {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        setUnreadCount(0);
+      if (!success) {
+        throw new Error('Failed to mark all as read');
       }
+      toast.success('All notifications marked as read');
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
+      
+      // Revert optimistic update
+      setNotifications(prevNotifications);
+      setUnreadCount(prevUnreadCount);
+      
+      toast.error('Failed to mark all notifications as read');
     }
-  }, [isConnected, getAccessToken]);
+  }, [isConnected, getAccessToken, notifications, unreadCount]);
+
+  // Retry function for manual retry
+  const retry = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    fetchNotifications();
+    fetchUnreadCount();
+  }, [fetchNotifications, fetchUnreadCount]);
 
   // Initial fetch of notifications when auth state changes
   useEffect(() => {
@@ -138,7 +228,31 @@ export const NotificationProvider: React.FC<{
       fetchNotifications();
       fetchUnreadCount();
     }
-  }, [isConnected, fetchNotifications, fetchUnreadCount, getAccessToken]);
+  }, [isConnected, getAccessToken, fetchNotifications, fetchUnreadCount]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Periodic refresh every 5 minutes to ensure data consistency
+  useEffect(() => {
+    if (!isConnected) return;
+    
+    const interval = setInterval(() => {
+      const token = getAccessToken();
+      if (token) {
+        fetchNotifications();
+        fetchUnreadCount();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => clearInterval(interval);
+  }, [isConnected, getAccessToken, fetchNotifications, fetchUnreadCount]);
 
   // Create context value
   const value = {
@@ -147,7 +261,10 @@ export const NotificationProvider: React.FC<{
     markAllAsRead,
     unreadCount,
     fetchNotifications,
-    isLoading
+    isLoading,
+    error,
+    clearError,
+    retry
   };
 
   return (

@@ -254,6 +254,16 @@ export const AppSidebar: React.FC = () => {
                         ))}
                       </div>
                     )}
+                    {notifications.length > 0 && (
+                      <div className="mt-3 border-t pt-3">
+                        <Link 
+                          to="/notifications" 
+                          className="block w-full text-center text-sm text-primary hover:text-primary/80 font-medium"
+                        >
+                          See All Notifications
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </PopoverContent>
               </Popover>
