@@ -32,6 +32,7 @@ channels-redis>=4.1.0
 pytest>=8.3.5
 pylint>=3.3.7
 dotenv>=0.9.9
+requests>=2.31.0
 # Network scanning dependencies
 scapy>=2.5.0
 netaddr>=0.8.0

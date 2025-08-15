@@ -28,7 +28,10 @@ from .system import (
     SystemMetricsViewSet, 
     AlertViewSet, 
     SecurityStatusViewSet, 
-    get_current_metrics
+    get_current_metrics,
+    check_updates,
+    perform_update,
+    rollback_update
 )
 
 # Notification views
@@ -73,6 +76,9 @@ __all__ = [
     'AlertViewSet',
     'SecurityStatusViewSet',
     'get_current_metrics',
+    'check_updates',
+    'perform_update',
+    'rollback_update',
     
     # Notification views
     'NotificationViewSet',

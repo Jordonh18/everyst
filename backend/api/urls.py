@@ -17,6 +17,7 @@ from .views import (
     # System views
     SystemMetricsViewSet, AlertViewSet, 
     SecurityStatusViewSet, get_current_metrics,
+    check_updates, perform_update, rollback_update,
     
     # Notification views
     NotificationViewSet,
@@ -101,6 +102,9 @@ urlpatterns = [
     
     # System metrics endpoints
     path('system/metrics/current/', get_current_metrics, name='current-metrics'),
+    path('system/updates/check/', check_updates, name='check-updates'),
+    path('system/updates/perform/', perform_update, name='perform-update'),
+    path('system/updates/rollback/', rollback_update, name='rollback-update'),
     path('system/services/', get_system_services, name='system-services'),
     path('system/sessions/', get_system_sessions, name='system-sessions'),
     path('system/api-times/', get_api_performance, name='api-performance'),

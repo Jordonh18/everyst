@@ -10,6 +10,7 @@ import { ToolsPage } from './pages/tools/ToolsPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import AccountSettingsPage from './pages/account/AccountSettingsPage';
+import SettingsPage from './pages/settings/SettingsPage';
 import NetworkMapPage from './pages/network/NetworkMapPage';
 import UsersManagementPage from './pages/users/UsersManagementPage';
 import ActivityLogs from './pages/activity/ActivityLogs';
@@ -55,7 +56,7 @@ function App() {
                     <Route path="integrations" element={<IntegrationsPage />} />
                     <Route path="tools" element={<ToolsPage />} />
                     <Route path="users" element={<PermissionGate permission="canManageUsers" fallback={<Navigate to="/dashboard" replace />}><UsersManagementPage /></PermissionGate>} />
-                    <Route path="settings" element={<div className="p-4">Settings (Coming Soon)</div>} />
+                    <Route path="settings" element={<SettingsPage />} />
                     <Route path="account" element={<AccountSettingsPage />} />
                     <Route path="*" element={<div className="p-4">Page not found</div>} />
                   </Route>

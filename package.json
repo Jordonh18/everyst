@@ -1,7 +1,7 @@
 {
   "name": "everyst",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite --host\" \"venv/bin/python3 backend/run_server.py\"",
@@ -22,6 +22,7 @@
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-radio-group": "^1.3.7",
+    "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
@@ -65,6 +66,7 @@
     "@tailwindcss/vite": "^4.1.5",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/semver": "^7.7.0",
     "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
@@ -74,6 +76,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "postcss": "^8.5.3",
+    "semver": "^7.7.2",
     "tailwindcss": "^4.1.5",
     "tw-animate-css": "^1.3.6",
     "typescript": "~5.8.3",
