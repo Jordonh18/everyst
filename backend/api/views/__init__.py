@@ -23,15 +23,18 @@ from .network_tools import (
     whois_tool, ssl_check_tool, netstat_tool, ip_route_tool, tcpdump_tool
 )
 
-# System monitoring views
-from .system import (
-    SystemMetricsViewSet, 
-    AlertViewSet, 
-    SecurityStatusViewSet, 
-    get_current_metrics,
-    check_updates,
-    perform_update,
-    rollback_update
+# Import system logs views
+from . import system_logs as system_logs_views
+
+# Import alert configuration views
+from .alert_config import (
+    AlertConfigurationViewSet,
+    AlertDeliveryMethodViewSet, 
+    AlertExecutionViewSet,
+    UserNotificationPreferencesViewSet,
+    NotificationHistoryViewSet,
+    get_available_metrics,
+    get_delivery_options
 )
 
 # Notification views
@@ -39,6 +42,9 @@ from .notification import NotificationViewSet
 
 # Activity log views
 from .activity import ApplicationLogViewSet
+
+# System views
+from .system import SystemMetricsViewSet, AlertViewSet, SecurityStatusViewSet, get_current_metrics, check_updates, perform_update, rollback_update
 
 # Define __all__ to specify what 'from api.views import *' should import,
 # and also for clarity on what this package exports.
@@ -84,5 +90,14 @@ __all__ = [
     'NotificationViewSet',
     
     # Activity log views
-    'ApplicationLogViewSet'
+    'ApplicationLogViewSet',
+    
+    # Alert configuration views
+    'AlertConfigurationViewSet',
+    'AlertDeliveryMethodViewSet',
+    'AlertExecutionViewSet',
+    'UserNotificationPreferencesViewSet',
+    'NotificationHistoryViewSet',
+    'get_available_metrics',
+    'get_delivery_options',
 ]

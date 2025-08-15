@@ -37,6 +37,13 @@ from .views.ssh_keys import SSHKeyViewSet, SSHSessionViewSet
 from .views.auth_token import TokenObtainPairView, TokenRefreshView
 from .views.logout import LogoutView, LogoutAllView
 
+# Import alert configuration views
+from .views.alert_config import (
+    AlertConfigurationViewSet, AlertDeliveryMethodViewSet,
+    AlertExecutionViewSet, UserNotificationPreferencesViewSet,
+    NotificationHistoryViewSet, get_available_metrics, get_delivery_options
+)
+
 # Import system logs views
 from .views import system_logs as system_logs_views
 
@@ -64,6 +71,13 @@ router.register(r'network/scans', NetworkScanViewSet)
 # SSH routes
 router.register(r'ssh/keys', SSHKeyViewSet, basename='ssh-keys')
 router.register(r'ssh/sessions', SSHSessionViewSet, basename='ssh-sessions')
+
+# Alert configuration routes
+router.register(r'alert-configurations', AlertConfigurationViewSet, basename='alert-configurations')
+router.register(r'alert-delivery-methods', AlertDeliveryMethodViewSet, basename='alert-delivery-methods')
+router.register(r'alert-executions', AlertExecutionViewSet, basename='alert-executions')
+router.register(r'notification-preferences', UserNotificationPreferencesViewSet, basename='notification-preferences')
+router.register(r'notification-history', NotificationHistoryViewSet, basename='notification-history')
 
 urlpatterns = [
     path('health/', HealthCheckView.as_view(), name='health-check'),
@@ -115,6 +129,10 @@ urlpatterns = [
     path('dashboard/api-analytics/', get_api_performance_analytics, name='api-analytics'),
     path('dashboard/system-health/', get_system_health_data, name='system-health-data'),
     path('dashboard/user-activity/', get_user_activity_data, name='user-activity-data'),
+    
+    # Alert configuration endpoints
+    path('alerts/available-metrics/', get_available_metrics, name='available-metrics'),
+    path('alerts/delivery-options/', get_delivery_options, name='delivery-options'),
 ]
 
 urlpatterns += router.urls

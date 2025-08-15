@@ -28,6 +28,15 @@ from .activity import ApplicationLog
 # GitHub API cache models
 from .github_cache import GitHubAPICache
 
+# Enhanced alert configuration models
+from .alert_config import (
+    AlertConfiguration,
+    AlertDeliveryMethod,
+    AlertExecution,
+    UserNotificationPreferences,
+    NotificationHistory
+)
+
 # Define what's exported when doing 'from api.models import *'
 __all__ = [
     'BaseModel',
@@ -45,4 +54,9 @@ __all__ = [
     'SSHKey',
     'SSHSession',
     'GitHubAPICache',
+    'AlertConfiguration',
+    'AlertDeliveryMethod',
+    'AlertExecution',
+    'UserNotificationPreferences',
+    'NotificationHistory',
 ]
