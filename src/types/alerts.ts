@@ -168,6 +168,8 @@ export interface AlertTestResponse {
   condition_description: string;
   delivery_results: Record<string, unknown>;
   would_trigger: boolean;
+  alert_execution_id?: string;
+  executed_at?: string;
 }
 
 export interface BulkAlertAction {

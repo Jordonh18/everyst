@@ -45,7 +45,7 @@ class AlertConfigurationViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def test(self, request, pk=None):
-        """Test an alert configuration"""
+        """Test an alert configuration by executing the full alert workflow"""
         alert_config = self.get_object()
         serializer = AlertTestSerializer(data=request.data, context={'request': request})
         
@@ -67,30 +67,97 @@ class AlertConfigurationViewSet(viewsets.ModelViewSet):
             }
             test_value = metric_map.get(alert_config.metric_type, 0)
         
-        # Simulate alert evaluation
+        # Evaluate alert condition
         condition_met = self._evaluate_condition(alert_config, test_value)
         
-        # Simulate delivery
+        # Create an alert execution record for the test
+        alert_execution = AlertExecution.objects.create(
+            alert_configuration=alert_config,
+            executed_at=timezone.now(),
+            status='success' if condition_met else 'throttled',
+            metric_value=test_value,
+            threshold_value=alert_config.threshold_value,
+            delivery_results={}
+        )
+        
         delivery_results = {}
-        if condition_met:
+        
+        # If condition is met, execute the full alert workflow
+        if condition_met and not alert_config.is_throttled():
             available_methods = alert_config.delivery_methods.filter(enabled=True)
             if delivery_methods:
                 available_methods = available_methods.filter(delivery_type__in=delivery_methods)
             
+            executed_delivery_methods = []
+            
             for method in available_methods:
                 try:
-                    # Simulate delivery (in real implementation, this would actually send)
-                    delivery_results[method.delivery_type] = {
-                        'status': 'success',
-                        'message': 'Test delivery successful',
-                        'delivered_at': timezone.now().isoformat()
-                    }
+                    # Execute actual delivery based on method type
+                    if method.delivery_type == 'in_app':
+                        # Create in-app notification
+                        notification = NotificationHistory.objects.create(
+                            user=alert_config.user,
+                            title=f"[TEST] Alert: {alert_config.name}",
+                            message=f"Test alert triggered: {alert_config.metric_type_display} value {test_value} {alert_config.condition_operator_display} {alert_config.threshold_value}",
+                            notification_type='alert',
+                            category='alerts',
+                            source='alert_test',
+                            alert_configuration=alert_config,
+                            alert_execution=alert_execution,
+                            delivery_methods=[method.delivery_type]
+                        )
+                        
+                        delivery_results[method.delivery_type] = {
+                            'status': 'success',
+                            'message': 'In-app notification created successfully',
+                            'notification_id': str(notification.id),
+                            'delivered_at': timezone.now().isoformat()
+                        }
+                        executed_delivery_methods.append(method.delivery_type)
+                        
+                    elif method.delivery_type == 'email':
+                        # For testing, we'll simulate email delivery
+                        # In production, this would send actual emails
+                        delivery_results[method.delivery_type] = {
+                            'status': 'success',
+                            'message': 'Test email would be sent (simulated)',
+                            'delivered_at': timezone.now().isoformat(),
+                            'recipients': method.configuration.get('recipients', [])
+                        }
+                        executed_delivery_methods.append(method.delivery_type)
+                        
+                    elif method.delivery_type in ['teams', 'slack', 'discord', 'webhook']:
+                        # For testing, simulate webhook/chat delivery
+                        delivery_results[method.delivery_type] = {
+                            'status': 'success',
+                            'message': f'Test {method.delivery_type} notification would be sent (simulated)',
+                            'delivered_at': timezone.now().isoformat(),
+                            'webhook_url': method.configuration.get('webhook_url', 'Not configured')
+                        }
+                        executed_delivery_methods.append(method.delivery_type)
+                    
+                    else:
+                        delivery_results[method.delivery_type] = {
+                            'status': 'success',
+                            'message': f'Test {method.delivery_type} delivery would be executed (simulated)',
+                            'delivered_at': timezone.now().isoformat()
+                        }
+                        executed_delivery_methods.append(method.delivery_type)
+                        
                 except Exception as e:
                     delivery_results[method.delivery_type] = {
                         'status': 'failed',
                         'message': str(e),
                         'delivered_at': timezone.now().isoformat()
                     }
+            
+            # Update the alert execution with delivery results
+            alert_execution.delivery_results = delivery_results
+            alert_execution.save()
+            
+            # Update alert's last triggered time since this was a successful test execution
+            alert_config.last_triggered = timezone.now()
+            alert_config.save(update_fields=['last_triggered'])
         
         return Response({
             'test_value': test_value,
@@ -98,7 +165,9 @@ class AlertConfigurationViewSet(viewsets.ModelViewSet):
             'condition_met': condition_met,
             'condition_description': alert_config.get_condition_display(),
             'delivery_results': delivery_results,
-            'would_trigger': condition_met and not alert_config.is_throttled()
+            'would_trigger': condition_met and not alert_config.is_throttled(),
+            'alert_execution_id': str(alert_execution.id),
+            'executed_at': alert_execution.executed_at.isoformat()
         })
     
     @action(detail=True, methods=['post'])

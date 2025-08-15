@@ -37,6 +37,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { alertsApi } from '@/utils/alertsApi';
 import type {
+  AlertConfiguration,
   AlertConfigurationForm,
   AvailableMetric,
   DeliveryOption,
@@ -51,6 +52,7 @@ interface AlertWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAlertCreated: () => void;
+  editingAlert?: AlertConfiguration | null;
 }
 
 const WIZARD_STEPS = [
@@ -89,7 +91,8 @@ const WIZARD_STEPS = [
 export const AlertWizard: React.FC<AlertWizardProps> = ({
   open,
   onOpenChange,
-  onAlertCreated
+  onAlertCreated,
+  editingAlert
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,6 +122,53 @@ export const AlertWizard: React.FC<AlertWizardProps> = ({
       loadWizardData();
     }
   }, [open]);
+
+  // Populate form data when editing an alert
+  useEffect(() => {
+    if (editingAlert) {
+      setFormData({
+        name: editingAlert.name,
+        description: editingAlert.description || '',
+        enabled: editingAlert.enabled,
+        metric_type: editingAlert.metric_type,
+        custom_metric_name: editingAlert.custom_metric_name || '',
+        condition_operator: editingAlert.condition_operator,
+        threshold_value: editingAlert.threshold_value,
+        time_window_minutes: editingAlert.time_window_minutes,
+        evaluation_frequency_minutes: editingAlert.evaluation_frequency_minutes,
+        severity: editingAlert.severity,
+        frequency_type: editingAlert.frequency_type,
+        throttle_minutes: editingAlert.throttle_minutes,
+        schedule_cron: editingAlert.schedule_cron || '',
+        delivery_methods: editingAlert.delivery_methods.map(dm => ({
+          delivery_type: dm.delivery_type,
+          enabled: dm.enabled,
+          configuration: dm.configuration,
+          max_retries: dm.max_retries,
+          retry_delay_minutes: dm.retry_delay_minutes
+        }))
+      });
+    } else {
+      // Reset form for creating new alert
+      setFormData({
+        name: '',
+        description: '',
+        enabled: true,
+        metric_type: 'cpu',
+        custom_metric_name: '',
+        condition_operator: 'gt',
+        threshold_value: 80,
+        time_window_minutes: 5,
+        evaluation_frequency_minutes: 5,
+        severity: 'warning',
+        frequency_type: 'throttled',
+        throttle_minutes: 60,
+        schedule_cron: '',
+        delivery_methods: []
+      });
+      setCurrentStep(0);
+    }
+  }, [editingAlert]);
 
   const loadWizardData = async () => {
     try {
@@ -188,8 +238,16 @@ export const AlertWizard: React.FC<AlertWizardProps> = ({
 
     setIsLoading(true);
     try {
-      await alertsApi.configurations.create(formData);
-      toast.success('Alert created successfully!');
+      if (editingAlert) {
+        // Update existing alert
+        await alertsApi.configurations.update(editingAlert.id, formData);
+        toast.success('Alert updated successfully!');
+      } else {
+        // Create new alert
+        await alertsApi.configurations.create(formData);
+        toast.success('Alert created successfully!');
+      }
+      
       onAlertCreated();
       onOpenChange(false);
       
@@ -212,8 +270,8 @@ export const AlertWizard: React.FC<AlertWizardProps> = ({
         delivery_methods: []
       });
     } catch (error) {
-      console.error('Failed to create alert:', error);
-      toast.error('Failed to create alert. Please try again.');
+      console.error('Failed to save alert:', error);
+      toast.error(`Failed to ${editingAlert ? 'update' : 'create'} alert. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -613,9 +671,12 @@ export const AlertWizard: React.FC<AlertWizardProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-5xl w-[85vw] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Alert Configuration</DialogTitle>
+          <DialogTitle>{editingAlert ? 'Edit Alert Configuration' : 'Create Alert Configuration'}</DialogTitle>
           <DialogDescription>
-            Configure a new alert to monitor your system metrics and receive notifications
+            {editingAlert 
+              ? 'Update your alert configuration and delivery settings'
+              : 'Configure a new alert to monitor your system metrics and receive notifications'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -708,7 +769,10 @@ export const AlertWizard: React.FC<AlertWizardProps> = ({
               onClick={handleCreateAlert}
               disabled={!canProceedToNext() || isLoading}
             >
-              {isLoading ? 'Creating...' : 'Create Alert'}
+              {isLoading 
+                ? (editingAlert ? 'Updating...' : 'Creating...') 
+                : (editingAlert ? 'Update Alert' : 'Create Alert')
+              }
             </Button>
           )}
         </DialogFooter>

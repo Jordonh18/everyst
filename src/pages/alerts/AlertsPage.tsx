@@ -18,8 +18,7 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock,
-  Settings
+  Clock
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,9 +74,13 @@ interface AlertsPageState {
   selectedAlerts: string[];
   isLoading: boolean;
   showCreateDialog: boolean;
+  showEditDialog: boolean;
+  editingAlert: AlertConfiguration | null;
   showTestDialog: boolean;
   testingAlert: AlertConfiguration | null;
   testResult: AlertTestResponse | null;
+  testValue: string;
+  isTesting: boolean;
 }
 
 export const AlertsPage: React.FC = () => {
@@ -88,9 +91,13 @@ export const AlertsPage: React.FC = () => {
     selectedAlerts: [],
     isLoading: true,
     showCreateDialog: false,
+    showEditDialog: false,
+    editingAlert: null,
     showTestDialog: false,
     testingAlert: null,
     testResult: null,
+    testValue: '',
+    isTesting: false,
   });
 
   // Load alerts and metrics
@@ -174,22 +181,99 @@ export const AlertsPage: React.FC = () => {
 
   // Handle alert testing
   const handleTestAlert = async (alert: AlertConfiguration) => {
+    // Set a default test value that would trigger the alert for demonstration
+    const defaultTestValue = getDefaultTestValue(alert);
+    
     setState(prev => ({ 
       ...prev, 
       testingAlert: alert, 
       showTestDialog: true,
-      testResult: null
+      testResult: null,
+      testValue: defaultTestValue,
+      isTesting: false
     }));
+  };
+
+  // Get a sensible default test value based on the alert configuration
+  const getDefaultTestValue = (alert: AlertConfiguration): string => {
+    const threshold = alert.threshold_value;
+    const operator = alert.condition_operator;
+    
+    // Suggest a value that would trigger the alert
+    switch (operator) {
+      case 'gt':
+      case 'gte':
+        return (threshold + 10).toString();
+      case 'lt':
+      case 'lte':
+        return Math.max(0, threshold - 10).toString();
+      case 'eq':
+        return threshold.toString();
+      case 'ne':
+        return (threshold + 1).toString();
+      default:
+        return threshold.toString();
+    }
+  };
+
+  // Evaluate condition for preview
+  const evaluateCondition = (value: number, threshold: number, operator: string): boolean => {
+    switch (operator) {
+      case 'gt': return value > threshold;
+      case 'gte': return value >= threshold;
+      case 'lt': return value < threshold;
+      case 'lte': return value <= threshold;
+      case 'eq': return value === threshold;
+      case 'ne': return value !== threshold;
+      default: return false;
+    }
+  };
+
+  // Handle running the test with custom value
+  const handleRunTest = async () => {
+    if (!state.testingAlert) return;
+    
+    setState(prev => ({ ...prev, isTesting: true, testResult: null }));
     
     try {
-      const result = await alertsApi.configurations.test(alert.id, {
-        // Optionally provide test_value or delivery_methods here
+      const testValueNum = parseFloat(state.testValue);
+      if (isNaN(testValueNum)) {
+        toast.error('Please enter a valid number');
+        return;
+      }
+      
+      const result = await alertsApi.configurations.test(state.testingAlert.id, {
+        test_value: testValueNum
       });
       setState(prev => ({ ...prev, testResult: result }));
+      
+      if (result.would_trigger && result.condition_met) {
+        const deliveryCount = Object.keys(result.delivery_results || {}).length;
+        if (deliveryCount > 0) {
+          toast.success(`Alert triggered! Executed ${deliveryCount} delivery method(s). Check your notifications.`);
+        } else {
+          toast.success('Alert condition met, but no delivery methods are configured.');
+        }
+      } else if (result.condition_met) {
+        toast.info('Alert condition met, but alert is currently throttled.');
+      } else {
+        toast.success('Alert test completed - Condition not met, alert would not trigger.');
+      }
     } catch (error) {
       console.error('Failed to test alert:', error);
       toast.error('Failed to test alert');
+    } finally {
+      setState(prev => ({ ...prev, isTesting: false }));
     }
+  };
+
+  // Handle editing an alert
+  const handleEditAlert = (alert: AlertConfiguration) => {
+    setState(prev => ({
+      ...prev,
+      editingAlert: alert,
+      showEditDialog: true
+    }));
   };
 
   // Handle alert deletion
@@ -560,13 +644,9 @@ export const AlertsPage: React.FC = () => {
                             <TestTube className="h-4 w-4 mr-2" />
                             Test Alert
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditAlert(alert)}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Settings className="h-4 w-4 mr-2" />
-                            Configure Delivery
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
@@ -594,18 +674,95 @@ export const AlertsPage: React.FC = () => {
           ...prev, 
           showTestDialog: open,
           testingAlert: open ? prev.testingAlert : null,
-          testResult: open ? prev.testResult : null
+          testResult: open ? prev.testResult : null,
+          testValue: open ? prev.testValue : '',
+          isTesting: false
         }))}
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Test Alert: {state.testingAlert?.name}</DialogTitle>
             <DialogDescription>
-              Test this alert configuration to verify it works correctly
+              Enter a test value to simulate and verify your alert configuration works correctly
             </DialogDescription>
           </DialogHeader>
           
-          {state.testResult ? (
+          {/* Test Input Section */}
+          {!state.testResult && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Test Value ({state.testingAlert?.metric_type_display})
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={state.testValue}
+                    onChange={(e) => setState(prev => ({ ...prev, testValue: e.target.value }))}
+                    placeholder="Enter test value..."
+                    className="font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Current threshold: {state.testingAlert?.threshold_value} ({state.testingAlert?.condition_display})
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Expected Result</label>
+                  <div className="p-3 bg-muted rounded-lg text-sm">
+                    {state.testValue && !isNaN(parseFloat(state.testValue)) ? (
+                      evaluateCondition(
+                        parseFloat(state.testValue), 
+                        state.testingAlert?.threshold_value || 0, 
+                        state.testingAlert?.condition_operator || 'gt'
+                      ) ? (
+                        <span className="text-orange-600 font-medium">Would Trigger Alert</span>
+                      ) : (
+                        <span className="text-green-600 font-medium">Would Not Trigger</span>
+                      )
+                    ) : (
+                      <span className="text-muted-foreground">Enter a test value</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setState(prev => ({ 
+                    ...prev, 
+                    showTestDialog: false,
+                    testingAlert: null,
+                    testResult: null,
+                    testValue: '',
+                    isTesting: false
+                  }))}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleRunTest}
+                  disabled={state.isTesting || !state.testValue || isNaN(parseFloat(state.testValue))}
+                >
+                  {state.isTesting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <TestTube className="h-4 w-4 mr-2" />
+                      Run Test
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {/* Test Results Section */}
+          {state.testResult && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -663,11 +820,16 @@ export const AlertsPage: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              <span className="ml-2">Testing alert...</span>
+              
+              {/* Test Another Value Button */}
+              <div className="flex justify-center">
+                <Button 
+                  variant="outline"
+                  onClick={() => setState(prev => ({ ...prev, testResult: null }))}
+                >
+                  Test Another Value
+                </Button>
+              </div>
             </div>
           )}
           
@@ -678,7 +840,9 @@ export const AlertsPage: React.FC = () => {
                 ...prev, 
                 showTestDialog: false,
                 testingAlert: null,
-                testResult: null
+                testResult: null,
+                testValue: '',
+                isTesting: false
               }))}
             >
               Close
@@ -692,6 +856,18 @@ export const AlertsPage: React.FC = () => {
         open={state.showCreateDialog}
         onOpenChange={(open) => setState(prev => ({ ...prev, showCreateDialog: open }))}
         onAlertCreated={loadData}
+      />
+
+      {/* Alert Edit Wizard */}
+      <AlertWizard
+        open={state.showEditDialog}
+        onOpenChange={(open) => setState(prev => ({ 
+          ...prev, 
+          showEditDialog: open,
+          editingAlert: open ? prev.editingAlert : null
+        }))}
+        onAlertCreated={loadData}
+        editingAlert={state.editingAlert}
       />
     </div>
   );
