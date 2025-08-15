@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { apiClient } from '@/utils/apiClient';
 import { VersionManager } from '@/utils/versionManager';
 import { 
@@ -512,7 +513,7 @@ function UpdateManager() {
 
       {/* Changelog Modal */}
       <Dialog open={showChangelogModal} onOpenChange={setShowChangelogModal}>
-        <DialogContent className="!max-w-5xl w-[85vw] max-h-[80vh] overflow-hidden flex flex-col bg-background">
+        <DialogContent className="!max-w-5xl w-[85vw] max-h-[80vh] bg-background">
           <DialogHeader className="pb-4">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <GitBranch className="h-5 w-5" />
@@ -524,14 +525,14 @@ function UpdateManager() {
               <span>by {selectedRelease?.author.login}</span>
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+          <ScrollArea className="h-[50vh] w-full">
             <div 
-              className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed"
+              className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed pr-4"
               dangerouslySetInnerHTML={{
                 __html: selectedRelease?.body ? renderMarkdown(selectedRelease.body) : ''
               }}
             />
-          </div>
+          </ScrollArea>
           <div className="flex justify-end pt-4 border-t mt-4">
             <Button variant="outline" asChild>
               <a 
