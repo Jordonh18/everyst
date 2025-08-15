@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/utils/apiClient';
 import { VersionManager } from '@/utils/versionManager';
 import { 
@@ -12,11 +14,8 @@ import {
   RefreshCw, 
   Clock,
   GitBranch,
-  Calendar,
-  User,
   ExternalLink,
-  ChevronDown,
-  ChevronUp
+  Filter
 } from 'lucide-react';
 
 interface Release {
@@ -60,15 +59,16 @@ function UpdateManager() {
   });
   
   const [releases, setReleases] = useState<Release[]>([]);
-  const [showChangelog, setShowChangelog] = useState(false);
-  const [expandedReleases, setExpandedReleases] = useState<Set<number>>(new Set());
+  const [selectedRelease, setSelectedRelease] = useState<Release | null>(null);
+  const [showChangelogModal, setShowChangelogModal] = useState(false);
+  const [releaseChannel, setReleaseChannel] = useState<'stable' | 'prerelease' | 'all'>('stable');
 
   // Check for updates
   const checkForUpdates = useCallback(async () => {
     setUpdateState(prev => ({ ...prev, isChecking: true, error: null }));
     
     try {
-      const response = await apiClient.get('/system/updates/check/');
+      const response = await apiClient.get(`/system/updates/check/?channel=${releaseChannel}`);
       
       if (response.error) {
         throw new Error(response.error);
@@ -103,11 +103,12 @@ function UpdateManager() {
     } finally {
       setUpdateState(prev => ({ ...prev, isChecking: false }));
     }
-  }, []);
+  }, [releaseChannel]);
 
   // Perform update
   const performUpdate = async () => {
-    if (!updateState.latestVersion) return;
+    const versionToUpdate = getFilteredLatestVersion();
+    if (!versionToUpdate) return;
     
     setUpdateState(prev => ({ ...prev, isUpdating: true, updateProgress: 0, error: null }));
     
@@ -115,7 +116,7 @@ function UpdateManager() {
       setUpdateState(prev => ({ ...prev, updateProgress: 10 }));
       
       const response = await apiClient.post('/system/updates/perform/', {
-        version: updateState.latestVersion
+        version: versionToUpdate
       });
       
       const progressInterval = setInterval(() => {
@@ -136,7 +137,7 @@ function UpdateManager() {
         setTimeout(() => {
         setUpdateState(prev => ({
           ...prev,
-          currentVersion: prev.latestVersion!,
+          currentVersion: versionToUpdate,
           updateAvailable: false,
           isUpdating: false,
           updateProgress: 0
@@ -164,6 +165,99 @@ function UpdateManager() {
     });
   };
 
+  // Filter releases based on selected channel
+  const getFilteredReleases = () => {
+    if (releaseChannel === 'all') return releases;
+    if (releaseChannel === 'stable') return releases.filter(release => !release.prerelease);
+    if (releaseChannel === 'prerelease') return releases.filter(release => release.prerelease);
+    return releases;
+  };
+
+  // Get the appropriate release type badge
+  const getReleaseTypeBadge = (release: Release) => {
+    const version = release.tag_name.toLowerCase();
+    
+    if (version.includes('alpha')) {
+      return { text: 'Alpha', variant: 'destructive' as const };
+    } else if (version.includes('beta')) {
+      return { text: 'Beta', variant: 'destructive' as const };
+    } else if (version.includes('rc') || version.includes('pre')) {
+      return { text: 'Pre-release', variant: 'destructive' as const };
+    } else if (release.prerelease) {
+      return { text: 'Pre-release', variant: 'destructive' as const };
+    }
+    
+    return null;
+  };
+
+  // Parse release body to separate title from content
+  const parseReleaseBody = (body: string, title: string) => {
+    if (!body) return { preview: '', fullContent: body };
+    
+    // Split by lines and remove the title if it appears at the start
+    const lines = body.split('\n');
+    let contentStart = 0;
+    
+    // Check if the first few lines contain the title (case insensitive)
+    const titleLower = title.toLowerCase();
+    for (let i = 0; i < Math.min(3, lines.length); i++) {
+      if (lines[i].toLowerCase().includes(titleLower.replace(/[^\w\s]/g, '')) || 
+          lines[i].toLowerCase().includes('alpha') || 
+          lines[i].toLowerCase().includes('beta') ||
+          lines[i].toLowerCase().includes('release')) {
+        contentStart = i + 1;
+        break;
+      }
+    }
+    
+    // Skip empty lines after title
+    while (contentStart < lines.length && lines[contentStart].trim() === '') {
+      contentStart++;
+    }
+    
+    const content = lines.slice(contentStart).join('\n').trim();
+    const preview = content.split('\n').slice(0, 2).join(' ').replace(/[#*`]/g, '').slice(0, 150);
+    
+    return { preview, fullContent: content };
+  };
+
+  // Enhanced markdown renderer for the modal
+  const renderMarkdown = (markdown: string) => {
+    if (!markdown) return '';
+    
+    return markdown
+      // Headers
+      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-3 mt-6 text-foreground">$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-4 mt-6 text-foreground">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4 mt-6 text-foreground">$1</h1>')
+      // Bold and italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">$1</a>')
+      // Code blocks
+      .replace(/```([\s\S]*?)```/g, '<pre class="bg-muted border rounded-md p-4 text-sm overflow-x-auto my-4"><code class="text-foreground">$1</code></pre>')
+      .replace(/`([^`]+)`/g, '<code class="bg-muted px-2 py-1 rounded text-sm font-mono text-foreground">$1</code>')
+      // Lists
+      .replace(/^\* (.*$)/gm, '<li class="ml-6 mb-1 list-disc">$1</li>')
+      .replace(/^- (.*$)/gm, '<li class="ml-6 mb-1 list-disc">$1</li>')
+      .replace(/^\d+\. (.*$)/gm, '<li class="ml-6 mb-1 list-decimal">$1</li>')
+      // Wrap consecutive list items
+      .replace(/(<li.*<\/li>\s*)+/g, '<ul class="mb-4">$&</ul>')
+      // Line breaks and paragraphs
+      .replace(/\n\n/g, '</p><p class="mb-4 text-muted-foreground">')
+      .replace(/\n/g, '<br>')
+      // Wrap in initial paragraph
+      .replace(/^/, '<p class="mb-4 text-muted-foreground">')
+      .replace(/$/, '</p>');
+  };
+
+  // Open changelog modal
+  const openChangelogModal = (release: Release) => {
+    setSelectedRelease(release);
+    setShowChangelogModal(true);
+  };
+
   const getUpdateTypeInfo = () => {
     if (!updateState.latestVersion || !updateState.currentVersion) return null;
     
@@ -173,48 +267,30 @@ function UpdateManager() {
     return VersionManager.getUpdateRecommendation(updateType);
   };
 
+  // Get filtered latest version based on channel preference
+  const getFilteredLatestVersion = () => {
+    if (releases.length === 0) return null;
+    
+    const filtered = getFilteredReleases();
+    if (filtered.length === 0) return null;
+    
+    return filtered[0].tag_name.replace(/^v/, '');
+  };
+
+  // Check if update is available based on channel preference
+  const isUpdateAvailableForChannel = () => {
+    const filteredLatest = getFilteredLatestVersion();
+    if (!filteredLatest) return false;
+    
+    const currentClean = updateState.currentVersion.replace(/^v/, '');
+    return filteredLatest !== currentClean && 
+           VersionManager.compareVersions(filteredLatest, currentClean) > 0;
+  };
+
   // Check if current version exists in releases (unreleased tag functionality)
   const isCurrentVersionReleased = () => {
     const currentVersionClean = updateState.currentVersion.replace(/^v/, '');
     return releases.some(release => release.tag_name.replace(/^v/, '') === currentVersionClean);
-  };
-
-  // Toggle release expansion
-  const toggleReleaseExpansion = (releaseId: number) => {
-    setExpandedReleases(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(releaseId)) {
-        newSet.delete(releaseId);
-      } else {
-        newSet.add(releaseId);
-      }
-      return newSet;
-    });
-  };
-
-  // Simple markdown-to-HTML converter for release notes
-  const renderMarkdown = (markdown: string) => {
-    if (!markdown) return '';
-    
-    return markdown
-      // Headers
-      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mb-2 mt-4">$1</h3>')
-      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mb-3 mt-4">$1</h2>')
-      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mb-4 mt-4">$1</h1>')
-      // Bold and italic
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      // Links
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">$1</a>')
-      // Code blocks
-      .replace(/```[\s\S]*?```/g, '<pre class="bg-muted p-3 rounded text-sm overflow-x-auto"><code>$&</code></pre>')
-      .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>')
-      // Lists
-      .replace(/^\* (.*$)/gm, '<li class="ml-4">• $1</li>')
-      .replace(/^- (.*$)/gm, '<li class="ml-4">• $1</li>')
-      // Line breaks
-      .replace(/\n\n/g, '</p><p class="mb-2">')
-      .replace(/\n/g, '<br>');
   };
 
   const updateInfo = getUpdateTypeInfo();
@@ -224,13 +300,30 @@ function UpdateManager() {
       {/* Main Update Status */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" />
-            System Updates
-          </CardTitle>
-          <CardDescription>
-            Manage application updates and view release information
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="h-5 w-5" />
+                System Updates
+              </CardTitle>
+              <CardDescription>
+                Manage application updates and view release information. Choose your preferred update channel below.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={releaseChannel} onValueChange={(value: 'stable' | 'prerelease' | 'all') => setReleaseChannel(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="stable">Stable</SelectItem>
+                  <SelectItem value="prerelease">Pre-release</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -244,9 +337,9 @@ function UpdateManager() {
               </div>
               {updateState.latestVersion && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Latest Version:</span>
-                  <Badge variant={updateState.updateAvailable ? "default" : "secondary"}>
-                    {VersionManager.formatVersion(updateState.latestVersion)}
+                  <span className="text-sm font-medium">Latest {releaseChannel === 'stable' ? 'Stable' : releaseChannel === 'prerelease' ? 'Pre-release' : ''} Version:</span>
+                  <Badge variant={isUpdateAvailableForChannel() ? "default" : "secondary"}>
+                    {VersionManager.formatVersion(getFilteredLatestVersion() || updateState.latestVersion)}
                   </Badge>
                   {updateInfo && (
                     <Badge variant="outline" className={updateInfo.color}>
@@ -273,7 +366,7 @@ function UpdateManager() {
                 Check Updates
               </Button>
               
-              {updateState.updateAvailable && !updateState.isUpdating && (
+              {isUpdateAvailableForChannel() && !updateState.isUpdating && (
                 <Button onClick={performUpdate}>
                   <Download className="h-4 w-4 mr-2" />
                   Update Now
@@ -283,7 +376,7 @@ function UpdateManager() {
           </div>
 
           {/* Status Messages */}
-          {updateState.updateAvailable && !updateState.isUpdating && updateInfo && (
+          {isUpdateAvailableForChannel() && !updateState.isUpdating && updateInfo && (
             <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
               <Download className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div className="flex-1">
@@ -291,17 +384,17 @@ function UpdateManager() {
                   {updateInfo.message}
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Version {VersionManager.formatVersion(updateState.latestVersion!)} is available
+                  Version {VersionManager.formatVersion(getFilteredLatestVersion()!)} is available in your selected channel
                 </p>
               </div>
             </div>
           )}
 
-          {!updateState.updateAvailable && updateState.latestVersion && !updateState.isChecking && (
+          {!isUpdateAvailableForChannel() && getFilteredLatestVersion() && !updateState.isChecking && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
               <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               <span className="text-sm text-green-800 dark:text-green-200">
-                Your application is up to date.
+                You're up to date with the latest {releaseChannel === 'stable' ? 'stable' : releaseChannel === 'prerelease' ? 'pre-release' : ''} version.
               </span>
             </div>
           )}
@@ -324,7 +417,7 @@ function UpdateManager() {
           {updateState.isUpdating && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span>Updating to {VersionManager.formatVersion(updateState.latestVersion!)}...</span>
+                <span>Updating to {VersionManager.formatVersion(getFilteredLatestVersion()!)}...</span>
                 <span>{updateState.updateProgress}%</span>
               </div>
               <Progress value={updateState.updateProgress} className="h-2" />
@@ -336,204 +429,127 @@ function UpdateManager() {
         </CardContent>
       </Card>
 
-      {/* Changelog */}
+      {/* What's New - Latest Updates */}
+      {/* What's New - Latest Updates */}
       {releases.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <GitBranch className="h-5 w-5" />
-                Changelog
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowChangelog(!showChangelog)}
-              >
-                {showChangelog ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
+            <CardTitle className="flex items-center gap-2">
+              <GitBranch className="h-5 w-5" />
+              What's New
             </CardTitle>
             <CardDescription>
-              Release notes and changes for each version
+              See the latest features, improvements, and bug fixes from all releases
             </CardDescription>
           </CardHeader>
-          {showChangelog && (
-            <CardContent>
-              <div className="space-y-6 max-h-96 overflow-y-auto">
-                {releases.slice(0, 10).map((release) => {
+          <CardContent>
+            <div className="space-y-4">
+              {releases.slice(0, 3).map((release, index) => {
                   const isCurrent = updateState.currentVersion.replace(/^v/, '') === release.tag_name.replace(/^v/, '');
                   const isLatest = updateState.latestVersion === release.tag_name.replace(/^v/, '');
+                  const releaseType = getReleaseTypeBadge(release);
+                  const { preview } = parseReleaseBody(release.body, release.name);
                   
                   return (
-                    <div key={release.id} className="border-l-2 border-muted pl-4 pb-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={release.prerelease ? "destructive" : isLatest ? "default" : "secondary"}>
-                          {VersionManager.formatVersion(release.tag_name)}
-                        </Badge>
-                        <span className="font-semibold">{release.name}</span>
-                        {isCurrent && <Badge variant="outline" className="text-xs">Current</Badge>}
-                        {isLatest && <Badge variant="outline" className="text-xs">Latest</Badge>}
-                        {release.prerelease && <Badge variant="outline" className="text-xs">Pre-release</Badge>}
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {release.author.login}
+                    <div key={release.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={release.prerelease ? "destructive" : index === 0 ? "default" : "secondary"} className="text-sm">
+                              {release.tag_name}
+                            </Badge>
+                            {isCurrent && <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">You're Here</Badge>}
+                            {isLatest && <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">Latest Available</Badge>}
+                            {releaseType && <Badge variant="outline" className="text-xs">{releaseType.text}</Badge>}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Released {formatDate(release.published_at)}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(release.published_at)}
-                        </div>
-                        <a 
-                          href={release.html_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 hover:text-foreground transition-colors"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          View on GitHub
-                        </a>
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={release.html_url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
                       </div>
                       
                       {release.body && (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <div className="text-sm bg-muted/30 rounded-lg p-4 border whitespace-pre-wrap">
-                            {release.body.slice(0, 500)}{release.body.length > 500 ? '...' : ''}
-                          </div>
+                        <div className="text-sm text-muted-foreground">
+                          <p className="line-clamp-3">
+                            {preview}
+                            {preview.length >= 150 && '...'}
+                          </p>
+                          <Button 
+                            variant="link" 
+                            size="sm" 
+                            className="h-auto p-0 mt-2 text-xs"
+                            onClick={() => openChangelogModal(release)}
+                          >
+                            Read full changelog
+                          </Button>
                         </div>
                       )}
                     </div>
                   );
                 })}
               </div>
-              
-              {releases.length > 10 && (
-                <div className="text-center pt-4 border-t">
-                  <Button variant="outline" size="sm" asChild>
-                    <a 
-                      href="https://github.com/Jordonh18/everyst/releases" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View All Releases on GitHub
-                    </a>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          )}
-        </Card>
-      )}
-
-      {/* Recent Releases */}
-      {releases.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Recent Releases
-            </CardTitle>
-            <CardDescription>
-              Latest stable and pre-release versions with quick overview
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {releases.slice(0, 5).map((release, index) => {
-                const isLatest = index === 0 && updateState.latestVersion === release.tag_name.replace(/^v/, '');
-                const isCurrent = updateState.currentVersion.replace(/^v/, '') === release.tag_name.replace(/^v/, '');
-                const isExpanded = expandedReleases.has(release.id);
-                
-                return (
-                  <div key={release.id} className="border rounded-lg hover:bg-muted/30 transition-colors">
-                    <div 
-                      className="flex flex-col gap-3 p-4 cursor-pointer"
-                      onClick={() => toggleReleaseExpansion(release.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant={release.prerelease ? "destructive" : index === 0 ? "default" : "secondary"}>
-                              {VersionManager.formatVersion(release.tag_name)}
-                            </Badge>
-                            <span className="font-medium">{release.name}</span>
-                            {isLatest && <Badge variant="outline" className="text-xs">Latest</Badge>}
-                            {isCurrent && <Badge variant="outline" className="text-xs">Current</Badge>}
-                            {release.prerelease && <Badge variant="outline" className="text-xs">Pre-release</Badge>}
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {release.author.login}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(release.published_at)}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" asChild onClick={(e) => e.stopPropagation()}>
-                            <a href={release.html_url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          {isExpanded ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                        </div>
-                      </div>
-                      
-                      {!isExpanded && release.body && (
-                        <div className="text-sm text-muted-foreground border-l-2 border-muted pl-3">
-                          {release.body.split('\n').slice(0, 2).join('\n')}
-                          {release.body.split('\n').length > 2 && '...'}
-                        </div>
-                      )}
-                    </div>
-                    
-                    {isExpanded && release.body && (
-                      <div className="border-t px-4 pb-4">
-                        <div className="mt-4">
-                          <h4 className="font-semibold mb-3">Release Notes</h4>
-                          <div 
-                            className="prose prose-sm dark:prose-invert max-w-none text-sm"
-                            dangerouslySetInnerHTML={{
-                              __html: `<p class="mb-2">${renderMarkdown(release.body)}</p>`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              
-              <div className="text-center pt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowChangelog(true)}
-                  className="w-full"
+            
+            <div className="text-center pt-4 border-t mt-6">
+              <Button variant="outline" size="sm" asChild>
+                <a 
+                  href="https://github.com/Jordonh18/everyst/releases" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
                 >
-                  <GitBranch className="h-4 w-4 mr-2" />
-                  View Full Changelog
-                </Button>
-              </div>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View All Releases on GitHub
+                </a>
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Always show something - even if API fails */}
+      {/* Changelog Modal */}
+      <Dialog open={showChangelogModal} onOpenChange={setShowChangelogModal}>
+        <DialogContent className="!max-w-5xl w-[85vw] max-h-[80vh] overflow-hidden flex flex-col bg-background">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <GitBranch className="h-5 w-5" />
+              {selectedRelease?.tag_name}
+            </DialogTitle>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Released {selectedRelease && formatDate(selectedRelease.published_at)}</span>
+              <span>•</span>
+              <span>by {selectedRelease?.author.login}</span>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <div 
+              className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: selectedRelease?.body ? renderMarkdown(selectedRelease.body) : ''
+              }}
+            />
+          </div>
+          <div className="flex justify-end pt-4 border-t mt-4">
+            <Button variant="outline" asChild>
+              <a 
+                href={selectedRelease?.html_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View on GitHub
+              </a>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
+
+      {/* No releases available */}
       {releases.length === 0 && !updateState.isChecking && (
         <Card>
           <CardHeader>
@@ -542,18 +558,20 @@ function UpdateManager() {
               Release Information
             </CardTitle>
             <CardDescription>
-              Unable to load release information from GitHub
+              Stay up to date with the latest features and improvements
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                Could not fetch release information. This may be due to network issues or API limits.
+              <GitBranch className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-medium mb-2">No Release Information Available</h3>
+              <p className="text-muted-foreground mb-6 text-sm">
+                We couldn't load the latest release information. This might be due to a temporary network issue.
               </p>
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-3">
                 <Button variant="outline" onClick={() => checkForUpdates()}>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Retry
+                  Try Again
                 </Button>
                 <Button variant="outline" asChild>
                   <a 
